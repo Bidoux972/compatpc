@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V4.5 — Shopping Gaming</title>
+<title>Compat'PC V4.6 — Shopping Gaming</title>
 <style>
 :root{
   --bg:#08101f;--panel:#111a2f;--panel2:#16233d;--line:#283858;--text:#eef4ff;
@@ -151,6 +151,14 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 }
 .compare-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.compare-card{background:#0b1427;border:1px solid var(--line);border-radius:16px;padding:14px}
 .share-box{background:#0b1427;border:1px solid var(--line);border-radius:14px;padding:14px}.share-code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:#07101f;border:1px solid #2d4169;border-radius:10px;padding:12px;word-break:break-all;color:#bcd2ff}
+.welcome-overlay{position:fixed;inset:0;background:rgba(4,9,20,.8);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.welcome-card{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:28px;max-width:470px;width:100%;box-shadow:0 24px 70px rgba(0,0,0,.5);text-align:center}
+.welcome-card h2{margin:0 0 8px}
+.welcome-card p{color:var(--muted);margin:0 0 18px;line-height:1.5}
+.welcome-buttons{display:flex;gap:12px;justify-content:center;margin-bottom:16px}
+.welcome-buttons .btn{font-size:18px;padding:16px 28px}
+.welcome-other{display:flex;gap:8px}
+#userChip{border:1px solid #324970;background:#1b2948;color:#ffd66b}
 @media(max-width:1100px){.collection-grid,.product-strip{grid-template-columns:1fr 1fr}.hero-machine{opacity:.35}}@media(max-width:720px){.collection-grid,.product-strip,.compare-grid{grid-template-columns:1fr}.shop-hero h2{font-size:31px}.hero-machine{display:none}}
 
 .product-photo{width:100%;height:100%;object-fit:contain;display:block;padding:7px;box-sizing:border-box}
@@ -175,12 +183,13 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1>Compat'PC V4.4.1</h1>
-      <p>Construis ton PC avec une bibliothèque commune de 441 composants : parcours guidé pour Noah, atelier complet et bibliothèque personnelle persistante.</p>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V4.6</h1>
+      <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
       <button id="simpleMode" class="active">Mode simple</button>
       <button id="expertMode">Mode expert</button>
+      <button id="userChip" title="Changer de joueur">👤 …</button>
     </div>
   </div>
 
@@ -191,8 +200,9 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
     <aside class="sidebar">
       <div id="steps"></div>
       <div class="side-actions">
+        <button class="btn" id="goHome">🏠 Accueil</button>
         <button class="btn secondary" id="openImport">Ajouter un lien</button><button class="btn secondary" id="openSimpleLibrary">Explorer toute la bibliothèque</button><button class="btn secondary" id="openPersonalLibrary">Ma bibliothèque personnelle</button>
-        <button class="btn ghost" id="openSaved">Mes configurations</button><button class="btn warn expert-only" id="openExpertWorkshop">Ouvrir l’atelier expert</button><div style="font-size:11px;color:var(--muted);line-height:1.4">Sauvegardées dans ce navigateur sur cet appareil.</div>
+        <button class="btn ghost" id="openSaved">Mes configurations</button><button class="btn warn expert-only" id="openExpertWorkshop">Ouvrir l’atelier expert</button><div style="font-size:11px;color:var(--muted);line-height:1.4">Configs de la famille en ligne + sauvegardes locales.</div>
         <button class="btn ghost" id="restart">Recommencer</button>
       </div>
     </aside>
@@ -415,7 +425,21 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
     </main>
   </div>
   <div id="compareTray" class="compare-tray"><span id="compareTrayText"></span><button class="btn secondary" id="openCompare">Comparer</button><button class="btn ghost" id="clearCompare">Vider</button></div><div id="toast" class="toast"></div>
-  <footer>Compat'PC V4.5 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <div id="welcomeOverlay" class="welcome-overlay" style="display:none">
+    <div class="welcome-card">
+      <h2>Bienvenue sur Compat'PC !</h2>
+      <p>Dis-moi qui tu es : ton prénom s'affichera sur les configurations que tu publies pour la famille.</p>
+      <div class="welcome-buttons">
+        <button class="btn" data-who="Bidou">👨 Bidou</button>
+        <button class="btn" data-who="Noah">🎮 Noah</button>
+      </div>
+      <div class="welcome-other">
+        <input id="welcomeOther" placeholder="Autre prénom…">
+        <button class="btn secondary" id="welcomeOtherBtn">OK</button>
+      </div>
+    </div>
+  </div>
+  <footer>Compat'PC V4.6 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -492,8 +516,8 @@ function supaFetch(path,options={}){
  return fetch(SUPABASE_URL+"/rest/v1/"+path,{...options,headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+SUPABASE_ANON_KEY,"Content-Type":"application/json",...(options.headers||{})}});
 }
 function getUserName(){
- let n=(localStorage.getItem("compatpc_user")||"").trim();
- if(!n){n=(prompt("Ton prénom (affiché pour la famille) :","")||"").trim();if(n)localStorage.setItem("compatpc_user",n)}
+ const n=currentUser();
+ if(!n){showWelcome();showToast("Choisis d'abord ton prénom, puis republie.")}
  return n;
 }
 async function publishConfig(){
@@ -1329,6 +1353,18 @@ document.getElementById("expertMode").onclick=()=>{
  showToast("Mode expert activé : atelier complet ouvert.");
 };
 
+function currentUser(){return (localStorage.getItem("compatpc_user")||"").trim()}
+function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";showToast("Salut "+n+" ! Bon shopping.")}
+function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?")}
+function showWelcome(){document.getElementById("welcomeOther").value="";document.getElementById("welcomeOverlay").style.display="flex"}
+document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
+document.getElementById("welcomeOtherBtn").onclick=()=>{const v=document.getElementById("welcomeOther").value.trim();if(v)setUser(v)};
+document.getElementById("welcomeOther").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("welcomeOtherBtn").click()});
+document.getElementById("userChip").onclick=showWelcome;
+document.getElementById("goHome").onclick=()=>showPanel("shopHome");
+document.getElementById("brandHome").onclick=()=>showPanel("shopHome");
+updateUserChip();
+if(!currentUser())showWelcome();
 document.getElementById("publishConfig").onclick=publishConfig;
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
