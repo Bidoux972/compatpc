@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V4.7 — Shopping Gaming</title>
+<title>Compat'PC V4.8 — Shopping Gaming</title>
 <style>
 :root{
   --bg:#08101f;--panel:#111a2f;--panel2:#16233d;--line:#283858;--text:#eef4ff;
@@ -196,7 +196,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V4.7</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V4.8</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -467,7 +467,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V4.7 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V4.8 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -714,7 +714,16 @@ function chooseParts(profile){
  const heavy=state.usages.includes("heavy")||state.screen==="4k";
  const video=state.usages.includes("youtube")||state.usages.includes("stream");
  const storage=state.usages.includes("storage");
+ const quiet=state.usages.includes("quiet");
+ const esport=state.usages.includes("esport");
  const targetColor=white?"white":black?"black":null;
+
+ const budget=Math.max(700,Number(state.budget)||1500);
+ const budgetFactor=cheap?0.85:premium?1.1:1;
+ const envelope={cpu:.155,motherboard:.115,ram:.07,gpu:.365,case:.09,cooler:premium?.085:.065,fans:.035,ssd:(storage||video)?.085:.06,psu:.065};
+ const targetPrice={};
+ for(const k in envelope)targetPrice[k]=budget*budgetFactor*envelope[k];
+ if(esport&&!heavy)targetPrice.gpu*=0.85;
 
  function score(cat,p){
    let s=0;
@@ -724,6 +733,8 @@ function chooseParts(profile){
    if(aquarium&&cat==="cooler"&&(p.gif||p.lcd))s+=premium?28:16;
    if(state.mood==="rgb-showcase"&&(p.rgb||p.argb||(p.styles||[]).includes("rgb")))s+=15;
    if(state.mood==="stealth"&&(p.styles||[]).includes("stealth"))s+=15;
+   if(quiet&&cat==="cooler"&&p.type==="Air")s+=14;
+   if(quiet&&cat==="fans"&&!p.rgb&&!p.argb)s+=10;
    if(cat==="ram"&&(p.capacity||0)>=32)s+=12;
    if(cat==="ssd"&&(p.capacity||0)>=(storage||video?2:1))s+=12;
    if(cat==="gpu"){
@@ -736,30 +747,53 @@ function chooseParts(profile){
      if(video&&(p.tdp||0)>=65)s+=7;
      if(/9600X|9700X|7700|7800X3D|9800X3D/i.test(p.name))s+=premium?12:6;
    }
-   const targetPrice={
-     cpu:cheap?150:premium?280:210,motherboard:cheap?140:premium?220:180,ram:cheap?85:premium?150:110,
-     gpu:cheap?400:premium?750:560,case:cheap?90:premium?180:130,cooler:cheap?60:premium?250:120,
-     fans:cheap?60:premium?100:75,ssd:storage||video?130:80,psu:cheap?90:premium?130:105
-   }[cat]||100;
-   s-=Math.abs((p.price||0)-targetPrice)/18;
+   s-=Math.abs((p.price||0)-targetPrice[cat])/14;
+   if((p.price||0)>targetPrice[cat]*1.6)s-=25;
    return s;
  }
- function pick(cat,filter=()=>true){
-   const arr=parts[cat].filter(filter).sort((a,b)=>score(cat,b)-score(cat,a));
-   return arr[0]?.id||parts[cat][0]?.id;
+ function ranked(cat,filter=()=>true){return parts[cat].filter(filter).sort((a,b)=>score(cat,b)-score(cat,a))}
+ function pick(cat,filter=()=>true){const arr=ranked(cat,filter);return arr[0]?.id||parts[cat][0]?.id}
+
+ const filters={
+   cpu:p=>p.socket==="AM5",
+   motherboard:p=>p.socket==="AM5"&&p.ram==="DDR5",
+   ram:p=>p.type==="DDR5"&&(p.capacity||0)>=32,
+   case:p=>!aquarium||p.style==="aquarium",
+   cooler:p=>(p.sockets||[]).includes("AM5")&&(!aquarium||premium||p.rad>=240||p.type==="Air"),
+   ssd:p=>(p.capacity||0)>=(storage||video?2:1),
+   fans:()=>true
+ };
+ const cpu=pick("cpu",filters.cpu);
+ const motherboard=pick("motherboard",filters.motherboard);
+ const ram=pick("ram",filters.ram);
+ const cs=pick("case",filters.case);
+ const cooler=pick("cooler",filters.cooler);
+ const clearance=effectiveGpuClearance(get("case",cs),get("cooler",cooler),"auto")||400;
+ filters.gpu=p=>(!heavy||(p.vram||0)>=12)&&(p.length||300)<=clearance;
+ const gpu=pick("gpu",filters.gpu);
+ const ssd=pick("ssd",filters.ssd);
+ let need=recommendedPsuWatts(get("cpu",cpu),get("gpu",gpu));
+ filters.psu=p=>(p.watts||0)>=need;
+ const psu=pick("psu",filters.psu);
+ let sel={cpu,motherboard,ram,gpu,case:cs,cooler,fans:pick("fans"),ssd,psu};
+
+ const cap=budget*1.06;
+ const order=["gpu","cooler","case","cpu","motherboard","ram","fans","ssd"];
+ let guard=0;
+ while(guard++<25){
+   let total=0;for(const [k,id] of Object.entries(sel))total+=get(k,id)?.price||0;
+   if(total<=cap)break;
+   let done=false;
+   for(const cat of order){
+     const cur=get(cat,sel[cat]);if(!cur)continue;
+     const cheaper=ranked(cat,p=>filters[cat](p)&&(p.price||0)<cur.price-10);
+     if(cheaper.length){sel[cat]=cheaper[0].id;done=true;break}
+   }
+   if(!done)break;
  }
- const cpu=pick("cpu",p=>p.socket==="AM5");
- const motherboard=pick("motherboard",p=>p.socket==="AM5"&&p.ram==="DDR5");
- const ram=pick("ram",p=>p.type==="DDR5"&&(p.capacity||0)>=32);
- const gpu=pick("gpu",p=>!heavy||(p.vram||0)>=12);
- const cs=pick("case",p=>!aquarium||p.style==="aquarium");
- const cooler=pick("cooler",p=>(p.sockets||[]).includes("AM5")&&(!aquarium||premium||p.rad>=240));
- const fans=pick("fans");
- const ssd=pick("ssd",p=>(p.capacity||0)>=(storage||video?2:1));
- const gpuObj=get("gpu",gpu),cpuObj=get("cpu",cpu);
- const need=recommendedPsuWatts(cpuObj,gpuObj);
- const psu=pick("psu",p=>(p.watts||0)>=need);
- return {cpu,motherboard,ram,gpu,case:cs,cooler,fans,ssd,psu};
+ need=recommendedPsuWatts(get("cpu",sel.cpu),get("gpu",sel.gpu));
+ if((get("psu",sel.psu)?.watts||0)<need)sel.psu=pick("psu",p=>(p.watts||0)>=need);
+ return sel;
 }
 function buildFrom(profile,label,desc){
  const sel=chooseParts(profile);let total=0;Object.entries(sel).forEach(([k,id])=>total+=get(k,id).price);
