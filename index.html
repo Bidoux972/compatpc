@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V4.6 — Shopping Gaming</title>
+<title>Compat'PC V4.7 — Shopping Gaming</title>
 <style>
 :root{
   --bg:#08101f;--panel:#111a2f;--panel2:#16233d;--line:#283858;--text:#eef4ff;
@@ -136,6 +136,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .shop-hero h2{font-size:39px;line-height:1.03;margin:0 0 12px;max-width:650px;letter-spacing:-1.2px}.shop-hero p{max-width:650px;color:#c4cee1;font-size:16px;line-height:1.6}
 .hero-actions,.shop-nav,.shop-actions{display:flex;gap:9px;flex-wrap:wrap}.hero-actions{margin-top:20px}.shop-nav{margin-top:17px}.shop-nav button{border:1px solid #35517f;background:#14213b;color:#dce8ff;border-radius:999px;padding:8px 12px;font-weight:800}
 .hero-machine{position:absolute;right:20px;bottom:-8px;width:365px;height:255px}
+.home-hero h2{font-size:34px;margin:0 0 6px;letter-spacing:-1px}
+.home-hero p{color:var(--muted);margin:0 0 20px;font-size:16px}
+.door-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:26px}
+.door{border:1px solid var(--line);background:linear-gradient(160deg,#101b33,#0b1427);border-radius:18px;padding:20px;cursor:pointer;transition:.18s transform,.18s border-color,.18s box-shadow}
+.door:hover{transform:translateY(-3px);border-color:#4b6ea8;box-shadow:0 14px 34px rgba(0,0,0,.3)}
+.door h3{margin:0 0 8px;font-size:19px}
+.door p{margin:0;color:var(--muted);font-size:13px;line-height:1.55}
+.door-cta{display:inline-block;margin-top:14px;font-weight:850;color:var(--accent)}
+.door.family{background:linear-gradient(160deg,#141f3c,#170f2c);border-color:#3b3a6e}
+.mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.mini{border:1px solid var(--line);background:#0b1427;border-radius:14px;padding:14px;cursor:pointer;font-weight:800;text-align:center;transition:.15s border-color}
+.mini:hover{border-color:#45659b}
+@media(max-width:900px){.door-grid{grid-template-columns:1fr}.mini-grid{grid-template-columns:1fr 1fr}}
 .shop-section{margin-top:22px}.shop-head{display:flex;justify-content:space-between;align-items:end;gap:12px;margin-bottom:12px}.shop-head h3{margin:0;font-size:22px}.shop-head p{margin:4px 0 0;color:var(--muted);font-size:13px}
 .collection-grid,.product-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}
 .collection{position:relative;min-height:185px;border-radius:18px;overflow:hidden;border:1px solid #30466f;padding:17px;cursor:pointer}.collection:hover{transform:translateY(-2px);transition:.18s}.collection h4{margin:0 0 6px;font-size:18px}.collection p{margin:0;font-size:12px;max-width:72%}.collection-art{position:absolute;right:-8px;bottom:-5px;width:155px;height:135px}
@@ -183,7 +196,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V4.6</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V4.7</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -211,23 +224,38 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 
       <section class="card panel active" id="shopHome">
         <div class="card-body">
-          <div class="shop-hero">
-            <h2>Construis un setup qui donne vraiment envie de jouer.</h2>
-            <p>Une vraie expérience shopping gaming, avec import automatique depuis un simple lien, bibliothèque complète, radar de compatibilité et atelier expert.</p>
-            <div class="hero-actions"><button class="btn" id="shopStart">Créer mon setup</button><button class="btn secondary" id="shopBrowse">Explorer le shop</button><button class="btn ghost" id="shopResume">Reprendre mon panier</button></div>
+          <div class="home-hero">
+            <h2 id="homeGreeting">Salut ! 👋</h2>
+            <p>Qu'est-ce qu'on fait aujourd'hui ?</p>
+          </div>
+          <div class="door-grid">
+            <div class="door" id="shopStart">
+              <h3>🎮 Parcours guidé</h3>
+              <p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à commander.</p>
+              <span class="door-cta">Commencer →</span>
+            </div>
+            <div class="door" id="quickExpert">
+              <h3>🔧 Atelier expert</h3>
+              <p>Choisis chaque pièce librement, avec les dimensions, les puissances et le diagnostic de compatibilité complet.</p>
+              <span class="door-cta">Ouvrir l'atelier →</span>
+            </div>
+            <div class="door family" id="quickSaved">
+              <h3>👨‍👩‍👦 Configs de la famille</h3>
+              <p>Les setups publiés par Bidou et Noah, visibles depuis n'importe quel appareil. Charge, compare, améliore.</p>
+              <span class="door-cta">Voir les configs →</span>
+            </div>
+          </div>
+          <div class="shop-section"><div class="shop-head"><div><h3>La bibliothèque</h3><p>441 composants, plus vos imports partagés en famille.</p></div></div>
+            <div class="mini-grid">
+              <div class="mini" id="shopBrowse">🔍 Explorer tout</div>
+              <div class="mini" id="quickImport">🔗 Ajouter un lien</div>
+              <div class="mini" id="quickPersonal">📦 Ma bibliothèque</div>
+              <div class="mini" id="shopResume">🛒 Reprendre mon panier</div>
+            </div>
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
-            <div class="hero-machine" id="heroMachine"></div>
           </div>
           <div class="shop-section"><div class="shop-head"><div><h3>Shop par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
           <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div class="shop-section"><div class="shop-head"><div><h3>Coups de cœur</h3><p>Des pièces fortes pour le setup de Noah.</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
-          <div class="shop-section"><div class="shop-head"><div><h3>Accès rapide</h3><p>Toutes les fonctions historiques restent disponibles.</p></div></div>
-            <div class="collection-grid">
-              <div class="collection black" id="quickExpert"><h4>Atelier expert</h4><p>Choix libre, radar et diagnostics complets.</p></div>
-              <div class="collection rgb" id="quickImport"><h4>Ajouter un lien</h4><p>Panier ou bibliothèque personnelle.</p></div>
-              <div class="collection white" id="quickSaved"><h4>Mes configurations</h4><p>Paniers sauvegardés dans ce navigateur.</p></div>
-              <div class="collection budget" id="quickPersonal"><h4>Ma bibliothèque</h4><p>Ajouts personnels et export JSON.</p></div>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -439,7 +467,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V4.6 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V4.7 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -610,7 +638,6 @@ function renderCompare(){const g=document.getElementById("compareGrid");g.innerH
 function shopCard(cat,p){return `<div class="shop-product"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div></div><div class="shop-product-body"><h4>${productNameHtml(p)}</h4><p>${labelCat(cat)}</p><div class="price">${money(p.price)}</div><div class="shop-actions"><button class="btn secondary" data-shop-use="${cat}|${p.id}">Voir</button><button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div></div></div>`}
 function bindShop(root){root.querySelectorAll("[data-shop-use]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.shopUse.split("|");openSimpleLibrary(c);document.getElementById("simpleSearch").value=get(c,i).name;renderSimpleLibrary()});root.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.fav.split("|");toggleFavorite(c,i)});root.querySelectorAll("[data-compare]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.compare.split("|");addCompare(c,i)})}
 function renderShop(){
- document.getElementById("heroMachine").innerHTML=renderArt("case",{color:"white",style:"aquarium",styles:["rgb","aquarium"],gif:true},true);
  const cols=[
  ["Aquarium blanc","Verre, RGB et composants blancs.","white","case","white","aquarium"],
  ["Aquarium noir","Une vitrine sombre et lumineuse.","black","case","black","aquarium"],
@@ -1355,7 +1382,7 @@ document.getElementById("expertMode").onclick=()=>{
 
 function currentUser(){return (localStorage.getItem("compatpc_user")||"").trim()}
 function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";showToast("Salut "+n+" ! Bon shopping.")}
-function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?")}
+function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?");const g=document.getElementById("homeGreeting");if(g)g.textContent=currentUser()?("Salut "+currentUser()+" ! 👋"):"Salut ! 👋"}
 function showWelcome(){document.getElementById("welcomeOther").value="";document.getElementById("welcomeOverlay").style.display="flex"}
 document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
 document.getElementById("welcomeOtherBtn").onclick=()=>{const v=document.getElementById("welcomeOther").value.trim();if(v)setUser(v)};
