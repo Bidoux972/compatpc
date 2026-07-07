@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.3.1 — Shopping Gaming</title>
+<title>Compat'PC V6.4 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -309,7 +309,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.3</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.4</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -591,7 +591,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.3.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V6.4 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -739,6 +739,28 @@ function mergeCloudItem(cat,item){
  const copy={...item,origin:"personal",custom:true};
  const idx=parts[cat].findIndex(x=>x.id===copy.id);
  if(idx>=0)parts[cat][idx]=copy; else parts[cat].push(copy);
+}
+async function syncImagesFromCloud(){
+ if(!CLOUD_ON)return;
+ try{
+   const r=await supaFetch("compatpc_images?select=id,cat,url&limit=1000");
+   if(!r.ok)return;
+   const rows=await r.json();
+   let n=0;
+   rows.forEach(row=>{
+     const arr=parts[row.cat];if(!arr||!row.url)return;
+     const p=arr.find(x=>x.id===row.id);
+     if(p){p.image=row.url;n++}
+   });
+   if(n)renderShop();
+ }catch(e){/* photothèque indisponible : art vectoriel en secours */}
+}
+async function saveImageForFamily(cat,p,url){
+ p.image=url;
+ if(!CLOUD_ON)return false;
+ const r=await supaFetch("compatpc_images?on_conflict=id",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates"},body:JSON.stringify({id:p.id,cat,url,auteur:currentUser()||null})});
+ if(!r.ok)throw new Error("HTTP "+r.status);
+ return true;
 }
 async function syncLibraryFromCloud(){
  if(!CLOUD_ON)return;
@@ -930,15 +952,18 @@ function renderShop(){
  renderFeaturedCarousel();
 }
 function featuredPool(){
- const pool=[];
+ const pool=[],seen=new Set();
+ expertCategories.forEach(cat=>parts[cat].forEach(p=>{
+   if(p.image&&!seen.has(p.id)){
+     seen.add(p.id);
+     pool.push({cat,p,why:(p.origin==="personal"||p.custom)?"📸 Import de la famille":"📸 "+labelCat(cat)+(p.topRank?" — ★ n°"+p.topRank:"")});
+   }
+ }));
  expertCategories.forEach(cat=>{
-   parts[cat].filter(p=>(p.origin==="personal"||p.custom)&&p.image).forEach(p=>pool.push({cat,p,why:"📸 Import de la famille — vraie photo"}));
- });
- expertCategories.forEach(cat=>{
-   const tops=parts[cat].filter(p=>p.topRank&&!(p.origin==="personal")).sort((a,b)=>a.topRank-b.topRank||((a.price||0)-(b.price||0)));
+   const tops=parts[cat].filter(p=>p.topRank&&!p.image).sort((a,b)=>a.topRank-b.topRank||((a.price||0)-(b.price||0)));
    if(tops[0])pool.push({cat,p:tops[0],why:"★ n°"+tops[0].topRank+" — "+labelCat(cat)});
  });
- return pool;
+ return pool.slice(0,24);
 }
 let featIdx=0,featTimer=null;
 function renderFeaturedCarousel(){
@@ -1464,7 +1489,7 @@ function renderSimpleLibrary(){
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
-   d.innerHTML=`<div class="visual ${visualClass}"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
+   d.innerHTML=`<div class="visual ${visualClass}"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5c7a1d">📸 vraie photo</span>':""}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
  g.querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
@@ -1697,13 +1722,25 @@ function openSheet(cat,id){
    <button class="btn" id="sheetUse">Mettre dans le panier</button>
    <button class="btn ghost fav-btn ${isFavorite(cat,id)?"active":""}" id="sheetFav">★ Favori</button>
    <button class="btn ghost" id="sheetCompare">Comparer</button>
-   ${p.url?`<a class="btn secondary" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">Chez le marchand</a>`:`<a class="btn secondary" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir des photos</a>`}
+   <button class="btn secondary" id="sheetPhoto">🖼 ${p.image?"Changer la photo":"Ajouter la vraie photo"}</button>
+   ${p.url?`<a class="btn ghost" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">Chez le marchand</a>`:""}
    <button class="btn ghost" id="sheetClose">Fermer</button>
   </div>`;
  o.style.display="flex";
  document.getElementById("sheetClose").onclick=()=>o.style.display="none";
  o.onclick=e=>{if(e.target===o)o.style.display="none"};
  document.getElementById("sheetFav").onclick=()=>{toggleFavorite(cat,id);openSheet(cat,id)};
+ document.getElementById("sheetPhoto").onclick=async()=>{
+   window.open("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(p.name),"_blank");
+   const url=(prompt("1. Trouve la bonne photo dans l'onglet Google Images qui vient de s'ouvrir.\n2. Clic droit sur l'image → « Copier l'adresse de l'image ».\n3. Colle l'adresse ici :","")||"").trim();
+   if(!url)return;
+   if(!/^https?:\/\/.+/i.test(url)){showToast("Adresse invalide — il faut l'adresse de l'image (clic droit dessus).");return}
+   try{
+     const synced=await saveImageForFamily(cat,p,url);
+     showToast(synced?"📸 Photo enregistrée pour toute la famille !":"Photo appliquée sur cet appareil.");
+   }catch(e){showToast("Photo appliquée ici, mais synchro impossible ("+e.message+"). As-tu exécuté images.sql ?")}
+   openSheet(cat,id);renderShop();
+ };
  document.getElementById("sheetCompare").onclick=()=>{addCompare(cat,id);showToast("Ajouté au comparateur (3 max).")};
  document.getElementById("sheetUse").onclick=()=>{
    if(state.cart){state.cart.selection[cat]=id;renderCart();o.style.display="none";go(4);showToast(p.name+" est dans ton panier.")}
@@ -2098,6 +2135,7 @@ document.getElementById("publishConfig").onclick=publishConfig;
 document.getElementById("startPurchase").onclick=createPurchaseProject;
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
+syncImagesFromCloud();
 </script>
 </body>
 </html>
