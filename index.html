@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.4.1 — Shopping Gaming</title>
+<title>Compat'PC V6.4.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -591,7 +591,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.4.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V6.4.2 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1726,16 +1726,28 @@ function openSheet(cat,id){
    <button class="btn secondary" id="sheetPhoto">🖼 ${p.image?"Changer la photo":"Ajouter la vraie photo"}</button>
    ${p.url?`<a class="btn ghost" href="${escapeHtml(p.url)}" target="_blank" rel="noopener">Chez le marchand</a>`:""}
    <button class="btn ghost" id="sheetClose">Fermer</button>
+  </div>
+  <div id="sheetPhotoForm" style="display:none;margin-top:12px;background:#0d0d11;border:1px solid var(--line);border-radius:12px;padding:12px">
+    <div class="small-note" style="margin-bottom:8px"><strong>1.</strong> Dans l'onglet Google Images qui vient de s'ouvrir, clique sur la bonne photo pour l'agrandir.<br><strong>2.</strong> Clic droit sur la grande image → <strong>« Copier l'adresse de l'image »</strong>.<br><strong>3.</strong> Reviens ici et colle l'adresse ci-dessous :</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input id="sheetPhotoUrl" placeholder="https://…" style="flex:1;min-width:220px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:9px 10px">
+      <button class="btn" id="sheetPhotoSave">Enregistrer la photo</button>
+    </div>
   </div>`;
  o.style.display="flex";
  document.getElementById("sheetClose").onclick=()=>o.style.display="none";
  o.onclick=e=>{if(e.target===o)o.style.display="none"};
  document.getElementById("sheetFav").onclick=()=>{toggleFavorite(cat,id);openSheet(cat,id)};
- document.getElementById("sheetPhoto").onclick=async()=>{
+ document.getElementById("sheetPhoto").onclick=()=>{
    window.open("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(p.name),"_blank");
-   const url=(prompt("1. Trouve la bonne photo dans l'onglet Google Images qui vient de s'ouvrir.\n2. Clic droit sur l'image → « Copier l'adresse de l'image ».\n3. Colle l'adresse ici :","")||"").trim();
-   if(!url)return;
-   if(!/^https?:\/\/.+/i.test(url)){showToast("Adresse invalide — il faut l'adresse de l'image (clic droit dessus).");return}
+   const f=document.getElementById("sheetPhotoForm");
+   f.style.display="block";
+   f.scrollIntoView({behavior:"smooth",block:"nearest"});
+ };
+ document.getElementById("sheetPhotoSave").onclick=async()=>{
+   const url=(document.getElementById("sheetPhotoUrl").value||"").trim();
+   if(!url){showToast("Colle d'abord l'adresse de l'image dans le champ.");return}
+   if(!/^https?:\/\/.+/i.test(url)){showToast("Adresse invalide — il faut l'adresse de l'image (clic droit sur l'image → copier l'adresse de l'image).");return}
    try{
      const synced=await saveImageForFamily(cat,p,url);
      showToast(synced?"📸 Photo enregistrée pour toute la famille !":"Photo appliquée sur cet appareil.");
