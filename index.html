@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.1 — Shopping Gaming</title>
+<title>Compat'PC V6.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -289,7 +289,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.1</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.2</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -570,7 +570,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V6.2 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1241,7 +1241,32 @@ function renderExpertToolbox(){
  const mount=document.getElementById("expertAioMount");if(mount)mount.value=state.expertAioMount||"auto";
  expertCategories.forEach(cat=>{
    const wrap=document.createElement("div");wrap.className="field";
-   const options=['<option value="">— Choisir —</option>'].concat(parts[cat].map(p=>`<option value="${p.id}">${p.topRank?"★ TOP #"+p.topRank+" · ":""}${escapeHtml(p.name)} · ${tierLabel(p.tier)} — ${money(p.price)}</option>`)).join("");
+   const tr={haut:0,moyen:1,"entrée":2};
+   const sorted=[...parts[cat]].sort((a,b)=>{
+     const ta=a.topRank||99,tb=b.topRank||99;
+     if(ta!==tb)return ta-tb;
+     const ga=tr[a.tier]??3,gb=tr[b.tier]??3;
+     if(ga!==gb)return ga-gb;
+     return (a.price||0)-(b.price||0);
+   });
+   const groups={top:[],haut:[],moyen:[],entree:[],perso:[],autres:[]};
+   sorted.forEach(p=>{
+     if(p.origin==="personal"||p.custom)groups.perso.push(p);
+     else if(p.topRank)groups.top.push(p);
+     else if(p.tier==="haut")groups.haut.push(p);
+     else if(p.tier==="moyen")groups.moyen.push(p);
+     else if(p.tier==="entrée")groups.entree.push(p);
+     else groups.autres.push(p);
+   });
+   const opt=p=>`<option value="${p.id}">${p.topRank?"★ #"+p.topRank+" · ":""}${escapeHtml(p.name)} — ${money(p.price)}</option>`;
+   const grp=(label,arr)=>arr.length?`<optgroup label="${label}">${arr.map(opt).join("")}</optgroup>`:"";
+   const options='<option value="">— Choisir —</option>'
+     +grp("★ Top 10",groups.top)
+     +grp("Haut de gamme",groups.haut)
+     +grp("Milieu de gamme",groups.moyen)
+     +grp("Entrée de gamme",groups.entree)
+     +grp("Mes imports / famille",groups.perso)
+     +grp("Autres",groups.autres);
    wrap.innerHTML=`<label>${labelCat(cat)} — ${parts[cat].length} choix</label><select id="expert-${cat}">${options}</select>`;
    box.appendChild(wrap);
    const sel=wrap.querySelector("select");
