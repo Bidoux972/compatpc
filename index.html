@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V4.8 — Shopping Gaming</title>
+<title>Compat'PC V5.0 — Shopping Gaming</title>
 <style>
 :root{
   --bg:#08101f;--panel:#111a2f;--panel2:#16233d;--line:#283858;--text:#eef4ff;
@@ -172,6 +172,41 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .welcome-buttons .btn{font-size:18px;padding:16px 28px}
 .welcome-other{display:flex;gap:8px}
 #userChip{border:1px solid #324970;background:#1b2948;color:#ffd66b}
+.fps-badge{display:inline-block;font-size:11.5px;font-weight:800;padding:4px 9px;border-radius:999px;margin:2px 4px 2px 0}
+.fps-top{background:#0d2b1e;color:#6ee7a8;border:1px solid #1d5c3f}
+.fps-ok{background:#102540;color:#7cc0ff;border:1px solid #2c4f82}
+.fps-low{background:#33131a;color:#ff9aa8;border:1px solid #6b2635}
+.fps-panel{background:#0b1427;border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.fps-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.fps-head h4{margin:0}
+.fps-tabs{display:flex;gap:5px}
+.fps-tab{border:1px solid #35517f;background:#14213b;color:#dce8ff;border-radius:999px;padding:5px 12px;font-weight:800;cursor:pointer}
+.fps-tab.active{background:var(--accent);color:#08101f;border-color:var(--accent)}
+.fps-row{display:grid;grid-template-columns:130px 1fr 84px;gap:10px;align-items:center;margin:7px 0;font-size:13px}
+.fps-row strong{text-align:right}
+.fps-track{background:#07101f;border-radius:5px;height:9px;overflow:hidden}
+.fps-fill{height:9px;border-radius:5px;border:none}
+.fps-fill.fps-top{background:#3ecf8e}
+.fps-fill.fps-ok{background:#5b9dff}
+.fps-fill.fps-low{background:#ff6b81}
+.fps-note{margin:12px 0 0;font-size:11.5px;color:var(--muted)}
+.fps-strip{margin:8px 0 4px}
+.duel-box{background:#0b1427;border:1px solid #3b3a6e;border-radius:16px;padding:16px;margin-bottom:20px}
+.duel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.duel-cols{display:grid;grid-template-columns:1fr 46px 1fr;gap:8px;align-items:center;margin-bottom:12px;text-align:center}
+.duel-cols h4{margin:0}
+.duel-vs{font-weight:900;color:var(--accent);font-size:18px;text-align:center}
+.duel-chips{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:8px}
+.duel-chip{background:#07101f;border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center;font-size:12.5px}
+.duel-chip span{color:var(--muted);display:block;margin-bottom:4px}
+.duel-chip .win,.duel-row .win{color:#6ee7a8;font-weight:800}
+.duel-row{display:grid;grid-template-columns:1fr 110px 1fr;gap:8px;padding:8px 0;border-top:1px solid #16233d;font-size:12.5px;align-items:center}
+.duel-row>span{text-align:center;color:var(--muted);font-size:11px}
+.duel-row.same{opacity:.55}
+.duel-row small{display:block;color:var(--muted)}
+.duel-verdict{margin-top:12px;background:#101f38;border:1px solid #2c4f82;border-radius:12px;padding:12px;font-weight:700}
+@media(max-width:720px){.duel-row{grid-template-columns:1fr 70px 1fr}.duel-cols{grid-template-columns:1fr 30px 1fr}}
+@media(max-width:720px){.fps-row{grid-template-columns:96px 1fr 70px}}
 @media(max-width:1100px){.collection-grid,.product-strip{grid-template-columns:1fr 1fr}.hero-machine{opacity:.35}}@media(max-width:720px){.collection-grid,.product-strip,.compare-grid{grid-template-columns:1fr}.shop-hero h2{font-size:31px}.hero-machine{display:none}}
 
 .product-photo{width:100%;height:100%;object-fit:contain;display:block;padding:7px;box-sizing:border-box}
@@ -196,7 +231,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V4.8</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V5.0</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -309,6 +344,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
             <div class="metric"><div class="value" id="budgetGap">—</div><div class="label">Marge budget</div></div>
           </div>
           <div id="cartList" class="cart-list"></div>
+          <div id="fpsPanel" class="fps-panel"></div>
           <div id="cartStatus"></div>
           <div class="expert-only" style="margin-top:16px">
             <div class="card" style="box-shadow:none">
@@ -444,7 +480,8 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
         <div class="card-head"><h2>Configurations sauvegardées</h2><button class="btn ghost" id="closeSaved">Fermer</button></div>
         <div class="card-body">
           <h3 style="margin:0 0 10px">Configs de la famille (en ligne)</h3>
-          <div class="small-note" style="margin:0 0 10px">Publiées depuis n'importe quel appareil avec le bouton « Publier en ligne » du panier.</div>
+          <div class="small-note" style="margin:0 0 10px">Publiées depuis n'importe quel appareil avec « Publier en ligne ». Clique sur ⚔️ sur deux configs pour lancer un duel.</div>
+          <div id="duelBox"></div>
           <div id="cloudList" class="saved-list" style="margin-bottom:22px"></div>
           <h3 style="margin:0 0 10px">Sauvegardes locales (cet appareil)</h3>
           <div id="savedList" class="saved-list"></div>
@@ -467,7 +504,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V4.8 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V5.0 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -572,8 +609,19 @@ async function renderCloudConfigs(){
    arr.forEach(b=>{
      const d=document.createElement("div");d.className="saved";
      const date=new Date(b.created_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"});
-     d.innerHTML=`<div><strong>${escapeHtml(b.nom)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • par ${escapeHtml(b.auteur)} • ${date}</div></div><div style="display:flex;gap:8px"><button class="btn secondary" data-cloud-load="${b.id}">Charger</button><button class="btn danger" data-cloud-del="${b.id}">Suppr.</button></div>`;
+     d.innerHTML=`<div><strong>${escapeHtml(b.nom)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • par ${escapeHtml(b.auteur)} • ${date}</div></div><div style="display:flex;gap:8px"><button class="btn warn" data-duel="${b.id}" title="Défier avec cette config">⚔️</button><button class="btn secondary" data-cloud-load="${b.id}">Charger</button><button class="btn danger" data-cloud-del="${b.id}">Suppr.</button></div>`;
+     d.dataset.configId=b.id;
      w.appendChild(d);
+   });
+   state.cloudConfigs=arr;
+   w.querySelectorAll("[data-duel]").forEach(btn=>btn.onclick=()=>{
+     const id=btn.dataset.duel;
+     if(state.duelPick===id){state.duelPick=null;btn.closest(".saved").style.outline="";showToast("Duel annulé.");return}
+     if(!state.duelPick){state.duelPick=id;btn.closest(".saved").style.outline="2px solid var(--accent)";showToast("Challenger choisi — clique sur ⚔️ chez l'adversaire !");return}
+     const a=arr.find(x=>x.id===state.duelPick),b2=arr.find(x=>x.id===id);
+     w.querySelectorAll(".saved").forEach(x=>x.style.outline="");
+     state.duelPick=null;
+     if(a&&b2)renderDuel(a,b2);
    });
    w.querySelectorAll("[data-cloud-load]").forEach(btn=>btn.onclick=()=>{
      const b=arr.find(x=>x.id===btn.dataset.cloudLoad);if(!b)return;
@@ -620,6 +668,54 @@ async function syncLibraryFromCloud(){
  }catch(e){/* hors ligne : bibliothèque locale uniquement */}
 }
 /* ===== Fin partage familial ===== */
+
+/* ===== Duel de configs ===== */
+function safePart(cat,id){return get(cat,id)||{name:"Pièce importée introuvable",price:0}}
+function avgFps(sel,names,res){
+ const gpu=safePart("gpu",sel.gpu),cpu=safePart("cpu",sel.cpu);
+ const list=GAMES.filter(g=>names.includes(g.name));
+ return Math.round(list.reduce((s,g)=>s+estimateFps(g,gpu,cpu,res),0)/list.length);
+}
+function renderDuel(a,b){
+ const box=document.getElementById("duelBox");if(!box)return;
+ const res=state.fpsRes||state.screen||"1080p";
+ const selA=a.cart?.selection||{},selB=b.cart?.selection||{};
+ const eA=avgFps(selA,["Fortnite","Valorant","Rocket League"],res),eB=avgFps(selB,["Fortnite","Valorant","Rocket League"],res);
+ const hA=avgFps(selA,["Warzone","Elden Ring","Cyberpunk 2077"],res),hB=avgFps(selB,["Warzone","Elden Ring","Cyberpunk 2077"],res);
+ const tA=Number(a.total)||0,tB=Number(b.total)||0;
+ const cats=["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"];
+ const rows=cats.map(c=>{
+   const pa=safePart(c,selA[c]),pb=safePart(c,selB[c]);
+   const same=pa.name===pb.name;
+   let winA=false,winB=false;
+   if(!same&&c==="gpu"){winA=gpuIndex(pa)>gpuIndex(pb);winB=gpuIndex(pb)>gpuIndex(pa)}
+   if(!same&&c==="cpu"){winA=cpuIndex(pa)>cpuIndex(pb);winB=cpuIndex(pb)>cpuIndex(pa)}
+   return `<div class="duel-row ${same?"same":""}"><div class="${winA?"win":""}">${escapeHtml(pa.name)}<small>${money(pa.price)}</small></div><span>${labelCat(c)}</span><div class="${winB?"win":""}" style="text-align:right">${escapeHtml(pb.name)}<small>${money(pb.price)}</small></div></div>`;
+ }).join("");
+ function chip(label,va,vb,fmt,lowerBetter){
+   const wa=lowerBetter?va<vb:va>vb, wb=lowerBetter?vb<va:vb>va;
+   return `<div class="duel-chip"><span>${label}</span><div><b class="${wa?"win":""}">${fmt(va)}</b> vs <b class="${wb?"win":""}">${fmt(vb)}</b></div></div>`;
+ }
+ const fpsFmt=v=>v+" FPS";
+ let verdict;
+ if((eA>eB||hA>hB)&&tA<=tB&&eA>=eB&&hA>=hB)verdict=`« ${escapeHtml(a.nom)} » gagne partout : plus rapide et moins chère (ou à prix égal). Duel réglé. ⚰️`;
+ else if((eB>eA||hB>hA)&&tB<=tA&&eB>=eA&&hB>=hA)verdict=`« ${escapeHtml(b.nom)} » gagne partout : plus rapide et moins chère (ou à prix égal). Duel réglé. ⚰️`;
+ else if(eA===eB&&hA===hB&&tA===tB)verdict="Égalité parfaite sur les chiffres — départagez-vous sur le look !";
+ else{
+   const fast=(eA+hA)>=(eB+hB)?a:b, cheap2=tA<=tB?a:b;
+   const pct=Math.round(Math.abs((eA+hA)-(eB+hB))/Math.max(1,Math.min(eA+hA,eB+hB))*100);
+   verdict=`« ${escapeHtml(fast.nom)} » gagne en jeu (+${pct}% de FPS), « ${escapeHtml(cheap2.nom)} » gagne sur le prix (${money(Math.abs(tA-tB))} d'écart). À vous de trancher.`;
+ }
+ box.innerHTML=`<div class="duel-box">
+  <div class="duel-head"><h3 style="margin:0">⚔️ Duel — ${res==="4k"?"4K":res}</h3><button class="btn ghost" id="closeDuel">Fermer</button></div>
+  <div class="duel-cols"><div><h4>${escapeHtml(a.nom)}</h4><p class="small-note" style="margin:2px 0 0">par ${escapeHtml(a.auteur)} • ${money(tA)}</p></div><div class="duel-vs">VS</div><div><h4>${escapeHtml(b.nom)}</h4><p class="small-note" style="margin:2px 0 0">par ${escapeHtml(b.auteur)} • ${money(tB)}</p></div></div>
+  <div class="duel-chips">${chip("Jeux e-sport",eA,eB,fpsFmt,false)}${chip("Gros jeux",hA,hB,fpsFmt,false)}${chip("Prix total",tA,tB,money,true)}</div>
+  ${rows}
+  <div class="duel-verdict">${verdict}</div></div>`;
+ document.getElementById("closeDuel").onclick=()=>{box.innerHTML=""};
+ box.scrollIntoView({behavior:"smooth",block:"start"});
+}
+/* ===== Fin duel ===== */
 
 let state={step:0,mood:null,budget:1500,usages:[],screen:"4k",gpuPreference:"16gb",builds:[],cart:null,expert:false,expertSelection:{},expertAioMount:"auto"};
 const FAVORITES_KEY="compatpc_v4_favorites";let compareItems=[];
@@ -705,6 +801,78 @@ function effectiveGpuClearance(cs,cool,mount){
  if(cool?.rad&&selectedFront)available-=55;
  return available;
 }
+
+/* ===== Estimation FPS ===== */
+const GPU_PERF=[
+ [/5090/,380],[/4090/,310],[/5080/,280],[/4080/,250],[/7900\s*XTX/i,250],[/5070\s*Ti/i,245],[/9070\s*XT/i,235],
+ [/7900\s*XT(?!X)/i,215],[/4070\s*Ti/i,210],[/9070(?!\s*XT)/i,210],[/5070(?!\s*Ti)/i,200],[/4070\s*Super/i,195],[/3090/,195],
+ [/6900\s*XT/i,200],[/6800\s*XT/i,185],[/7900\s*GRE/i,180],[/7800\s*XT/i,175],[/4070(?!\s*(Ti|Super))/i,175],[/3080/,175],
+ [/6800(?!\s*XT)/i,160],[/7700\s*XT/i,150],[/9060\s*XT/i,150],[/5060\s*Ti/i,150],
+ [/3070\s*Ti/i,145],[/3070(?!\s*Ti)/i,135],[/6750\s*XT/i,130],[/4060\s*Ti/i,130],[/5060(?!\s*Ti)/i,130],
+ [/6700\s*XT/i,125],[/3060\s*Ti/i,120],[/7600\s*XT/i,118],[/B580/i,115],[/4060(?!\s*Ti)/i,115],
+ [/7600(?!\s*XT)/i,112],[/6650\s*XT/i,108],[/6600\s*XT/i,105],[/3060(?!\s*Ti)/i,100],[/6600(?!\s*XT)/i,85]
+];
+const CPU_PERF=[
+ [/9800X3D/i,145],[/9950X3D/i,142],[/7800X3D/i,135],[/7950X3D/i,133],[/7900X3D/i,128],
+ [/5800X3D/i,112],[/5700X3D/i,105],
+ [/14900K/i,122],[/14700K/i,118],[/14600K/i,112],[/13600K/i,108],[/14400/i,100],[/13400/i,98],[/12400/i,90],
+ [/285K/i,118],[/270K/i,114],[/265K/i,112],[/245K/i,108],
+ [/9950X/i,120],[/9900X/i,118],[/9700/i,118],[/9600/i,112],
+ [/7950X/i,116],[/7900X/i,114],[/7900(?!X)/i,112],
+ [/7700X/i,112],[/7700(?!X)/i,110],[/7600X/i,105],[/7600(?!X)/i,102],[/7500F/i,100],
+ [/8700G/i,92],[/8600G/i,88],
+ [/5900X/i,84],[/5700X/i,82],[/5600X/i,80],[/5600(?!X)/i,78],[/5500/i,68],[/3600/i,62]
+];
+function perfIndex(table,name,fallback){
+ for(const [re,v] of table)if(re.test(name||""))return v;
+ return fallback;
+}
+function gpuIndex(gpu){return perfIndex(GPU_PERF,gpu?.name,Math.max(60,Math.round((gpu?.price||300)/4)))}
+function cpuIndex(cpu){return perfIndex(CPU_PERF,cpu?.name,100)}
+const GAMES=[
+ {name:"Fortnite",base:165,cpuCap:230},
+ {name:"Valorant",base:280,cpuCap:320},
+ {name:"Rocket League",base:230,cpuCap:280},
+ {name:"EA FC 26",base:170,cpuCap:220},
+ {name:"Minecraft",base:190,cpuCap:200},
+ {name:"Warzone",base:105,cpuCap:150},
+ {name:"Elden Ring",base:75,cpuCap:130},
+ {name:"Cyberpunk 2077",base:62,cpuCap:140}
+];
+const RES_FACTOR={"1080p":1,"1440p":0.68,"4k":0.42};
+function estimateFps(game,gpu,cpu,res){
+ const g=gpuIndex(gpu)/100, c=cpuIndex(cpu)/100;
+ const gpuFps=game.base*g*(RES_FACTOR[res]??1);
+ const cpuFps=game.cpuCap*c;
+ return Math.max(5,Math.round(Math.min(gpuFps,cpuFps)/5)*5);
+}
+function fpsBadgeClass(f){return f>=120?"fps-top":f>=60?"fps-ok":"fps-low"}
+function fpsStripHtml(sel,res){
+ const gpu=get("gpu",sel.gpu),cpu=get("cpu",sel.cpu);
+ return ["Fortnite","Warzone","Cyberpunk 2077"].map(n=>{
+   const game=GAMES.find(g=>g.name===n);
+   const f=estimateFps(game,gpu,cpu,res);
+   return `<span class="fps-badge ${fpsBadgeClass(f)}">${n.replace(" 2077","")} ~${f} FPS</span>`;
+ }).join("");
+}
+function fpsPanelHtml(sel,res){
+ const gpu=get("gpu",sel.gpu),cpu=get("cpu",sel.cpu);
+ const rows=GAMES.map(g=>{
+   const f=estimateFps(g,gpu,cpu,res);
+   const w=Math.min(100,Math.round(f/3));
+   return `<div class="fps-row"><span>${g.name}</span><div class="fps-track"><div class="fps-fill ${fpsBadgeClass(f)}" style="width:${w}%"></div></div><strong>~${f} FPS</strong></div>`;
+ }).join("");
+ const tabs=["1080p","1440p","4k"].map(r=>`<button class="fps-tab ${r===res?"active":""}" data-fps-res="${r}">${r==="4k"?"4K":r}</button>`).join("");
+ return `<div class="fps-head"><h4>🎮 Performances estimées</h4><div class="fps-tabs">${tabs}</div></div>${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
+}
+function renderFpsPanel(){
+ const box=document.getElementById("fpsPanel");
+ if(!box||!state.cart)return;
+ const res=state.fpsRes||state.screen||"1080p";
+ box.innerHTML=fpsPanelHtml(state.cart.selection,res);
+ box.querySelectorAll("[data-fps-res]").forEach(b=>b.onclick=()=>{state.fpsRes=b.dataset.fpsRes;renderFpsPanel()});
+}
+/* ===== Fin estimation FPS ===== */
 
 function chooseParts(profile){
  const white=state.mood==="white-aquarium"||state.mood==="white-clean";
@@ -820,6 +988,7 @@ function renderBuilds(){
   }).join("");
   d.innerHTML=`<div class="build-cover ${mood.visual}"><div class="build-art">${renderArt("case",get("case",b.selection.case),true)}</div></div><div class="build-content">
   <div>${i===1?'<span class="badge">Recommandé</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
+  <div class="fps-strip">${fpsStripHtml(b.selection,state.screen||"1080p")}</div>
   <div class="parts">${lines}</div><button class="btn" data-pick="${i}">Choisir ce panier</button></div>`;
   g.appendChild(d)
  });
@@ -1030,6 +1199,7 @@ function renderCart(){
  const gap=state.budget-total;document.getElementById("budgetGap").textContent=(gap>=0?"+":"")+money(gap);
  document.getElementById("cartStatus").innerHTML=`<div class="status ${comp.score===100?"ok":"warn"}">${comp.msgs.join("<br>")}</div>`;
  document.getElementById("expertDetails").innerHTML=expertHtml();
+ renderFpsPanel();
 }
 function changePart(cat){
  const current=state.cart.selection[cat];
