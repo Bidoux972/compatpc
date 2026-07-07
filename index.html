@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.3 — Shopping Gaming</title>
+<title>Compat'PC V6.3.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -591,7 +591,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.3 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V6.3.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2070,20 +2070,29 @@ if(!currentUser())showWelcome();
 const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats"};
 const STEP_NAMES=["Parcours — Style","Parcours — Budget","Parcours — Usages","Parcours — Propositions","Panier"];
 const SIDE_MAP={shopHome:"goHome",simpleLibrary:"openSimpleLibrary",expertWorkshop:"openExpertWorkshop",importPanel:"openImport",personalLibraryPanel:"openPersonalLibrary",savedPanel:"openSaved"};
+let whereBusy=false;
 function updateWhere(){
- const active=document.querySelector(".panel.active");
- const bar=document.getElementById("whereBar");
- let name="";
- if(active){
-   if(active.dataset.step!==undefined)name=STEP_NAMES[Number(active.dataset.step)]||"";
-   else name=PANEL_NAMES[active.id]||"";
- }
- if(bar)bar.textContent="📍 "+(name||"Accueil");
- document.querySelectorAll(".side-actions .btn").forEach(b=>b.classList.remove("active"));
- const btnId=active&&SIDE_MAP[active.id];
- if(btnId){const b2=document.getElementById(btnId);if(b2)b2.classList.add("active")}
+ if(whereBusy)return;
+ whereBusy=true;
+ try{
+   const active=document.querySelector(".panel.active");
+   const bar=document.getElementById("whereBar");
+   let name="";
+   if(active){
+     if(active.dataset.step!==undefined)name=STEP_NAMES[Number(active.dataset.step)]||"";
+     else name=PANEL_NAMES[active.id]||"";
+   }
+   const label="📍 "+(name||"Accueil");
+   if(bar&&bar.textContent!==label)bar.textContent=label;
+   const btnId=active&&SIDE_MAP[active.id];
+   document.querySelectorAll(".side-actions .btn").forEach(b=>{
+     const should=btnId&&b.id===btnId;
+     if(b.classList.contains("active")!==should)b.classList.toggle("active",should);
+   });
+ }finally{whereBusy=false}
 }
-new MutationObserver(updateWhere).observe(document.body,{attributes:true,subtree:true,attributeFilter:["class"]});
+const whereObserver=new MutationObserver(updateWhere);
+document.querySelectorAll(".panel").forEach(p=>whereObserver.observe(p,{attributes:true,attributeFilter:["class"]}));
 updateWhere();
 document.getElementById("publishConfig").onclick=publishConfig;
 document.getElementById("startPurchase").onclick=createPurchaseProject;
