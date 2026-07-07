@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.2 — Shopping Gaming</title>
+<title>Compat'PC V6.3 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -283,13 +283,33 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 .build-caption{display:flex;flex-direction:column;gap:4px}
 .build-caption span{color:var(--muted);font-size:12.5px}
 @media(max-width:640px){.build-visual{flex-direction:column}.build-art{width:100%;height:170px}}
+
+/* ===== Réactivité & repères ===== */
+.btn,.mini,.door,.fps-tab,.mode-switch button,.feat-nav{transition:transform .12s ease,filter .12s ease,border-color .12s ease,box-shadow .12s ease}
+.btn:hover,.fps-tab:hover,.mode-switch button:hover{filter:brightness(1.15)}
+.btn:active,.mini:active,.fps-tab:active{transform:scale(.96)}
+.door:active{transform:scale(.985)}
+.mini:hover{transform:translateY(-2px);border-color:#4a4a58}
+.side-actions .btn.active{background:var(--accent);color:#0a0a08;border-color:var(--accent);font-weight:800}
+.where-bar{position:sticky;top:0;z-index:50;margin:0 0 10px;padding:8px 14px;background:rgba(19,19,24,.92);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:var(--accent);width:max-content}
+/* Carrousel vitrine */
+.feat-car{display:grid;grid-template-columns:44px 1fr 44px;gap:10px;align-items:stretch}
+.feat-nav{font-size:22px;padding:0}
+.feat-main{display:grid;grid-template-columns:200px 1fr;gap:14px;background:#121217;border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;animation:featIn .35s ease}
+.feat-main:hover{border-color:#4a4a58}
+.feat-visual{height:150px;display:flex;align-items:center;justify-content:center;background:#0d0d11;border-radius:10px;overflow:hidden}
+.feat-img{max-width:100%;max-height:100%;object-fit:contain}
+.feat-body h4{margin:4px 0 6px}
+.feat-why{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--accent);text-transform:uppercase}
+@keyframes featIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
+@media(max-width:640px){.feat-main{grid-template-columns:1fr}.feat-visual{height:120px}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.2</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.3</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -348,7 +368,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
           <div class="shop-section"><div class="shop-head"><div><h3>Shop par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
-          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div class="shop-section"><div class="shop-head"><div><h3>Coups de cœur</h3><p>Sélection maison fixe, pour inspirer. Tes propres favoris : touche l'étoile ★ sur n'importe quelle fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
+          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div class="shop-section"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
         </div>
       </section>
 
@@ -556,6 +576,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
   </div>
   <div id="compareTray" class="compare-tray"><span id="compareTrayText"></span><button class="btn secondary" id="openCompare">Comparer</button><button class="btn ghost" id="clearCompare">Vider</button></div><div id="toast" class="toast"></div>
   <div id="sheetOverlay" class="sheet-overlay" style="display:none"><div class="sheet-card" id="sheetCard"></div></div>
+  <div id="whereBar" class="where-bar">📍 Accueil</div>
   <div id="welcomeOverlay" class="welcome-overlay" style="display:none">
     <div class="welcome-card">
       <h2>Bienvenue sur Compat'PC !</h2>
@@ -570,7 +591,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.2 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V6.3 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -906,8 +927,44 @@ function renderShop(){
  ["Budget intelligent","Le meilleur équilibre prix et style.","budget","all","all","all"]];
  const cg=document.getElementById("collectionGrid");cg.innerHTML="";
  cols.forEach(([title,desc,cl,cat,color,style])=>{const d=document.createElement("div");d.className="collection "+cl;d.innerHTML=`<h4>${title}</h4><p>${desc}</p><div class="collection-art">${renderArt("case",{color:color==="white"?"white":"black",style:style==="aquarium"?"aquarium":"classic",styles:cl==="rgb"?["rgb","lcd"]:[]},true)}</div>`;d.onclick=()=>{openSimpleLibrary(cat==="all"?null:cat);document.getElementById("simpleColor").value=color;document.getElementById("simpleStyle").value=style;renderSimpleLibrary()};cg.appendChild(d)});
- const feat=[["case","phanteks-nv5-white"],["cooler","lianli-galahad2-lcd-360w"],["gpu","asus-dual-5060ti-white"],["fans","lianli-tl-lcd-3w"]].map(([c,i])=>({c,p:get(c,i)})).filter(x=>x.p);
- const fp=document.getElementById("featuredProducts");fp.innerHTML=feat.map(x=>shopCard(x.c,x.p)).join("");bindShop(fp)
+ renderFeaturedCarousel();
+}
+function featuredPool(){
+ const pool=[];
+ expertCategories.forEach(cat=>{
+   parts[cat].filter(p=>(p.origin==="personal"||p.custom)&&p.image).forEach(p=>pool.push({cat,p,why:"📸 Import de la famille — vraie photo"}));
+ });
+ expertCategories.forEach(cat=>{
+   const tops=parts[cat].filter(p=>p.topRank&&!(p.origin==="personal")).sort((a,b)=>a.topRank-b.topRank||((a.price||0)-(b.price||0)));
+   if(tops[0])pool.push({cat,p:tops[0],why:"★ n°"+tops[0].topRank+" — "+labelCat(cat)});
+ });
+ return pool;
+}
+let featIdx=0,featTimer=null;
+function renderFeaturedCarousel(){
+ const w=document.getElementById("featuredProducts");if(!w)return;
+ const pool=featuredPool();if(!pool.length){w.innerHTML="";return}
+ featIdx=((featIdx%pool.length)+pool.length)%pool.length;
+ const {cat,p,why}=pool[featIdx];
+ const visual=p.image
+   ?`<img class="feat-img" src="${escapeHtml(p.image)}" alt="${escapeHtml(p.name)}" loading="lazy">`
+   :`<div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}" style="height:100%;border-radius:10px;position:relative"><div class="art-wrap">${productVisual(cat,p,false)}</div></div>`;
+ w.innerHTML=`<div class="feat-car">
+   <button class="btn ghost feat-nav" id="featPrev" title="Précédent">‹</button>
+   <div class="feat-main" data-sheet="${cat}|${p.id}" title="Ouvrir la fiche">
+     <div class="feat-visual">${visual}</div>
+     <div class="feat-body"><div class="feat-why">${why}</div><h4>${escapeHtml(p.name)}</h4><div class="price">${money(p.price)}</div><span class="small-note">${featIdx+1} / ${pool.length} • clique pour ouvrir la fiche</span></div>
+   </div>
+   <button class="btn ghost feat-nav" id="featNext" title="Suivant">›</button>
+ </div>`;
+ bindShop(w);
+ document.getElementById("featPrev").onclick=e=>{e.stopPropagation();clearTimeout(featTimer);featIdx--;renderFeaturedCarousel()};
+ document.getElementById("featNext").onclick=e=>{e.stopPropagation();clearTimeout(featTimer);featIdx++;renderFeaturedCarousel()};
+ clearTimeout(featTimer);
+ featTimer=setTimeout(()=>{featIdx++;renderFeaturedCarousel()},4500);
+ const main=w.querySelector(".feat-main");
+ main.onmouseenter=()=>clearTimeout(featTimer);
+ main.onmouseleave=()=>{clearTimeout(featTimer);featTimer=setTimeout(()=>{featIdx++;renderFeaturedCarousel()},4500)};
 }
 function openFavoritesView(){openSimpleLibrary();const rows=readFavorites().map(k=>{const [cat,id]=k.split("|");return {cat,p:get(cat,id)}}).filter(x=>x.p);const g=document.getElementById("simpleLibraryGrid");g.innerHTML=rows.map(x=>shopCard(x.cat,x.p)).join("");document.getElementById("simpleLibraryCount").textContent=rows.length+" favori(s).";bindShop(g)}
 
@@ -2009,6 +2066,25 @@ document.getElementById("goHome").onclick=()=>showPanel("shopHome");
 document.getElementById("brandHome").onclick=()=>showPanel("shopHome");
 updateUserChip();
 if(!currentUser())showWelcome();
+/* ===== Où suis-je + états actifs du menu ===== */
+const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats"};
+const STEP_NAMES=["Parcours — Style","Parcours — Budget","Parcours — Usages","Parcours — Propositions","Panier"];
+const SIDE_MAP={shopHome:"goHome",simpleLibrary:"openSimpleLibrary",expertWorkshop:"openExpertWorkshop",importPanel:"openImport",personalLibraryPanel:"openPersonalLibrary",savedPanel:"openSaved"};
+function updateWhere(){
+ const active=document.querySelector(".panel.active");
+ const bar=document.getElementById("whereBar");
+ let name="";
+ if(active){
+   if(active.dataset.step!==undefined)name=STEP_NAMES[Number(active.dataset.step)]||"";
+   else name=PANEL_NAMES[active.id]||"";
+ }
+ if(bar)bar.textContent="📍 "+(name||"Accueil");
+ document.querySelectorAll(".side-actions .btn").forEach(b=>b.classList.remove("active"));
+ const btnId=active&&SIDE_MAP[active.id];
+ if(btnId){const b2=document.getElementById(btnId);if(b2)b2.classList.add("active")}
+}
+new MutationObserver(updateWhere).observe(document.body,{attributes:true,subtree:true,attributeFilter:["class"]});
+updateWhere();
 document.getElementById("publishConfig").onclick=publishConfig;
 document.getElementById("startPurchase").onclick=createPurchaseProject;
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
