@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V5.1 — Shopping Gaming</title>
+<title>Compat'PC V5.2 — Shopping Gaming</title>
 <style>
 :root{
   --bg:#08101f;--panel:#111a2f;--panel2:#16233d;--line:#283858;--text:#eef4ff;
@@ -191,6 +191,13 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .fps-fill.fps-low{background:#ff6b81}
 .fps-note{margin:12px 0 0;font-size:11.5px;color:var(--muted)}
 .fps-strip{margin:8px 0 4px}
+.gv-good{color:#6ee7a8}.gv-mid{color:#ffd66b}.gv-bad{color:#ff9aa8}
+.pert-score{display:inline-block;font-weight:900;font-size:12.5px;padding:4px 10px;border-radius:999px;margin:6px 0 4px;border:1px solid}
+.pert-score.gv-good{background:#0d2b1e;border-color:#1d5c3f}
+.pert-score.gv-mid{background:#2b230d;border-color:#5c4a1d}
+.pert-score.gv-bad{background:#33131a;border-color:#6b2635}
+.pert-chips{margin-bottom:4px}
+.pert-chip{display:inline-block;font-size:11px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:3px 8px;margin:2px 4px 2px 0}
 .duel-box{background:#0b1427;border:1px solid #3b3a6e;border-radius:16px;padding:16px;margin-bottom:20px}
 .duel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .duel-cols{display:grid;grid-template-columns:1fr 46px 1fr;gap:8px;align-items:center;margin-bottom:12px;text-align:center}
@@ -240,7 +247,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V5.1</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V5.2</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -299,7 +306,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
           <div class="shop-section"><div class="shop-head"><div><h3>Shop par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
-          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div class="shop-section"><div class="shop-head"><div><h3>Coups de cœur</h3><p>Des pièces fortes pour le setup de Noah.</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
+          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div class="shop-section"><div class="shop-head"><div><h3>Coups de cÅur</h3><p>SÃ©lection maison fixe, pour inspirer. Tes propres favoris : touche l’Ã©toile â sur n’importe quelle fiche, puis Â« Mes favoris Â».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
         </div>
       </section>
 
@@ -423,6 +430,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
                 <div class="metric"><div class="value" id="expertCompatScore">—</div><div class="label">Compatibilité globale</div></div>
                 <div class="metric"><div class="value" id="expertTotal">—</div><div class="label">Prix estimé</div></div>
               </div>
+              <div class="duel-chips" id="expertDash" style="margin:12px 0"></div>
               <div class="radar" id="expertRadar"></div>
               <div id="expertResults"></div>
             </div>
@@ -517,7 +525,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V5.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V5.2 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -984,6 +992,68 @@ function renderFpsPanel(){
  box.innerHTML=fpsPanelHtml(state.cart.selection,res);
  box.querySelectorAll("[data-fps-res]").forEach(b=>b.onclick=()=>{state.fpsRes=b.dataset.fpsRes;renderFpsPanel()});
 }
+function noiseLevel(gpu,cool,psu,need){
+ let pts=((gpu?.power||150)/100)+((cool?.type==="Air")?0.6:0.3);
+ if(psu&&need&&psu.watts<need*1.15)pts+=0.8;
+ return pts<2.2?["🔇 Silencieux","gv-good"]:pts<3.2?["🔉 Modéré","gv-mid"]:["🔊 Audible en charge","gv-bad"];
+}
+function avgFpsOf(gpu,cpu,names,res){
+ return Math.round(names.reduce((s,n)=>s+estimateFps(GAMES.find(g=>g.name===n),gpu,cpu,res),0)/names.length);
+}
+function renderExpertDash(cpu,gpu,cool,psu){
+ const dash=document.getElementById("expertDash");if(!dash)return;
+ const res=state.fpsRes||state.screen||"1080p";
+ const both=gpu&&cpu;
+ const fpsE=both?avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res):null;
+ const fpsH=both?avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res):null;
+ const need=gpu?recommendedPsuWatts(cpu,gpu):null;
+ const charge=need&&psu?Math.round(need/psu.watts*100):null;
+ const [nz,nzc]=noiseLevel(gpu,cool,psu,need);
+ const fc=f=>f>=120?"gv-good":f>=60?"gv-mid":"gv-bad";
+ dash.innerHTML=`
+  <div class="duel-chip"><span>Jeux e-sport (${res==="4k"?"4K":res})</span><b class="${fpsE!==null?fc(fpsE):""}">${fpsE!==null?"~"+fpsE+" FPS":"—"}</b></div>
+  <div class="duel-chip"><span>Gros jeux</span><b class="${fpsH!==null?fc(fpsH):""}">${fpsH!==null?"~"+fpsH+" FPS":"—"}</b></div>
+  <div class="duel-chip"><span>Charge alim estimée</span><b class="${charge!==null?(charge<=70?"gv-good":charge<=90?"gv-mid":"gv-bad"):""}">${charge!==null?charge+" % de "+psu.watts+" W":"—"}</b></div>
+  <div class="duel-chip"><span>Bruit estimé</span><b class="${gpu?nzc:""}">${gpu?nz:"—"}</b></div>`;
+}
+function pertinenceChecks(b){
+ const sel=b.selection;
+ const gpu=get("gpu",sel.gpu),cpu=get("cpu",sel.cpu),cool=get("cooler",sel.cooler),cs=get("case",sel.case),fans=get("fans",sel.fans),ssd=get("ssd",sel.ssd);
+ const res=state.screen||"1080p";
+ const checks=[];
+ const ratio=b.total/(Number(state.budget)||1500);
+ checks.push({label:"Budget",pts:ratio<=1.02?1:ratio<=1.12?0.5:0});
+ const white=state.mood==="white-aquarium"||state.mood==="white-clean";
+ const black=state.mood==="black-aquarium"||state.mood==="stealth";
+ const aquarium=(state.mood||"").includes("aquarium")||state.mood==="rgb-showcase";
+ if(white||black){
+   const target=white?"white":"black";
+   const m=[cs,cool,fans].filter(p=>p&&p.color===target).length;
+   checks.push({label:white?"Look blanc":"Look noir",pts:m>=3?1:m===2?0.5:0});
+ }
+ if(aquarium)checks.push({label:"Aquarium",pts:cs&&cs.style==="aquarium"?1:0});
+ const us=state.usages||[];
+ if(us.includes("esport")){const f=avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res);checks.push({label:"E-sport",pts:f>=144?1:f>=100?0.5:0})}
+ if(us.includes("heavy")){const f=avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res);checks.push({label:"Gros jeux",pts:f>=75?1:f>=55?0.5:0})}
+ if(us.includes("quiet")){
+   const m2=[(cool&&(cool.type==="Air"||(cool.rad||0)>=280)),(fans&&!fans.rgb&&!fans.argb),((gpu?.power||999)<=220)].filter(Boolean).length;
+   checks.push({label:"Silence",pts:m2>=2?1:m2===1?0.5:0});
+ }
+ if(us.some(u=>u==="youtube"||u==="stream")){
+   const okC=(cpu?.tdp||0)>=65,okS=(ssd?.capacity||0)>=2;
+   checks.push({label:"Création/stream",pts:okC&&okS?1:(okC||okS)?0.5:0});
+ }
+ if(us.includes("storage"))checks.push({label:"Stockage",pts:(ssd?.capacity||0)>=2?1:0.5});
+ return checks;
+}
+function pertinenceHtml(b){
+ const checks=pertinenceChecks(b);
+ if(!checks.length)return "";
+ const pct=Math.round(checks.reduce((s,c)=>s+c.pts,0)/checks.length*100);
+ const cls=pct>=80?"gv-good":pct>=55?"gv-mid":"gv-bad";
+ const chips=checks.map(c=>`<span class="pert-chip">${c.pts===1?"✓":c.pts>0?"~":"✗"} ${c.label}</span>`).join("");
+ return `<div class="pert-score ${cls}">Pertinence ${pct}%</div><div class="pert-chips">${chips}</div>`;
+}
 /* ===== Fin estimation FPS ===== */
 
 function chooseParts(profile){
@@ -1101,6 +1171,7 @@ function renderBuilds(){
   d.innerHTML=`<div class="build-cover ${mood.visual}"><div class="build-art">${renderArt("case",get("case",b.selection.case),true)}</div></div><div class="build-content">
   <div>${i===1?'<span class="badge">Recommandé</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
   <div class="fps-strip">${fpsStripHtml(b.selection,state.screen||"1080p")}</div>
+  ${pertinenceHtml(b)}
   <div class="parts">${lines}</div><button class="btn" data-pick="${i}">Choisir ce panier</button></div>`;
   g.appendChild(d)
  });
@@ -1185,6 +1256,7 @@ function analyzeExpert(){
  const score=Math.max(0,100-hard*24-warn*7-(expertCategories.length-chosen)*2);
  document.getElementById("expertCompatScore").textContent=score+"%";
  document.getElementById("expertTotal").textContent=money(total);
+ renderExpertDash(cpu,gpu,cool,psu);
 
  const radarData=[
    ["CPU / carte mère", cpu&&mb?(cpu.socket===mb.socket?100:0):35],
@@ -1422,10 +1494,18 @@ function addParsed(){
    else {state.cart.selection[cat]=id;renderCart();}
  }
  renderPersonalLibrary();
+ resetImportForm();
  closeImport();
  if(state.cart&&(destination==="cart"||destination==="both"))go(4);
  else openPersonalLibrary();
  showToast(destination==="both"?"Ajoutée au panier et à ta bibliothèque.":destination==="library"?"Ajoutée définitivement à ta bibliothèque.":"Ajoutée à ce panier seulement.");
+}
+function resetImportForm(){
+ const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};
+ set("productUrl","");set("productText","");set("productCategory","auto");
+ const prog=document.getElementById("importProgress");if(prog){prog.textContent="";prog.className="small-note"}
+ const pv=document.getElementById("productPreview");if(pv){pv.classList.remove("show");pv.innerHTML=""}
+ window.parsedProduct=null;
 }
 function escapeHtml(s){return String(s||"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
 function productVisual(cat,p,hero=false){
