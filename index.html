@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.4 — Shopping Gaming</title>
+<title>Compat'PC V6.4.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -591,7 +591,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.4 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V6.4.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1489,9 +1489,10 @@ function renderSimpleLibrary(){
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
-   d.innerHTML=`<div class="visual ${visualClass}"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5c7a1d">📸 vraie photo</span>':""}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
+   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5c7a1d">📸 vraie photo</span>':""}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
+ g.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  g.querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
    const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();go(4);showToast("Pièce ajoutée au panier.");
  });
@@ -1942,9 +1943,10 @@ function renderPersonalLibrary(){
  rows.sort((a,b)=>a.cat.localeCompare(b.cat)||a.p.name.localeCompare(b.p.name));
  for(const {cat,p} of rows){
    const d=document.createElement("div");d.className="saved origin-personal";
-   d.innerHTML=`<div><strong>${productNameHtml(p)}</strong><div class="small-note">${labelCat(cat)} • ${money(p.price)} • ${p.color||"neutral"}</div>${p.url?`<a class="search-link" href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="margin-top:7px">Ouvrir le lien d’origine</a>`:""}</div><div class="personal-actions"><button class="btn secondary" data-personal-use="${cat}|${p.id}">Mettre dans le panier</button><button class="btn ghost" data-personal-edit="${cat}|${p.id}">Modifier</button><button class="btn danger" data-personal-delete="${cat}|${p.id}">Supprimer</button></div>`;
+   d.innerHTML=`<div><strong>${productNameHtml(p)}</strong><div class="small-note">${labelCat(cat)} • ${money(p.price)} • ${p.color||"neutral"}</div>${p.url?`<a class="search-link" href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="margin-top:7px">Ouvrir le lien d’origine</a>`:""}</div><div class="personal-actions"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><button class="btn secondary" data-personal-use="${cat}|${p.id}">Mettre dans le panier</button><button class="btn ghost" data-personal-edit="${cat}|${p.id}">Modifier</button><button class="btn danger" data-personal-delete="${cat}|${p.id}">Supprimer</button></div>`;
    list.appendChild(d);
  }
+ list.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  list.querySelectorAll("[data-personal-use]").forEach(b=>b.onclick=()=>{
    if(!state.cart){showToast("Choisis d’abord un panier.");return}
    const [cat,id]=b.dataset.personalUse.split("|");state.cart.selection[cat]=id;renderCart();go(4);
