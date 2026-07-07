@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V5.0 — Shopping Gaming</title>
+<title>Compat'PC V5.1 — Shopping Gaming</title>
 <style>
 :root{
   --bg:#08101f;--panel:#111a2f;--panel2:#16233d;--line:#283858;--text:#eef4ff;
@@ -205,6 +205,15 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .duel-row.same{opacity:.55}
 .duel-row small{display:block;color:var(--muted)}
 .duel-verdict{margin-top:12px;background:#101f38;border:1px solid #2c4f82;border-radius:12px;padding:12px;font-weight:700}
+.achat-box{background:#0b1427;border:1px solid #2c5c46;border-radius:16px;padding:16px;margin-bottom:20px}
+.achat-row{display:grid;grid-template-columns:26px 1fr 84px 120px;gap:10px;align-items:center;padding:8px 0;border-top:1px solid #16233d;font-size:13px}
+.achat-row.done .achat-name{text-decoration:line-through;color:var(--muted)}
+.achat-row input[type=checkbox]{width:18px;height:18px;accent-color:#3ecf8e;cursor:pointer}
+.achat-prevu{text-align:right;color:var(--muted)}
+.achat-paye{width:100%;background:#07101f;border:1px solid #2c4169;border-radius:8px;color:#e8eefc;padding:6px 8px;font-size:12.5px;text-align:right}
+.achat-paye:disabled{opacity:.35}
+.duel-chip .lose{color:#ff9aa8}
+@media(max-width:720px){.achat-row{grid-template-columns:24px 1fr 64px 90px}}
 @media(max-width:720px){.duel-row{grid-template-columns:1fr 70px 1fr}.duel-cols{grid-template-columns:1fr 30px 1fr}}
 @media(max-width:720px){.fps-row{grid-template-columns:96px 1fr 70px}}
 @media(max-width:1100px){.collection-grid,.product-strip{grid-template-columns:1fr 1fr}.hero-machine{opacity:.35}}@media(max-width:720px){.collection-grid,.product-strip,.compare-grid{grid-template-columns:1fr}.shop-hero h2{font-size:31px}.hero-machine{display:none}}
@@ -231,7 +240,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V5.0</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'PC V5.1</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -352,7 +361,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
               <div class="card-body" id="expertDetails"></div>
             </div>
           </div>
-          <div class="share-box" style="margin-top:16px"><strong>Partager cette configuration</strong><div class="small-note" style="margin:5px 0 10px">Publie-la en ligne : toute la famille la verra dans « Configurations », depuis n'importe quel appareil.</div><div class="shop-actions"><button class="btn" id="publishConfig">Publier en ligne (famille)</button><button class="btn secondary" id="generateShareCode">Générer un code</button><button class="btn ghost" id="importShareCode">Importer un code</button></div><div id="shareCodeBox" class="share-code" style="display:none;margin-top:10px"></div></div><div class="nav-row"><button class="btn ghost" data-prev>Retour</button><button class="btn" id="saveCurrent">Sauvegarder cette configuration</button></div>
+          <div class="share-box" style="margin-top:16px"><strong>Partager cette configuration</strong><div class="small-note" style="margin:5px 0 10px">Publie-la en ligne : toute la famille la verra dans « Configurations », depuis n'importe quel appareil.</div><div class="shop-actions"><button class="btn" id="publishConfig">Publier en ligne (famille)</button><button class="btn warn" id="startPurchase">🧾 Passer à l'achat</button><button class="btn secondary" id="generateShareCode">Générer un code</button><button class="btn ghost" id="importShareCode">Importer un code</button></div><div id="shareCodeBox" class="share-code" style="display:none;margin-top:10px"></div></div><div class="nav-row"><button class="btn ghost" data-prev>Retour</button><button class="btn" id="saveCurrent">Sauvegarder cette configuration</button></div>
         </div>
       </section>
 
@@ -483,6 +492,10 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
           <div class="small-note" style="margin:0 0 10px">Publiées depuis n'importe quel appareil avec « Publier en ligne ». Clique sur ⚔️ sur deux configs pour lancer un duel.</div>
           <div id="duelBox"></div>
           <div id="cloudList" class="saved-list" style="margin-bottom:22px"></div>
+          <h3 style="margin:0 0 10px">Projets d'achat (famille)</h3>
+          <div class="small-note" style="margin:0 0 10px">Créés depuis le panier avec « Passer à l'achat ». Cochez les pièces au fur et à mesure avec le prix réellement payé — la progression est partagée en direct.</div>
+          <div id="achatsBox"></div>
+          <div id="achatsList" class="saved-list" style="margin-bottom:22px"></div>
           <h3 style="margin:0 0 10px">Sauvegardes locales (cet appareil)</h3>
           <div id="savedList" class="saved-list"></div>
         </div>
@@ -504,7 +517,7 @@ footer{text-align:center;color:#7f8ca8;font-size:12px;margin:18px 0 3px}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V5.0 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V5.1 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -716,6 +729,105 @@ function renderDuel(a,b){
  box.scrollIntoView({behavior:"smooth",block:"start"});
 }
 /* ===== Fin duel ===== */
+
+/* ===== Projets d'achat partagés ===== */
+function purchaseStats(p){
+ const items=p.items||[];
+ const paye=items.filter(i=>i.achete).reduce((s,i)=>s+(Number(i.paye)>0?Number(i.paye):Number(i.prevu)||0),0);
+ const prevuAchete=items.filter(i=>i.achete).reduce((s,i)=>s+(Number(i.prevu)||0),0);
+ const reste=items.filter(i=>!i.achete).reduce((s,i)=>s+(Number(i.prevu)||0),0);
+ return {paye,ecart:paye-prevuAchete,reste,done:items.filter(i=>i.achete).length,total:items.length};
+}
+async function createPurchaseProject(){
+ if(!CLOUD_ON){showToast("Partage en ligne non configuré.");return}
+ if(!state.cart){showToast("Aucun panier à transformer en projet d'achat.");return}
+ const auteur=getUserName();if(!auteur)return;
+ const nom=prompt("Nom du projet d'achat :",(state.cart.label||"PC")+" — achat");if(!nom)return;
+ const items=Object.entries(state.cart.selection).map(([cat,id])=>{
+   const p=get(cat,id);return {cat,name:p?.name||"?",prevu:p?.price||0,achete:false,paye:null};
+ });
+ try{
+   const r=await supaFetch("compatpc_achats",{method:"POST",body:JSON.stringify({nom,auteur,budget:cartTotal(),items})});
+   if(!r.ok)throw new Error("HTTP "+r.status);
+   showToast("Projet d'achat créé — toute la famille peut cocher !");
+   openSaved();
+ }catch(e){showToast("Création impossible ("+e.message+"). As-tu exécuté achats.sql dans Supabase ?")}
+}
+async function renderPurchaseList(){
+ const w=document.getElementById("achatsList");if(!w)return;
+ if(!CLOUD_ON){w.innerHTML='<p style="color:var(--muted)">Partage en ligne non configuré.</p>';return}
+ w.innerHTML='<p style="color:var(--muted)">Chargement…</p>';
+ try{
+   const r=await supaFetch("compatpc_achats?select=*&order=created_at.desc&limit=20");
+   if(!r.ok)throw new Error("HTTP "+r.status);
+   const arr=await r.json();
+   state.achats=arr;
+   if(!arr.length){w.innerHTML='<p style="color:var(--muted)">Aucun projet pour le moment. Depuis le panier : « Passer à l\'achat ».</p>';return}
+   w.innerHTML="";
+   arr.forEach(p=>{
+     const st=purchaseStats(p);
+     const d=document.createElement("div");d.className="saved";
+     d.innerHTML=`<div><strong>${escapeHtml(p.nom)}</strong><div style="color:var(--muted);font-size:12px">${st.done}/${st.total} pièces • payé ${money(st.paye)} • par ${escapeHtml(p.auteur)}</div></div><div style="display:flex;gap:8px"><button class="btn secondary" data-achat-open="${p.id}">Ouvrir</button><button class="btn danger" data-achat-del="${p.id}">Suppr.</button></div>`;
+     w.appendChild(d);
+   });
+   w.querySelectorAll("[data-achat-open]").forEach(b=>b.onclick=()=>{
+     const p=state.achats.find(x=>x.id===b.dataset.achatOpen);
+     if(p)renderPurchase(p);
+   });
+   w.querySelectorAll("[data-achat-del]").forEach(b=>b.onclick=async()=>{
+     if(!confirm("Supprimer ce projet d'achat pour toute la famille ?"))return;
+     try{
+       const r=await supaFetch("compatpc_achats?id=eq."+b.dataset.achatDel,{method:"DELETE"});
+       if(!r.ok)throw new Error("HTTP "+r.status);
+       document.getElementById("achatsBox").innerHTML="";renderPurchaseList();showToast("Projet supprimé.");
+     }catch(e){showToast("Suppression impossible ("+e.message+").")}
+   });
+ }catch(e){w.innerHTML='<p style="color:var(--muted)">Projets d\'achat indisponibles ('+escapeHtml(e.message)+'). Exécute achats.sql dans l\'éditeur SQL Supabase.</p>'}
+}
+async function savePurchase(p){
+ try{
+   const r=await supaFetch("compatpc_achats?id=eq."+p.id,{method:"PATCH",body:JSON.stringify({items:p.items})});
+   if(!r.ok)throw new Error("HTTP "+r.status);
+ }catch(e){showToast("Sauvegarde impossible ("+e.message+").")}
+}
+function renderPurchase(p){
+ const box=document.getElementById("achatsBox");if(!box)return;
+ const st=purchaseStats(p);
+ const pct=st.total?Math.round(st.done/st.total*100):0;
+ const rows=p.items.map((it,i)=>`
+  <div class="achat-row ${it.achete?"done":""}">
+   <input type="checkbox" data-achat-check="${i}" ${it.achete?"checked":""}>
+   <span class="achat-name">${labelCat(it.cat)} — ${escapeHtml(it.name)}</span>
+   <span class="achat-prevu">${money(it.prevu)}</span>
+   <input type="number" step="0.01" min="0" class="achat-paye" data-achat-paye="${i}" placeholder="prix payé…" value="${it.paye??""}" ${it.achete?"":"disabled"}>
+  </div>`).join("");
+ box.innerHTML=`<div class="achat-box">
+  <div class="duel-head"><h3 style="margin:0">🧾 ${escapeHtml(p.nom)}</h3><div style="display:flex;gap:8px;align-items:center"><span class="small-note">${st.done}/${st.total} pièces</span><button class="btn ghost" id="closeAchat">Fermer</button></div></div>
+  <div class="fps-track" style="margin-bottom:12px"><div class="fps-fill fps-top" style="width:${pct}%"></div></div>
+  <div class="duel-chips">
+   <div class="duel-chip"><span>Budget prévu</span><b>${money(p.budget)}</b></div>
+   <div class="duel-chip"><span>Déjà payé</span><b>${money(st.paye)}</b></div>
+   <div class="duel-chip"><span>Écart réel</span><b class="${st.ecart<=0?"win":"lose"}">${st.ecart>0?"+":""}${money(st.ecart)}</b></div>
+   <div class="duel-chip"><span>Reste à acheter</span><b>${money(st.reste)}</b></div>
+  </div>
+  ${rows}
+  ${st.done===st.total&&st.total>0?'<div class="duel-verdict">🎉 PC complet — toutes les pièces sont là. Bon montage à vous deux !</div>':""}
+ </div>`;
+ box.querySelectorAll("[data-achat-check]").forEach(cb=>cb.onchange=()=>{
+   const it=p.items[Number(cb.dataset.achatCheck)];
+   it.achete=cb.checked;
+   if(!cb.checked)it.paye=null;
+   savePurchase(p);renderPurchase(p);renderPurchaseList();
+ });
+ box.querySelectorAll("[data-achat-paye]").forEach(inp=>inp.onchange=()=>{
+   const it=p.items[Number(inp.dataset.achatPaye)];
+   it.paye=inp.value===""?null:Number(inp.value);
+   savePurchase(p);renderPurchase(p);renderPurchaseList();
+ });
+ document.getElementById("closeAchat").onclick=()=>{box.innerHTML=""};
+ box.scrollIntoView({behavior:"smooth",block:"start"});
+}
+/* ===== Fin projets d'achat ===== */
 
 let state={step:0,mood:null,budget:1500,usages:[],screen:"4k",gpuPreference:"16gb",builds:[],cart:null,expert:false,expertSelection:{},expertAioMount:"auto"};
 const FAVORITES_KEY="compatpc_v4_favorites";let compareItems=[];
@@ -1498,7 +1610,7 @@ function renderSaved(){
  arr.forEach((b,i)=>{const d=document.createElement("div");d.className="saved";d.innerHTML=`<div><strong>${escapeHtml(b.name)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • ${escapeHtml(b.mood||"")}</div></div><div><button class="btn secondary" data-load="${i}">Charger</button></div>`;w.appendChild(d)});
  w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)})
 }
-function openSaved(){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs()}
+function openSaved(){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs();renderPurchaseList()}
 function saveCurrent(){
  if(!state.cart)return;const name=prompt("Nom de la configuration :","Setup de Noah");if(!name)return;
  const arr=JSON.parse(localStorage.getItem("compatpc_v3_builds")||"[]");arr.push({name,cart:state.cart,mood:state.mood,budget:state.budget,total:cartTotal(),savedAt:new Date().toISOString()});localStorage.setItem("compatpc_v3_builds",JSON.stringify(arr));showToast("Configuration sauvegardée dans ce navigateur.");renderSaved()
@@ -1597,6 +1709,7 @@ document.getElementById("brandHome").onclick=()=>showPanel("shopHome");
 updateUserChip();
 if(!currentUser())showWelcome();
 document.getElementById("publishConfig").onclick=publishConfig;
+document.getElementById("startPurchase").onclick=createPurchaseProject;
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
 </script>
