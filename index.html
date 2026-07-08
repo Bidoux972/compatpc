@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.0 — Shopping Gaming</title>
+<title>Compat'PC V7.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -304,6 +304,11 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 @keyframes featIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 @media(max-width:640px){.feat-main{grid-template-columns:1fr}.feat-visual{height:120px}}
 
+/* ===== Ambiances en vraie photo ===== */
+.visual.mood-photo{background-size:cover;background-position:center;position:relative}
+.mood-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,13,0) 40%,rgba(10,10,13,.55));pointer-events:none}
+.mood-img-btn{position:absolute;top:8px;right:8px;z-index:3;background:rgba(13,13,17,.75);border:1px solid #35353f;border-radius:8px;color:#e6e6ec;font-size:13px;padding:4px 7px;cursor:pointer;opacity:.6}
+.mood-img-btn:hover{opacity:1;border-color:var(--accent)}
 /* ===== V7 — Rail de navigation ===== */
 .shell{grid-template-columns:100px 1fr}
 .sidebar.rail{padding:12px 8px}
@@ -400,6 +405,10 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
         <div class="card-body">
           <p class="lead">Commence par le look. Tu pourras modifier chaque pièce ensuite.</p>
           <div class="option-grid" id="moodGrid"></div>
+          <div id="moodImgForm" style="display:none;margin-top:12px;background:#0d0d11;border:1px solid var(--line);border-radius:12px;padding:12px">
+            <div class="small-note" style="margin-bottom:8px">Photo pour <strong id="moodImgLabel"></strong> — dans l'onglet Google Images ouvert : clique sur la photo qui fait rêver, clic droit → « Copier l'adresse de l'image », puis colle ici :</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap"><input id="moodImgUrl" placeholder="https://…" style="flex:1;min-width:220px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:9px 10px"><button class="btn" id="moodImgSave">Enregistrer pour la famille</button></div>
+          </div>
           <div class="nav-row"><span></span><button class="btn" data-next>Continuer</button></div>
         </div>
       </section>
@@ -498,7 +507,8 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
         <div class="card-body">
           <div class="expert-grid">
             <div>
-              <div class="toolbox" id="expertToolbox"></div>
+              <div class="small-note" style="margin-bottom:10px">💡 <strong>Recréer un PC existant</strong> (celui de Noah, par exemple) : choisis chaque pièce ci-dessous — le groupe « Mes imports / famille » contient tout ce que vous avez ajouté via Importer — puis « Appliquer au panier ». Une pièce introuvable ? Importe-la depuis sa page marchand ou en collant le texte de sa fiche.</div>
+<div class="toolbox" id="expertToolbox"></div>
               <div class="field" style="margin-top:12px">
                 <label>Emplacement du radiateur AIO</label>
                 <select id="expertAioMount">
@@ -615,7 +625,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V7.0 Ultraviolet — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V7.1 Ultraviolet — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -772,12 +782,37 @@ async function syncImagesFromCloud(){
    const rows=await r.json();
    let n=0;
    rows.forEach(row=>{
-     const arr=parts[row.cat];if(!arr||!row.url)return;
+     if(!row.url)return;
+     if(row.cat==="mood"){MOOD_IMG[row.id]=row.url;n++;return}
+     const arr=parts[row.cat];if(!arr)return;
      const p=arr.find(x=>x.id===row.id);
      if(p){p.image=row.url;n++}
    });
-   if(n)renderShop();
+   if(n){renderShop();renderMoods()}
  }catch(e){/* photothèque indisponible : art vectoriel en secours */}
+}
+const MOOD_IMG={};
+async function syncPricesFromCloud(){
+ if(!CLOUD_ON)return;
+ try{
+   const r=await supaFetch("compatpc_prix?select=id,cat,price&limit=1000");
+   if(!r.ok)return;
+   const rows=await r.json();
+   let n=0;
+   rows.forEach(row=>{
+     const arr=parts[row.cat];if(!arr)return;
+     const p=arr.find(x=>x.id===row.id);
+     if(p&&Number(row.price)>0){p.price=Number(row.price);n++}
+   });
+   if(n){renderShop();if(state.cart)renderCart()}
+ }catch(e){/* table absente : prix d'origine conservés */}
+}
+async function savePriceForFamily(cat,p,price){
+ p.price=price;
+ if(!CLOUD_ON)return false;
+ const r=await supaFetch("compatpc_prix?on_conflict=id",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates"},body:JSON.stringify({id:p.id,cat,price,auteur:currentUser()||null})});
+ if(!r.ok)throw new Error("HTTP "+r.status);
+ return true;
 }
 async function saveImageForFamily(cat,p,url){
  p.image=url;
@@ -1039,8 +1074,13 @@ function renderMoods(){
  const g=document.getElementById("moodGrid");g.innerHTML="";
  moods.forEach(m=>{
   const d=document.createElement("div");d.className="option-card "+(state.mood===m.id?"selected":"");
-  d.innerHTML=`<div class="visual ${m.visual}"><div class="art-wrap">${renderArt("case",{color:m.visual==="white"||m.visual==="clean"?"white":"black",style:m.id.includes("aquarium")?"aquarium":m.id==="stealth"?"classic":"aquarium",styles:m.id==="rgb-showcase"?["rgb","aquarium"]:(m.id==="white-clean"?["clean"]:[])},true)}</div><div class="item-shelf"></div></div><h3>${m.title}</h3><p>${m.desc}</p><div class="chip-row">${m.tags.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
-  d.onclick=()=>{state.mood=m.id;renderMoods()};g.appendChild(d)
+  const photo=MOOD_IMG[m.id];
+  const visual=photo
+    ?`<div class="visual mood-photo" style="background-image:url('${photo.replace(/'/g,"%27")}')"><div class="mood-veil"></div><button class="mood-img-btn" data-mood-img="${m.id}" title="Changer la photo">🖼</button></div>`
+    :`<div class="visual ${m.visual}"><div class="art-wrap">${renderArt("case",{color:m.visual==="white"||m.visual==="clean"?"white":"black",style:m.id.includes("aquarium")?"aquarium":m.id==="stealth"?"classic":"aquarium",styles:m.id==="rgb-showcase"?["rgb","aquarium"]:(m.id==="white-clean"?["clean"]:[])},true)}</div><div class="item-shelf"></div><button class="mood-img-btn" data-mood-img="${m.id}" title="Mettre une vraie photo de setup">🖼</button></div>`;
+  d.innerHTML=`${visual}<h3>${m.title}</h3><p>${m.desc}</p><div class="chip-row">${m.tags.map(t=>`<span class="chip">${t}</span>`).join("")}</div>`;
+  d.onclick=()=>{state.mood=m.id;renderMoods()};g.appendChild(d);
+  d.querySelector("[data-mood-img]").onclick=(e)=>{e.stopPropagation();openMoodImageForm(m)};
  })
 }
 function renderBudgets(){
@@ -1741,7 +1781,8 @@ function openSheet(cat,id){
  const rows=specRows(cat,p).map(([l,v])=>`<div class="sheet-row"><span>${escapeHtml(l)}</span><b>${escapeHtml(String(v))}</b></div>`).join("");
  c.innerHTML=`
   <div class="sheet-top"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}"><div class="art-wrap">${productVisual(cat,p,false)}</div></div>
-  <div><div class="component-type" style="position:static;display:inline-block;margin-bottom:6px">${labelCat(cat)}</div><h3>${escapeHtml(p.name)}</h3><div class="price" style="margin:6px 0">${money(p.price)}</div>${p.description?`<p class="small-note">${escapeHtml(p.description.slice(0,260))}${p.description.length>260?"…":""}</p>`:""}</div></div>
+  <div><div class="component-type" style="position:static;display:inline-block;margin-bottom:6px">${labelCat(cat)}</div><h3>${escapeHtml(p.name)}</h3><div class="price" style="margin:6px 0">${money(p.price)} <button class="btn ghost" id="sheetPriceBtn" style="font-size:11px;padding:3px 9px;vertical-align:middle">✏️ corriger</button></div>
+  <div id="sheetPriceForm" style="display:none;margin:6px 0 10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="sheetPriceInput" type="number" min="1" step="0.01" placeholder="Prix constaté en €" style="width:160px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:8px 10px"><button class="btn" id="sheetPriceSave">Enregistrer pour la famille</button></div><div class="small-note" style="margin-top:6px">Le nouveau prix s'applique partout : bibliothèque, propositions, budgets, duels.</div></div>${p.description?`<p class="small-note">${escapeHtml(p.description.slice(0,260))}${p.description.length>260?"…":""}</p>`:""}</div></div>
   <div class="sheet-specs">${rows}</div>
   <div class="shop-actions" style="margin-top:14px;flex-wrap:wrap">
    <button class="btn" id="sheetUse">Mettre dans le panier</button>
@@ -1762,6 +1803,20 @@ function openSheet(cat,id){
  document.getElementById("sheetClose").onclick=()=>o.style.display="none";
  o.onclick=e=>{if(e.target===o)o.style.display="none"};
  document.getElementById("sheetFav").onclick=()=>{toggleFavorite(cat,id);openSheet(cat,id)};
+ document.getElementById("sheetPriceBtn").onclick=()=>{
+   const f=document.getElementById("sheetPriceForm");
+   f.style.display=f.style.display==="none"?"block":"none";
+   document.getElementById("sheetPriceInput").value=p.price||"";
+ };
+ document.getElementById("sheetPriceSave").onclick=async()=>{
+   const v=Number(document.getElementById("sheetPriceInput").value);
+   if(!(v>0)){showToast("Entre un prix valide en euros.");return}
+   try{
+     const synced=await savePriceForFamily(cat,p,Math.round(v*100)/100);
+     showToast(synced?"💶 Prix mis à jour pour toute la famille !":"Prix appliqué sur cet appareil.");
+   }catch(e){showToast("Prix appliqué ici, synchro impossible ("+e.message+"). As-tu exécuté prix.sql ?")}
+   openSheet(cat,id);renderShop();if(state.cart)renderCart();
+ };
  document.getElementById("sheetPhoto").onclick=()=>{
    window.open("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(p.name),"_blank");
    const f=document.getElementById("sheetPhotoForm");
@@ -2174,6 +2229,33 @@ document.getElementById("startPurchase").onclick=createPurchaseProject;
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
 syncImagesFromCloud();
+syncPricesFromCloud();
+/* ===== Photos d'ambiance ===== */
+const MOOD_QUERIES={"white-aquarium":"setup pc gamer blanc aquarium rgb","black-aquarium":"setup pc gamer noir aquarium rgb","rgb-showcase":"setup pc gamer rgb spectaculaire","white-clean":"setup pc gamer blanc minimaliste épuré","stealth":"setup pc gamer noir sobre stealth","budget":"setup pc gamer propre bureau"};
+let moodImgTarget=null;
+function openMoodImageForm(m){
+ moodImgTarget=m;
+ window.open("https://www.google.com/search?tbm=isch&q="+encodeURIComponent(MOOD_QUERIES[m.id]||("setup pc gamer "+m.title)),"_blank");
+ document.getElementById("moodImgLabel").textContent=m.title;
+ document.getElementById("moodImgUrl").value="";
+ const f=document.getElementById("moodImgForm");
+ f.style.display="block";f.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+document.getElementById("moodImgSave").onclick=async()=>{
+ if(!moodImgTarget)return;
+ const url=(document.getElementById("moodImgUrl").value||"").trim();
+ if(!/^https?:\/\/.+/i.test(url)){showToast("Adresse invalide — clic droit sur l'image → copier l'adresse de l'image.");return}
+ MOOD_IMG[moodImgTarget.id]=url;
+ try{
+   if(CLOUD_ON){
+     const r=await supaFetch("compatpc_images?on_conflict=id",{method:"POST",headers:{"Prefer":"resolution=merge-duplicates"},body:JSON.stringify({id:moodImgTarget.id,cat:"mood",url,auteur:currentUser()||null})});
+     if(!r.ok)throw new Error("HTTP "+r.status);
+     showToast("📸 Ambiance illustrée pour toute la famille !");
+   }
+ }catch(e){showToast("Photo appliquée ici, synchro impossible ("+e.message+").")}
+ document.getElementById("moodImgForm").style.display="none";
+ renderMoods();
+};
 /* ===== V7 : rail ===== */
 document.getElementById("navCreer").onclick=()=>go(state.step<4?state.step:0);
 document.getElementById("navPanier").onclick=()=>go(4);
