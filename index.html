@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.2 — Shopping Gaming</title>
+<title>Compat'PC V7.2.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -304,6 +304,9 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 @keyframes featIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 @media(max-width:640px){.feat-main{grid-template-columns:1fr}.feat-visual{height:120px}}
 
+/* ===== Photos dans l'aperçu et les collections ===== */
+.build-photo{width:100%;height:100%;object-fit:contain;border-radius:10px;background:#0d0d11}
+.collection-photo{width:100%;height:100%;object-fit:cover;border-radius:10px}
 /* ===== Ambiances en vraie photo ===== */
 .visual.mood-photo{background-size:cover;background-position:center;position:relative}
 .mood-veil{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,13,0) 40%,rgba(10,10,13,.55));pointer-events:none}
@@ -625,7 +628,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V7.2 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V7.2.1 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1007,7 +1010,17 @@ function renderShop(){
  ["LCD & GIF","Watercoolings avec écran personnalisable.","rgb","cooler","all","lcd"],
  ["Budget intelligent","Le meilleur équilibre prix et style.","budget","all","all","all"]];
  const cg=document.getElementById("collectionGrid");cg.innerHTML="";
- cols.forEach(([title,desc,cl,cat,color,style])=>{const d=document.createElement("div");d.className="collection "+cl;d.innerHTML=`<h4>${title}</h4><p>${desc}</p><div class="collection-art">${renderArt("case",{color:color==="white"?"white":"black",style:style==="aquarium"?"aquarium":"classic",styles:cl==="rgb"?["rgb","lcd"]:[]},true)}</div>`;d.onclick=()=>{openSimpleLibrary(cat==="all"?null:cat);document.getElementById("simpleColor").value=color;document.getElementById("simpleStyle").value=style;renderSimpleLibrary()};cg.appendChild(d)});
+ const MOOD_FOR_COL={white:"white-aquarium",black:"black-aquarium",rgb:"rgb-showcase",budget:"budget"};
+ cols.forEach(([title,desc,cl,cat,color,style])=>{const d=document.createElement("div");d.className="collection "+cl;
+  let art=null;
+  const moodPhoto=MOOD_IMG[MOOD_FOR_COL[cl]];
+  if(moodPhoto)art=`<img class="collection-photo" src="${escapeHtml(moodPhoto)}" alt="" loading="lazy">`;
+  else{
+    const sample=parts.case.find(p=>p.image&&(color==="all"||p.color===color)&&(style!=="aquarium"||p.style==="aquarium"))||parts.case.find(p=>p.image);
+    if(sample)art=`<img class="collection-photo" src="${escapeHtml(sample.image)}" alt="" loading="lazy">`;
+  }
+  if(!art)art=renderArt("case",{color:color==="white"?"white":"black",style:style==="aquarium"?"aquarium":"classic",styles:cl==="rgb"?["rgb","lcd"]:[]},true);
+  d.innerHTML=`<h4>${title}</h4><p>${desc}</p><div class="collection-art">${art}</div>`;d.onclick=()=>{openSimpleLibrary(cat==="all"?null:cat);document.getElementById("simpleColor").value=color;document.getElementById("simpleStyle").value=style;renderSimpleLibrary()};cg.appendChild(d)});
  renderFeaturedCarousel();
 }
 function featuredPool(){
@@ -1631,7 +1644,10 @@ function renderBuildVisual(){
  if(cool&&cool.gif)traits.push("écran LCD/GIF sur l’AIO");
  if(fans&&(fans.rgb||fans.argb))traits.push("ventilateurs RGB");
  bv.style.display="flex";
- bv.innerHTML=`<div class="build-art">${renderArt("case",{...cs,gif:!!(cool&&cool.gif)},true)}</div><div class="build-caption"><strong>Aperçu du style</strong><span>${escapeHtml(cs.name)}</span><span>${traits.length?traits.join(" • "):"Setup sobre et efficace"}</span></div>`;
+ const art=cs.image
+   ?`<img class="build-photo" src="${escapeHtml(cs.image)}" alt="${escapeHtml(cs.name)}" loading="lazy">`
+   :renderArt("case",{...cs,gif:!!(cool&&cool.gif)},true);
+ bv.innerHTML=`<div class="build-art">${art}</div><div class="build-caption"><strong>${cs.image?"Ton boîtier":"Aperçu du style"}</strong><span>${escapeHtml(cs.name)}</span><span>${traits.length?traits.join(" • "):"Setup sobre et efficace"}</span>${cs.image?"":'<span style="font-size:11px;opacity:.7">💡 Ajoute la vraie photo du boîtier depuis sa fiche pour remplacer ce dessin.</span>'}</div>`;
 }
 function changePart(cat){
  const current=state.cart.selection[cat];
