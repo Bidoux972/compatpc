@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V6.4.2 — Shopping Gaming</title>
+<title>Compat'PC V7.0 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --bg:#0a0a0d;--panel:#131318;--panel2:#232329;--line:#29292f;--text:#f2f2ef;
-  --muted:#9c9ca6;--accent:#c8f542;--ok:#34d399;--warn:#fbbf24;--bad:#fb7185;
+  --muted:#9c9ca6;--accent:#a78bfa;--ok:#34d399;--warn:#fbbf24;--bad:#fb7185;
   --white:#f6f8fc;--black:#111827;
 }
 *{box-sizing:border-box}
@@ -25,16 +25,16 @@ a{color:#a9c7ff}
 .brand p{margin:7px 0 0;color:var(--muted);max-width:820px;line-height:1.5}
 .mode-switch{display:flex;gap:8px;background:rgba(17,26,47,.85);border:1px solid var(--line);padding:6px;border-radius:12px}
 .mode-switch button{border:none;padding:9px 12px;border-radius:8px;background:transparent;color:#cbd7ef;font-weight:800}
-.mode-switch button.active{background:var(--accent);color:#0a0a08}
+.mode-switch button.active{background:var(--accent);color:#120a24}
 .shell{display:grid;grid-template-columns:270px 1fr;gap:18px}
 .sidebar,.card{background:rgba(17,26,47,.96);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 48px rgba(0,0,0,.22)}
 .sidebar{padding:15px;height:max-content;position:sticky;top:14px}
 .step{display:flex;gap:11px;align-items:center;padding:12px;border-radius:12px;color:#aab7d2}
 .step.active{background:#1e1e26;color:#fff}.step.done{color:#c9f7df}
 .step .num{width:29px;height:29px;border-radius:50%;display:grid;place-items:center;background:#243453;font-weight:900}
-.step.active .num{background:var(--accent);color:#0a0a08}.step.done .num{background:rgba(52,211,153,.18);color:var(--ok)}
+.step.active .num{background:var(--accent);color:#120a24}.step.done .num{background:rgba(52,211,153,.18);color:var(--ok)}
 .side-actions{display:flex;flex-direction:column;gap:9px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
-.btn{border:none;border-radius:11px;padding:11px 14px;font-weight:850;background:var(--accent);color:#0a0a08}
+.btn{border:none;border-radius:11px;padding:11px 14px;font-weight:850;background:var(--accent);color:#120a24}
 .btn.secondary{background:#1d1d24;color:#e6e6ec;border:1px solid #35353f}
 .btn.ghost{background:transparent;color:#d1dcf1;border:1px solid var(--line)}
 .btn.warn{background:rgba(251,191,36,.14);color:#ffd66b;border:1px solid rgba(251,191,36,.35)}
@@ -86,7 +86,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .build-card.recommended{border-color:var(--accent);box-shadow:0 0 0 3px rgba(117,169,255,.12)}
 .build-cover{height:130px;position:relative;background:linear-gradient(135deg,#1a1a21,#121217)}
 .build-cover .mini-case{position:absolute;left:30px;right:30px;top:18px;bottom:12px;border:3px solid rgba(255,255,255,.75);border-radius:9px;background:rgba(255,255,255,.06)}
-.build-cover .mini-case:before{content:"";position:absolute;right:12px;top:12px;width:24px;height:24px;border:3px solid #e2ff6a;border-radius:50%;box-shadow:0 0 14px #e2ff6a}
+.build-cover .mini-case:before{content:"";position:absolute;right:12px;top:12px;width:24px;height:24px;border:3px solid #c4b5fd;border-radius:50%;box-shadow:0 0 14px #c4b5fd}
 .build-cover.white{background:linear-gradient(135deg,#dfe8f5,#94a8c7)}
 .build-cover.black{background:linear-gradient(135deg,#111827,#29364b)}
 .build-cover.rgb{background:linear-gradient(135deg,#2d154f,#0a2c40,#4b173d)}
@@ -207,12 +207,12 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .rank-argent{color:#cfd6e2;border-color:#5d6675;background:#1a1d24}
 .rank-or{color:#ffd66b;border-color:#8a6d1f;background:#251d0a;box-shadow:0 0 14px rgba(255,214,107,.15)}
 .rank-diamant{color:#8be9ff;border-color:#2e6a7d;background:#0c1c22;box-shadow:0 0 14px rgba(139,233,255,.18)}
-.rank-legende{color:#c8f542;border-color:#5c7a1d;background:#141d06;animation:rankPulse 2.2s infinite}
-@keyframes rankPulse{0%,100%{box-shadow:0 0 10px rgba(200,245,66,.25)}50%{box-shadow:0 0 26px rgba(200,245,66,.55)}}
+.rank-legende{color:#a78bfa;border-color:#5b4794;background:#171026;animation:rankPulse 2.2s infinite}
+@keyframes rankPulse{0%,100%{box-shadow:0 0 10px rgba(167,139,250,.25)}50%{box-shadow:0 0 26px rgba(167,139,250,.55)}}
 .door{position:relative;overflow:hidden}
 .door::after{content:"";position:absolute;top:0;left:-75%;width:40%;height:100%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.05),transparent);transform:skewX(-15deg);transition:left .55s;pointer-events:none}
 .door:hover::after{left:125%}
-.build-art svg{filter:drop-shadow(0 0 18px rgba(200,245,66,.12))}
+.build-art svg{filter:drop-shadow(0 0 18px rgba(167,139,250,.12))}
 .duel-box{background:#121217;border:1px solid #4a4471;border-radius:16px;padding:16px;margin-bottom:20px}
 .duel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
 .duel-cols{display:grid;grid-template-columns:1fr 46px 1fr;gap:8px;align-items:center;margin-bottom:12px;text-align:center}
@@ -263,9 +263,9 @@ h1,h2,h3,h4,.price,.door-cta,.duel-vs{font-family:"Space Grotesk","Inter",sans-s
 h1{text-transform:uppercase;letter-spacing:2px}
 h1 .volt,#brandHome .volt{color:var(--accent)}
 .btn{border-radius:9px}
-.door:hover{border-color:#5a5a6a;box-shadow:0 14px 34px rgba(200,245,66,.07)}
+.door:hover{border-color:#5a5a6a;box-shadow:0 14px 34px rgba(167,139,250,.07)}
 .door-cta{color:var(--accent)}
-#userChip{color:#e2ff6a;border-color:#3a3a44;background:#1a1a20}
+#userChip{color:#c4b5fd;border-color:#3a3a44;background:#1a1a20}
 /* Fiche produit */
 .sheet-overlay{position:fixed;inset:0;background:rgba(5,5,7,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1200;padding:18px}
 .sheet-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:640px;width:100%;max-height:90vh;overflow:auto}
@@ -290,7 +290,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 .btn:active,.mini:active,.fps-tab:active{transform:scale(.96)}
 .door:active{transform:scale(.985)}
 .mini:hover{transform:translateY(-2px);border-color:#4a4a58}
-.side-actions .btn.active{background:var(--accent);color:#0a0a08;border-color:var(--accent);font-weight:800}
+.side-actions .btn.active{background:var(--accent);color:#120a24;border-color:var(--accent);font-weight:800}
 .where-bar{position:sticky;top:0;z-index:50;margin:0 0 10px;padding:8px 14px;background:rgba(19,19,24,.92);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;font-weight:800;font-size:12.5px;letter-spacing:.5px;color:var(--accent);width:max-content}
 /* Carrousel vitrine */
 .feat-car{display:grid;grid-template-columns:44px 1fr 44px;gap:10px;align-items:stretch}
@@ -303,13 +303,32 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 .feat-why{font-size:11.5px;font-weight:800;letter-spacing:.6px;color:var(--accent);text-transform:uppercase}
 @keyframes featIn{from{opacity:0;transform:translateX(10px)}to{opacity:1;transform:none}}
 @media(max-width:640px){.feat-main{grid-template-columns:1fr}.feat-visual{height:120px}}
+
+/* ===== V7 — Rail de navigation ===== */
+.shell{grid-template-columns:100px 1fr}
+.sidebar.rail{padding:12px 8px}
+.rail .side-actions{gap:6px}
+.rail-btn{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;padding:10px 4px;background:transparent;border:1px solid transparent;color:var(--muted);font-size:10.5px;font-weight:800;letter-spacing:.3px;border-radius:11px;text-align:center}
+.rail-btn:hover{background:#131318;color:var(--text);border-color:#29292f;filter:none}
+.rail-ico{font-size:19px;line-height:1}
+.side-actions .rail-btn.active{background:var(--accent);color:#120a24;border-color:var(--accent)}
+.rail-sep{height:1px;background:#232329;margin:6px 4px}
+#simpleMode,#expertMode{display:none}
+#whereBar{display:none}
+@media(max-width:860px){
+ .shell{grid-template-columns:1fr}
+ .sidebar.rail{position:sticky;top:0;z-index:80;background:rgba(10,10,13,.95);backdrop-filter:blur(10px);border-radius:0 0 14px 14px}
+ .rail .side-actions{flex-direction:row;overflow-x:auto;padding-bottom:4px}
+ .rail-btn{min-width:74px}
+ .rail-sep{display:none}
+}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V6.4</h1>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V7</h1>
       <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
@@ -323,13 +342,17 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
     <strong>Mode expert actif :</strong>&nbsp; les dimensions, puissances et détails techniques apparaissent dans le panier.
   </div>
   <div class="shell">
-    <aside class="sidebar">
-      <div id="steps"></div>
+    <aside class="sidebar rail">
+      <div id="steps" style="display:none"></div>
       <div class="side-actions">
-        <button class="btn" id="goHome">🏠 Accueil</button>
-        <button class="btn secondary" id="openImport">Ajouter un lien</button><button class="btn secondary" id="openSimpleLibrary">Explorer toute la bibliothèque</button><button class="btn secondary" id="openPersonalLibrary">Ma bibliothèque personnelle</button>
-        <button class="btn ghost" id="openSaved">Mes configurations</button><button class="btn warn expert-only" id="openExpertWorkshop">Ouvrir l’atelier expert</button><div style="font-size:11px;color:var(--muted);line-height:1.4">Configs de la famille en ligne + sauvegardes locales.</div>
-        <button class="btn ghost" id="restart">Recommencer</button>
+        <button class="btn rail-btn" id="goHome"><span class="rail-ico">🏠</span>Accueil</button>
+        <button class="btn rail-btn" id="navCreer"><span class="rail-ico">🎮</span>Créer</button>
+        <button class="btn rail-btn" id="openExpertWorkshop"><span class="rail-ico">🔧</span>Atelier</button>
+        <button class="btn rail-btn" id="openSimpleLibrary"><span class="rail-ico">📚</span>Bibliothèque</button>
+        <button class="btn rail-btn" id="navPanier"><span class="rail-ico">🛒</span>Panier</button>
+        <button class="btn rail-btn" id="openSaved"><span class="rail-ico">👨‍👩‍👦</span>Famille</button>
+        <div class="rail-sep"></div>
+        <button class="btn rail-btn ghost" id="restart" title="Tout recommencer"><span class="rail-ico">⟳</span>Reset</button>
       </div>
     </aside>
 
@@ -446,6 +469,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
           <button class="btn ghost" id="closeSimpleLibrary">Fermer</button>
         </div>
         <div class="card-body">
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn secondary" id="openImport">🔗 Importer une pièce</button><button class="btn secondary" id="openPersonalLibrary">📦 Mes imports</button></div>
           <div class="form-grid">
             <div class="field"><label>Rechercher</label><input id="simpleSearch" placeholder="Ex. RTX 5060 Ti, boîtier blanc, Kraken…"></div>
             <div class="field"><label>Catégorie</label><select id="simpleCategory"></select></div>
@@ -591,7 +615,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V6.4.2 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V7.0 Ultraviolet — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2150,6 +2174,14 @@ document.getElementById("startPurchase").onclick=createPurchaseProject;
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
 syncImagesFromCloud();
+/* ===== V7 : rail ===== */
+document.getElementById("navCreer").onclick=()=>go(state.step<4?state.step:0);
+document.getElementById("navPanier").onclick=()=>go(4);
+document.getElementById("openExpertWorkshop").onclick=()=>{
+ state.expert=true;
+ document.getElementById("app").classList.add("expert");
+ openExpertWorkshop();
+};
 </script>
 </body>
 </html>
