@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.5.1 — Shopping Gaming</title>
+<title>Compat'PC V7.5.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -663,7 +663,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V7.5.1 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V7.5.2 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1569,6 +1569,7 @@ function renderSimpleLibrary(){
  const color=document.getElementById("simpleColor").value;
  const style=document.getElementById("simpleStyle").value;
  const top=document.getElementById("simpleTop").value;
+ updateLibraryFilters();
  const tier=document.getElementById("simpleTier").value;
  const brand=document.getElementById("simpleBrand")?.value||"all";
  let rows=[];
@@ -2408,6 +2409,34 @@ renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
 syncImagesFromCloud();
 syncPricesFromCloud();
+/* ===== Filtres contextuels de la bibliothèque ===== */
+let lastFilterCat=null;
+function updateLibraryFilters(){
+ const catSel=document.getElementById("simpleCategory");if(!catSel)return;
+ const cat=catSel.value;
+ if(cat===lastFilterCat)return;
+ lastFilterCat=cat;
+ // Marque / techno : uniquement les options qui ont un sens pour la catégorie
+ const brand=document.getElementById("simpleBrand");
+ const prev=brand.value;
+ const opts=[["all","Toutes"]];
+ if(cat==="all"||cat==="gpu")opts.push(["geforce","GeForce (NVIDIA)"],["radeon","Radeon (AMD)"],["occasion","Occasion vérifiée"]);
+ if(cat==="all"||cat==="cpu")opts.push(["ryzen","Ryzen (AMD)"],["intel","Intel Core"]);
+ if(cat==="all"||cat==="motherboard")opts.push(["wifi7","Wi-Fi 7"]);
+ brand.innerHTML=opts.map(([v,l])=>`<option value="${v}">${l}</option>`).join("");
+ brand.value=opts.some(([v])=>v===prev)?prev:"all";
+ brand.closest(".field").style.display=opts.length>1?"":"none";
+ // Style : pertinent pour boîtiers, refroidissement, ventilateurs (aquarium/RGB/LCD/discret)
+ const styleSel=document.getElementById("simpleStyle");
+ const styleOk=["all","case","cooler","fans"].includes(cat);
+ styleSel.closest(".field").style.display=styleOk?"":"none";
+ if(!styleOk)styleSel.value="all";
+ // Couleur : sans objet pour CPU, SSD, alimentation
+ const colorSel=document.getElementById("simpleColor");
+ const colorOk=!["cpu","ssd","psu"].includes(cat);
+ colorSel.closest(".field").style.display=colorOk?"":"none";
+ if(!colorOk)colorSel.value="all";
+}
 /* ===== Photos d'ambiance ===== */
 const MOOD_QUERIES={"white-aquarium":"setup pc gamer blanc aquarium rgb","black-aquarium":"setup pc gamer noir aquarium rgb","rgb-showcase":"setup pc gamer rgb spectaculaire","white-clean":"setup pc gamer blanc minimaliste épuré","stealth":"setup pc gamer noir sobre stealth","budget":"setup pc gamer propre bureau"};
 let moodImgTarget=null;
