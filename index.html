@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.4 — Shopping Gaming</title>
+<title>Compat'PC V7.5 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -447,7 +447,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
           <p class="lead">Sélectionne les usages importants. Ils orientent la carte graphique, la mémoire et le stockage.</p>
           <div class="usage-grid" id="usageGrid"></div>
           <div class="form-grid" style="margin-top:14px">
-            <div class="field"><label>Écran principal</label><select id="screen"><option value="1080">Full HD</option><option value="1440">1440p</option><option value="4k" selected>4K</option></select></div>
+            <div class="field"><label>Écran principal</label><select id="screen"><option value="1080p" selected>Full HD (1080p) — le plus courant</option><option value="1440p">1440p (QHD)</option><option value="4k">4K — exigeant : il faut du très lourd</option></select></div>
             <div class="field"><label>Préférence graphique</label><select id="gpuPreference"><option value="any">Peu importe — le meilleur rapport selon mon budget</option><option value="nvidia">NVIDIA GeForce — DLSS, ray tracing, streaming</option><option value="amd">AMD Radeon — plus de VRAM et de FPS par euro</option><option value="16gb">16 Go de VRAM minimum — la sécurité futureproof 🛡️</option></select>
             <div class="small-note" style="margin-top:8px">🧭 <strong>Le distinguo :</strong> <strong>GeForce (NVIDIA)</strong> = les technologies (DLSS qui invente des images, ray tracing, encodeur streaming). <strong>Radeon (AMD)</strong> = plus de VRAM et de FPS bruts par euro. Les deux vont parfaitement avec un Ryzen — le « tout AMD » n'apporte qu'un bonus marginal, choisis ta carte pour elle-même. Détails au glossaire 📖.</div>
             </div>
@@ -652,7 +652,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V7.4 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V7.5 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1011,7 +1011,7 @@ function renderPurchase(p){
 }
 /* ===== Fin projets d'achat ===== */
 
-let state={step:0,mood:null,budget:1500,usages:[],screen:"4k",gpuPreference:"16gb",builds:[],cart:null,expert:false,expertSelection:{},expertAioMount:"auto"};
+let state={step:0,mood:null,budget:1600,usages:[],screen:"1080p",gpuPreference:"any",builds:[],cart:null,expert:false,expertSelection:{},expertAioMount:"auto"};
 const FAVORITES_KEY="compatpc_v4_favorites";let compareItems=[];
 const stepLabels=["Style","Budget","Usages","Propositions","Panier"];
 
@@ -1400,7 +1400,9 @@ function renderBuilds(){
     const part=get(k,id);
     return `<div class="part-line"><span>${labelCat(k)}</span><span>${part.name}<br><a class="search-link" href="${googleUrl(part.name)}" target="_blank" rel="noopener">Voir sur Google</a></span></div>`;
   }).join("");
-  d.innerHTML=`<div class="build-cover ${mood.visual}"><div class="build-art">${renderArt("case",get("case",b.selection.case),true)}</div></div><div class="build-content">
+  const csB=get("case",b.selection.case);
+  const coverArt=csB&&csB.image?`<img class="build-photo" src="${escapeHtml(csB.image)}" alt="${escapeHtml(csB.name)}" loading="lazy">`:renderArt("case",csB,true);
+  d.innerHTML=`<div class="build-cover ${mood.visual}"><div class="build-art">${coverArt}</div></div><div class="build-content">
   <div>${i===1?'<span class="badge">Recommandé</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
   <div class="fps-strip">${fpsStripHtml(b.selection,state.screen||"1080p")}</div>
   ${pertinenceHtml(b)}
@@ -2059,7 +2061,8 @@ function setupRank(sel){
 }
 function rankHtml(sel){
  const r=setupRank(sel);
- return r?`<span class="rank-badge ${r[1]}">RANG ${r[0]}</span>`:"";
+ const res=state.fpsRes||state.screen||"1080p";
+ return r?`<span class="rank-badge ${r[1]}">RANG ${r[0]} · ${res==="4k"?"4K":res}</span>`:"";
 }
 /* ===== Compteurs animés ===== */
 const COUNT_MEM={};
