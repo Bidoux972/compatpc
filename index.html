@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.5.2 — Shopping Gaming</title>
+<title>Compat'PC V7.6 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -663,7 +663,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V7.5.2 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>Compat'PC V7.6 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1832,7 +1832,7 @@ function specRows(cat,p){
  const add=(l,v)=>{if(v!==undefined&&v!==null&&v!=="")rows.push([l,v])};
  if(cat==="gpu"){add("Mémoire vidéo",(p.vram||"?")+" Go");add("Longueur",(p.length||"?")+" mm");add("Consommation",(p.power||"?")+" W");add("Puce",p.brand==="nvidia"?"NVIDIA":p.brand==="amd"?"AMD":(p.brand||""))}
  if(cat==="cpu"){add("Socket",p.socket);if(p.tdp)add("TDP",p.tdp+" W")}
- if(cat==="motherboard"){add("Socket",p.socket);add("Mémoire",p.ram);add("Format",p.form);add("Wi-Fi",/X870|B850/i.test(p.name)?"Oui — Wi-Fi 7 sur la plupart des modèles":(p.wifi?"Oui":"Non"))}
+ if(cat==="motherboard"){add("Socket",p.socket);add("Mémoire",p.ram);add("Format",p.form);add("PCI Express",/X870|B850|B650E|X670E/i.test(p.name)?"Gen 5 — prête pour les GPU/SSD de demain":(p.socket==="AM5"||/Z790|B760/i.test(p.name)?"Gen 4 (Gen 5 SSD selon modèles) — largement suffisant":"Gen 4"));add("Wi-Fi",/X870|B850/i.test(p.name)?"Oui — Wi-Fi 7 sur la plupart des modèles":(p.wifi?"Oui":"Non"))}
  if(cat==="ram"){add("Type",p.type);add("Capacité",(p.capacity||"?")+" Go");if(p.sticks&&p.capacity)add("Barrettes",p.sticks+" × "+Math.round(p.capacity/p.sticks)+" Go");if(p.speed)add("Vitesse",p.speed+" MT/s")}
  if(cat==="case"){add("Style",p.style==="aquarium"?"Aquarium (verre panoramique)":"Classique");add("Longueur GPU max",(p.maxGpu||"?")+" mm");add("Radiateurs acceptés",Array.isArray(p.rad)&&p.rad.length?p.rad.join(" / ")+" mm":"—");if(p.forms)add("Formats carte mère",p.forms.join(", "))}
  if(cat==="cooler"){add("Type",p.type==="Air"?"Ventirad (air)":"Watercooling AIO");if(p.rad)add("Radiateur",p.rad+" mm");add("Sockets",(p.sockets||[]).join(", "));add("Écran LCD/GIF",p.gif?"Oui":"Non")}
@@ -1986,6 +1986,7 @@ const GLOSSARY=[
 ["Tout AMD ? (CPU + GPU même marque)","Mettre un processeur AMD avec une carte AMD n'est PAS obligatoire et n'apporte qu'un bonus marginal (quelques optimisations mineures). Un Ryzen + une GeForce est un duo parfaitement heureux. Choisis chaque pièce pour elle-même, pas pour l'assortiment des logos."],
 ["Entrée / Milieu / Haut de gamme","Nos trois gammes. Le piège : à specs identiques (même puce, même VRAM), qu'est-ce qui change ? L'habillage : le refroidissement (2 ou 3 ventilateurs, plus silencieux), la qualité de fabrication, le RGB, le look, parfois quelques % de fréquence. Entrée = le design simple qui fait le travail. Haut = la version premium, plus fraîche, plus silencieuse, plus belle. Les FPS, eux, sont quasi identiques — c'est pour ça que l'app les calcule sur la puce, pas sur la gamme."],
 ["Bottleneck (goulot d'étranglement)","Quand une pièce trop faible bride les autres : un CPU d'entrée de gamme avec un GPU monstre = le GPU attend, tu paies des FPS que tu n'auras jamais. L'app équilibre automatiquement CPU et GPU dans ses propositions, et ses compteurs te montrent quand le CPU plafonne."],
+["PCI Express (Gen 4 / Gen 5)","L'autoroute interne du PC : les voies qui relient carte graphique et SSD au processeur. Chaque génération double le débit. En vrai : le Gen 5 ne donne quasi aucun FPS de plus au GPU, et un SSD Gen 5 (cher, chauffe) ne charge les jeux qu'une seconde plus vite qu'un Gen 4. Aucun piège : tout est compatible avec tout, à la vitesse du plus lent. L'intérêt est ailleurs : une carte mère avec slots Gen 5 (X870, B850, B650E) est prête pour les composants de demain 🛡️."],
 ["Philosophie de montage","L'ordre des décisions qui a du sens : 1) le budget total, honnête. 2) le GPU (~30 % du budget) — c'est lui qui fait les FPS. 3) la plateforme : AM5 + DDR5 pour l'avenir 🛡️. 4) un CPU équilibré avec le GPU (pas de bottleneck). 5) un boîtier où tout rentre (longueur GPU !). 6) une alim avec de la marge. 7) le style en dernier — le RGB ne donne pas de FPS, mais il donne le sourire."]
 ];
 function renderGlossary(filter=""){
@@ -2001,7 +2002,7 @@ document.getElementById("glossarySearch").oninput=e=>renderGlossary(e.target.val
 /* ===== Pérennité (futureproof) ===== */
 function futureproof(cat,p){
  if(cat==="motherboard"){
-   if(p.socket==="AM5"){const recent=/X870|B850/i.test(p.name);return [2,"Socket AM5 : les prochains Ryzen s'installeront ici sans rien changer"+(recent?" • chipset récent (souvent Wi-Fi 7)":"")]}
+   if(p.socket==="AM5"){const recent=/X870|B850|B650E|X670E/i.test(p.name);return [2,"Socket AM5 : les prochains Ryzen s'installeront ici sans rien changer"+(recent?" • PCIe Gen 5 et souvent Wi-Fi 7":"")]}
    if(p.socket==="AM4")return [0,"AM4 : dernier arrêt — aucun processeur futur ne s'y installera"];
    return [1,"Plateforme Intel récente, mais Intel change souvent de socket"];
  }
