@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.7.2 — Shopping Gaming</title>
+<title>Compat'PC V8.0 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -372,14 +372,22 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 .collection-art{position:static;margin-top:auto;width:calc(100% + 34px);height:118px;margin-left:-17px;margin-right:-17px;margin-bottom:-17px;overflow:hidden}
 .collection-art .collection-photo{width:100%;height:100%;object-fit:cover;display:block;border-radius:0}
 .collection-art svg{width:100%;height:100%}
+
+/* ===== V8.0 — moteur fiable : correctifs structurels ===== */
+#featuredProducts{display:block}
+html,body{max-width:100%;overflow-x:hidden}
+.shell{grid-template-columns:100px minmax(0,1fr)}
+.main,.card,.sidebar,.card-body{min-width:0}
+@media(max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}}
+.verdict-warn{background:#2b1a0d;border:1px solid #7a5330;border-radius:14px;padding:14px;margin-bottom:14px;color:#ffd9b0;font-size:13.5px;line-height:1.6}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
-      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V7</h1>
-      <p>Construis ton PC avec une bibliothèque de 441 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
+      <h1 id="brandHome" style="cursor:pointer" title="Retour à l'accueil">Compat'<span class="volt">PC</span> V8</h1>
+      <p>Construis ton PC avec une bibliothèque de <span class="refcount">447</span> composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.</p>
     </div>
     <div class="mode-switch">
       <button id="simpleMode" class="active">Mode simple</button>
@@ -432,7 +440,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
               <span class="door-cta">Voir les configs →</span>
             </div>
           </div>
-          <div class="shop-section"><div class="shop-head"><div><h3>La bibliothèque</h3><p>441 composants, plus vos imports partagés en famille.</p></div></div>
+          <div class="shop-section"><div class="shop-head"><div><h3>La bibliothèque</h3><p><span class="refcount">447</span> composants, plus vos imports partagés en famille.</p></div></div>
             <div class="mini-grid">
               <div class="mini" id="shopBrowse">🔍 Explorer tout</div>
               <div class="mini" id="quickImport">🔗 Ajouter un lien</div>
@@ -685,7 +693,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V7.7.2 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.0 « Moteur fiable » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1384,7 +1392,13 @@ function chooseParts(profile){
  const cs=pick("case",filters.case);
  const cooler=pick("cooler",filters.cooler);
  const clearance=effectiveGpuClearance(get("case",cs),get("cooler",cooler),"auto")||400;
- filters.gpu=p=>(!heavy||(p.vram||0)>=12)&&(p.length||300)<=clearance;
+ const pref=state.gpuPreference;
+ filters.gpu=p=>!/occasion/i.test(p.name||"")
+   &&(pref!=="nvidia"||p.brand==="nvidia")
+   &&(pref!=="amd"||p.brand==="amd")
+   &&(pref!=="16gb"||(p.vram||0)>=16)
+   &&(!heavy||(p.vram||0)>=12)
+   &&(p.length||300)<=clearance;
  const gpu=pick("gpu",filters.gpu);
  const ssd=pick("ssd",filters.ssd);
  let need=recommendedPsuWatts(get("cpu",cpu),get("gpu",gpu));
@@ -1392,7 +1406,7 @@ function chooseParts(profile){
  const psu=pick("psu",filters.psu);
  let sel={cpu,motherboard,ram,gpu,case:cs,cooler,fans:pick("fans"),ssd,psu};
 
- const cap=budget*1.06;
+ const cap=budget*(cheap?0.92:premium?1.10:1.0);
  const order=["gpu","cooler","case","cpu","motherboard","ram","fans","ssd"];
  let guard=0;
  while(guard++<25){
@@ -1422,21 +1436,40 @@ function generate(){
   buildFrom("balanced","Le meilleur équilibre","Le compromis le plus logique entre look, montage vidéo et durée de vie."),
   buildFrom("beauty","Le plus beau","Le panier qui privilégie l’effet waouh et l’écran GIF.")
  ];
+ const res=state.screen||"1080p";
+ state.builds.forEach(b=>{
+   const gpu=get("gpu",b.selection.gpu),cpu=get("cpu",b.selection.cpu);
+   b.fpsAAA=avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res);
+   b.fpsE=avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res);
+   const checks=pertinenceChecks(b);
+   b.pertPct=checks.length?Math.round(checks.reduce((s2,c)=>s2+c.pts,0)/checks.length*100):100;
+   b.compatErrors=analyzeBuild(b.selection).errors.length;
+   b.playable=b.fpsAAA>=45&&b.fpsE>=60;
+ });
+ let bestIdx=-1,best=-1;
+ state.builds.forEach((b,i)=>{if(b.playable&&!b.compatErrors&&b.pertPct>best){best=b.pertPct;bestIdx=i}});
+ state.recommendedIdx=bestIdx;
  renderBuilds();go(3)
 }
 function renderBuilds(){
  const g=document.getElementById("buildGrid");g.innerHTML="";
+ let vb=document.getElementById("buildVerdict");
+ if(!vb){vb=document.createElement("div");vb.id="buildVerdict";g.parentElement.insertBefore(vb,g)}
+ if(state.recommendedIdx===-1&&state.builds.length){
+   const resLbl=(state.screen==="4k"?"4K":state.screen||"1080p");
+   vb.innerHTML=`<div class="verdict-warn"><strong>⚠️ Honnêteté du moteur :</strong> en ${resLbl} avec ${money(state.budget)}, aucune configuration n’atteint le seuil jouable (45 FPS de moyenne sur les gros jeux, 60 en e-sport) en respectant tes exigences. Les paniers ci-dessous sont montrés pour comparaison — <strong>aucun n’est recommandé</strong>. Options : baisse la résolution cible, assouplis une exigence, ou augmente le budget.</div>`;
+ }else vb.innerHTML="";
  state.builds.forEach((b,i)=>{
   const mood=moods.find(m=>m.id===state.mood)||moods[0];
-  const d=document.createElement("div");d.className="build-card "+(i===1?"recommended":"");
+  const d=document.createElement("div");d.className="build-card "+(i===state.recommendedIdx?"recommended":"");
   const lines=Object.entries(b.selection).map(([k,id])=>{
     const part=get(k,id);
-    return `<div class="part-line"><span>${labelCat(k)}</span><span>${part.name}<br><a class="search-link" href="${googleUrl(part.name)}" target="_blank" rel="noopener">Voir sur Google</a></span></div>`;
+    return `<div class="part-line"><span>${labelCat(k)}</span><span>${escapeHtml(part.name)}<br><a class="search-link" href="${googleUrl(part.name)}" target="_blank" rel="noopener">Voir sur Google</a></span></div>`;
   }).join("");
   const csB=get("case",b.selection.case);
   const coverArt=csB&&csB.image?`<img class="build-photo" src="${escapeHtml(csB.image)}" alt="${escapeHtml(csB.name)}" loading="lazy">`:renderArt("case",csB,true);
   d.innerHTML=`<div class="build-cover ${mood.visual}"><div class="build-art">${coverArt}</div></div><div class="build-content">
-  <div>${i===1?'<span class="badge">Recommandé</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
+  <div>${i===state.recommendedIdx?'<span class="badge">Recommandé</span>':""}${b.playable===false?'<span class="impact gv-bad">⚠ Sous le seuil jouable à cette résolution</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
   <div class="fps-strip">${fpsStripHtml(b.selection,state.screen||"1080p")}</div>
   ${pertinenceHtml(b)}
   <div style="margin:4px 0 8px">${rankHtml(b.selection)}</div>
@@ -1501,44 +1534,9 @@ function analyzeExpert(){
  const s=state.expertSelection;
  const cpu=expertSelected("cpu"),mb=expertSelected("motherboard"),ram=expertSelected("ram"),gpu=expertSelected("gpu"),cs=expertSelected("case"),cool=expertSelected("cooler"),psu=expertSelected("psu");
  const chosen=expertCategories.filter(k=>s[k]).length;
- let checks=[], hard=0, warn=0;
+ const ub=analyzeBuild(s,{mount:state.expertAioMount||"auto"});
+ let checks=[...ub.checks], hard=ub.errors.length, warn=ub.warnings.length;
  function push(kind,title,text){checks.push({kind,title,text}); if(kind==="bad")hard++; if(kind==="warn")warn++}
- if(cpu&&mb){
-   if(cpu.socket===mb.socket)push("ok","Processeur et carte mère","Même socket : "+cpu.socket+".");
-   else push("bad","Processeur et carte mère","Sockets différents : "+cpu.socket+" et "+mb.socket+".");
- }
- if(ram&&mb){
-   if(ram.type===mb.ram)push("ok","Mémoire et carte mère","La mémoire "+ram.type+" correspond.");
-   else push("bad","Mémoire et carte mère","La carte mère demande "+mb.ram+", mais la mémoire choisie est "+ram.type+".");
- }
- if(mb&&cs){
-   if((cs.forms||[]).includes(mb.form))push("ok","Carte mère et boîtier","Le format "+mb.form+" rentre dans le boîtier.");
-   else push("bad","Carte mère et boîtier","Le boîtier n’accepte pas le format "+mb.form+".");
- }
- if(gpu&&cs){
-   const mount=state.expertAioMount||"auto";
-   const available=effectiveGpuClearance(cs,cool,mount);
-   const margin=available-(gpu.length||0);
-   const frontPenalty=(cs.maxGpu||0)-available;
-   const mountNote=frontPenalty>0?" Radiateur en façade pris en compte : -"+frontPenalty+" mm.":"";
-   if(margin>=20)push("ok","Carte graphique et boîtier","Elle rentre avec environ "+margin+" mm de marge."+mountNote);
-   else if(margin>=0)push("warn","Carte graphique et boîtier","Elle rentre, mais avec seulement "+margin+" mm de marge."+mountNote);
-   else push("bad","Carte graphique et boîtier","Elle dépasse la place réellement disponible de "+Math.abs(margin)+" mm."+mountNote);
- }
- if(cool&&cs){
-   if(!cool.rad)push("ok","Refroidissement et boîtier","Ventirad sélectionné.");
-   else if((cs.rad||[]).includes(cool.rad))push("ok","Watercooling et boîtier","Radiateur "+cool.rad+" mm accepté.");
-   else push("bad","Watercooling et boîtier","Le boîtier n’accepte pas ce radiateur de "+cool.rad+" mm.");
- }
- if(cpu&&cool){
-   if((cool.sockets||[]).includes(cpu.socket))push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+".");
-   else push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n’est pas indiquée.");
- }
- if(gpu&&psu){
-   const need=recommendedPsuWatts(cpu,gpu);
-   if(psu.watts>=need)push("ok","Alimentation","Puissance suffisante. Recommandation estimée : "+need+" W, calculée avec le CPU et le GPU.");
-   else push("bad","Alimentation","Il faudrait environ "+need+" W en tenant compte des pics CPU et GPU.");
- }
  if(ram){
    if((ram.capacity||0)>=32)push("ok","Mémoire","32 Go ou plus : bon pour montage vidéo.");
    else push("warn","Mémoire","16 Go peuvent devenir justes pour le montage vidéo.");
@@ -1635,15 +1633,23 @@ function renderSimpleLibrary(){
    if(ga!==gb)return ga-gb;
    return (A.p.price||0)-(B.p.price||0);
  });
- document.getElementById("simpleLibraryCount").textContent=`${rows.length} référence(s) affichée(s) sur ${expertCategories.reduce((s,k)=>s+parts[k].length,0)}.`;
+ document.getElementById("simpleLibraryCount").textContent=`${Math.min(LIB_LIMIT,rows.length)} affichée(s) sur ${rows.length} correspondante(s) — bibliothèque totale : ${expertCategories.reduce((s,k)=>s+parts[k].length,0)} références.`;
  const g=document.getElementById("simpleLibraryGrid");g.innerHTML="";
- rows.slice(0,120).forEach(({cat,p})=>{
+ rows.slice(0,LIB_LIMIT).forEach(({cat,p})=>{
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
    d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
+ if(rows.length>LIB_LIMIT){
+   const more=document.createElement("button");
+   more.className="btn secondary";
+   more.style.cssText="grid-column:1/-1;justify-self:center;margin:10px 0";
+   more.textContent="Afficher les "+Math.min(120,rows.length-LIB_LIMIT)+" suivantes ("+(rows.length-LIB_LIMIT)+" restantes)";
+   more.onclick=()=>{LIB_LIMIT+=120;renderSimpleLibrary()};
+   g.appendChild(more);
+ }
  g.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  g.querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
    const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();go(4);showToast("Pièce ajoutée au panier.");
@@ -1669,7 +1675,48 @@ function openExpertWorkshop(){
 }
 
 function cartTotal(){return Object.entries(state.cart.selection).reduce((s,[k,id])=>s+(get(k,id)?.price||0),0)}
+function analyzeBuild(sel,opts={}){
+ const cpu=get("cpu",sel.cpu),mb=get("motherboard",sel.motherboard),ram=get("ram",sel.ram),gpu=get("gpu",sel.gpu),cs=get("case",sel.case),cool=get("cooler",sel.cooler),psu=get("psu",sel.psu);
+ const checks=[];let score=100;
+ const push=(kind,title,text,pen=0)=>{checks.push({kind,title,text});if(kind!=="ok")score-=pen};
+ if(cpu&&mb){cpu.socket===mb.socket?push("ok","Processeur et carte mère","Même socket : "+cpu.socket+"."):push("bad","Processeur et carte mère","Sockets différents : "+cpu.socket+" et "+mb.socket+".",40)}
+ if(ram&&mb){ram.type===mb.ram?push("ok","Mémoire et carte mère","La mémoire "+ram.type+" correspond."):push("bad","Mémoire et carte mère","La carte mère demande "+mb.ram+", mais la mémoire choisie est "+ram.type+".",40)}
+ if(mb&&cs){(cs.forms||[]).includes(mb.form)?push("ok","Carte mère et boîtier","Le format "+mb.form+" rentre dans le boîtier."):push("bad","Carte mère et boîtier","Le boîtier n\u2019accepte pas le format "+mb.form+".",30)}
+ let clearanceMargin=null;
+ if(gpu&&cs){
+   const available=effectiveGpuClearance(cs,cool,opts.mount||"auto");
+   const margin=available-(gpu.length||0);clearanceMargin=margin;
+   const frontPenalty=(cs.maxGpu||0)-available;
+   const mountNote=frontPenalty>0?" Radiateur en façade pris en compte : -"+frontPenalty+" mm.":"";
+   if(margin>=20)push("ok","Carte graphique et boîtier","Elle rentre avec environ "+margin+" mm de marge."+mountNote);
+   else if(margin>=0)push("warn","Carte graphique et boîtier","Elle rentre, mais avec seulement "+margin+" mm de marge."+mountNote,6);
+   else push("bad","Carte graphique et boîtier","Elle dépasse la place réellement disponible de "+Math.abs(margin)+" mm."+mountNote,35);
+ }
+ if(cool&&cs){
+   if(!cool.rad)push("ok","Refroidissement et boîtier","Ventirad sélectionné.");
+   else if((cs.rad||[]).includes(cool.rad))push("ok","Watercooling et boîtier","Radiateur "+cool.rad+" mm accepté.");
+   else push("bad","Watercooling et boîtier","Le boîtier n\u2019accepte pas ce radiateur de "+cool.rad+" mm.",25);
+ }
+ if(cpu&&cool){(cool.sockets||[]).includes(cpu.socket)?push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+"."):push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n\u2019est pas indiquée.",25)}
+ let need=null;
+ if(gpu&&psu){
+   need=recommendedPsuWatts(cpu,gpu);
+   if(psu.watts>=need){
+     push("ok","Alimentation","Puissance suffisante. Recommandation estimée : "+need+" W, calculée avec le CPU et le GPU.");
+     if(psu.watts<need*1.08)push("warn","Alimentation","Marge faible ("+(psu.watts-need)+" W) : correcte, mais sans réserve pour évoluer.",4);
+   }
+   else push("bad","Alimentation","Il faudrait environ "+need+" W en tenant compte des pics CPU et GPU.",30);
+ }
+ const errors=checks.filter(c=>c.kind==="bad"),warnings=checks.filter(c=>c.kind==="warn");
+ return {score:Math.max(0,score),checks,errors,warnings,need,clearanceMargin};
+}
 function compatibility(){
+ const a=analyzeBuild(state.cart.selection,{mount:"auto"});
+ const msgs=a.checks.filter(c=>c.kind!=="ok").map(c=>c.text);
+ if(!msgs.length)msgs.push("Toutes les vérifications passent : sockets, formats, dimensions, refroidissement, alimentation.");
+ return {score:a.score,msgs};
+}
+function legacyCompatibility(){
  const s=state.cart.selection, cpu=get("cpu",s.cpu), mb=get("motherboard",s.motherboard), ram=get("ram",s.ram), gpu=get("gpu",s.gpu), cs=get("case",s.case), cool=get("cooler",s.cooler), psu=get("psu",s.psu);
  let score=100, msgs=[];
  if(cpu.socket!==mb.socket){score-=40;msgs.push("Le processeur et la carte mère n’utilisent pas le même socket.")}
@@ -1692,7 +1739,7 @@ function renderCart(){
  const list=document.getElementById("cartList");list.innerHTML="";
  Object.entries(state.cart.selection).forEach(([cat,id])=>{
   const p=get(cat,id);const d=document.createElement("div");d.className="cart-item";
-  d.innerHTML=`<div><h4>${labelCat(cat)} — ${p.name}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p><div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
+  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p><div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
   <div style="display:flex;flex-direction:column;gap:7px"><button class="btn ghost" data-change="${cat}">Changer rapidement</button><button class="btn secondary" data-browse="${cat}">Voir toute la catégorie</button></div>`;
   list.appendChild(d)
  });
@@ -2353,7 +2400,7 @@ document.getElementById("importPersonalFile").onchange=async e=>{
 document.getElementById("openSimpleLibrary").onclick=()=>openSimpleLibrary();
 document.getElementById("closeSimpleLibrary").onclick=()=>{document.getElementById("simpleLibrary").classList.remove("active");go(state.cart?4:state.step)};
 ["simpleSearch","simpleCategory","simpleColor","simpleStyle","simpleTop","simpleTier","simpleSort","simpleBrand"].forEach(id=>{
- const el=document.getElementById(id);el.addEventListener(id==="simpleSearch"?"input":"change",renderSimpleLibrary);
+ const el=document.getElementById(id);el.addEventListener(id==="simpleSearch"?"input":"change",()=>{LIB_LIMIT=120;renderSimpleLibrary()});
 });
 
 document.getElementById("expertAioMount").onchange=e=>{state.expertAioMount=e.target.value;analyzeExpert()};
@@ -2432,6 +2479,7 @@ renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
 syncImagesFromCloud();
 syncPricesFromCloud();
+document.querySelectorAll(".refcount").forEach(e=>e.textContent=expertCategories.reduce((s,k)=>s+parts[k].length,0));
 /* ===== Décodeur de config ===== */
 function decodeConfigBlob(text){
  const det={};
@@ -2524,6 +2572,7 @@ function runDecode(){
 }
 document.getElementById("decodeBtn").onclick=runDecode;
 /* ===== Filtres contextuels de la bibliothèque ===== */
+let LIB_LIMIT=120;
 let lastFilterCat=null;
 function updateLibraryFilters(){
  const catSel=document.getElementById("simpleCategory");if(!catSel)return;
