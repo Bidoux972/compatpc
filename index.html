@@ -1,9 +1,18 @@
 <!doctype html>
+<!--
+  Compat'PC — application familiale de configuration de PC gamer
+  © 2026 Bruno Bourdon & Noah — Tous droits réservés.
+  Conception et développement : famille Bourdon avec l'assistance de Claude (Anthropic).
+  Ce code est une œuvre protégée par le droit d'auteur. Toute reproduction,
+  réutilisation ou adaptation, totale ou partielle, sans autorisation écrite
+  de l'auteur est interdite (art. L.111-1 et s. du Code de la propriété intellectuelle).
+  Usage strictement familial et privé — application non commerciale.
+-->
 <html lang="fr">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V7.7 — Shopping Gaming</title>
+<title>Compat'PC V7.7.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -433,7 +442,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
           <div class="shop-section"><div class="shop-head"><div><h3>Shop par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
-          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div class="shop-section"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
+          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div class="shop-section"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
         </div>
       </section>
 
@@ -529,7 +538,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 <div class="field"><label>Classement</label><select id="simpleTop"><option value="all">Toutes les références</option><option value="top">★ Top 10 uniquement</option></select></div>
 <div class="field"><label>Gamme</label><select id="simpleTier"><option value="all">Toutes les gammes</option><option value="haut">Haut de gamme</option><option value="moyen">Milieu de gamme</option><option value="entrée">Entrée de gamme</option></select></div>
           </div>
-          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span></div><div id="simpleLibraryCount" style="margin:14px 0;color:var(--muted)"></div>
+          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div id="simpleLibraryCount" style="margin:14px 0;color:var(--muted)"></div>
           <div id="simpleLibraryGrid" class="option-grid"></div>
         </div>
       </section>
@@ -548,7 +557,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
         <div class="card-body">
           <div class="expert-grid">
             <div>
-              <div class="small-note" style="margin-bottom:10px">💡 <strong>Recréer un PC existant</strong> (celui de Noah, par exemple) : choisis chaque pièce ci-dessous — le groupe « Mes imports / famille » contient tout ce que vous avez ajouté via Importer — puis « Appliquer au panier ». Une pièce introuvable ? Importe-la depuis sa page marchand ou en collant le texte de sa fiche.</div>
+              <div class="small-note" style="margin-bottom:10px"><strong>Légende :</strong> 🛡️ Futureproof (évoluera) • ⏳ Encore solide • 🧱 Fin de parcours (cul-de-sac assumé) — détails au glossaire 📖.<br>💡 <strong>Recréer un PC existant</strong> (celui de Noah, par exemple) : choisis chaque pièce ci-dessous — le groupe « Mes imports / famille » contient tout ce que vous avez ajouté via Importer — puis « Appliquer au panier ». Une pièce introuvable ? Importe-la depuis sa page marchand ou en collant le texte de sa fiche.</div>
 <div class="toolbox" id="expertToolbox"></div>
               <div class="field" style="margin-top:12px">
                 <label>Emplacement du radiateur AIO</label>
@@ -676,7 +685,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
       </div>
     </div>
   </div>
-  <footer>Compat'PC V7.7 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V7.7.2 Ultraviolet — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2506,7 +2515,7 @@ function runDecode(){
    const [lbl,cls]=HOW[r.how];
    return `<div class="duel-row"><div>${labelCat(cat)}<small>${escapeHtml(r.note)}</small></div><span class="${cls}" style="font-size:10.5px;font-weight:900">${lbl}</span><div style="text-align:right">${escapeHtml(r.p.name)}<small>${money(r.p.price)} ${fpIcon(cat,r.p)}</small></div></div>`;
  }).join("");
- box.innerHTML=`<div class="duel-box">${rows}<div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><button class="btn" id="decodeCreate">Créer ce panier</button></div></div>`;
+ box.innerHTML=`<div class="duel-box">${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><button class="btn" id="decodeCreate">Créer ce panier</button></div></div>`;
  document.getElementById("decodeCreate").onclick=()=>{
    const selection={};for(const cat of Object.keys(out))selection[cat]=out[cat].p.id;
    state.cart={label:"Config décodée",desc:"Reconstruite depuis un descriptif",selection};
