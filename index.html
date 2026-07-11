@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.3.1 — Shopping Gaming</title>
+<title>Compat'PC V8.3.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -426,6 +426,10 @@ html,body{max-width:100%;overflow-x:hidden}
             <p>Qu'est-ce qu'on fait aujourd'hui ?</p>
           </div>
           <div class="door-grid">
+            <div class="door" id="doorMyPc">
+              <h3>🔼 Upgrader mon PC</h3>
+              <p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p>
+            </div>
             <div class="door" id="shopStart">
               <h3>🎮 Parcours guidé</h3>
               <p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à commander.</p>
@@ -517,7 +521,7 @@ html,body{max-width:100%;overflow-x:hidden}
           <div id="fpsPanel" class="fps-panel"></div>
           <div id="cartStatus"></div>
           <div class="card" id="upLabCard" style="margin-top:16px;box-shadow:none">
-            <div class="card-head"><h2>🔼 Upgrade Lab</h2><span class="small-note">Estimation Compat’PC — valeur indicative</span></div>
+            <div class="card-head"><h2>🔼 Upgrade Lab</h2><button class="btn ghost" id="mypcEdit" style="font-size:11px">Mon PC ✎</button><span class="small-note">Estimation Compat’PC — valeur indicative</span></div>
             <div class="card-body">
               <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
                 <label style="display:flex;flex-direction:column;gap:4px;font-size:12px">Objectif
@@ -673,6 +677,16 @@ html,body{max-width:100%;overflow-x:hidden}
         </div>
       </section>
 
+      <section class="card panel" id="mypcPanel">
+        <div class="card-head"><h2>🖥️ Mon PC</h2><button class="btn ghost" id="closeMyPc">Fermer</button></div>
+        <div class="card-body">
+          <p class="small-note" style="margin:0 0 12px">Décris ton PC <strong>une seule fois</strong>. Les trois pièces principales suffisent — pour le reste, « Je ne sais pas » est une vraie réponse : le Lab te préviendra au lieu d’inventer.</p>
+          <div style="margin-bottom:14px"><button class="btn secondary" id="mypcFromText">📋 J’ai une description ou une facture à coller</button></div>
+          <div id="mypcForm"></div>
+          <div style="margin-top:14px"><button class="btn" id="mypcSave">Enregistrer et ouvrir l’Upgrade Lab</button></div>
+        </div>
+      </section>
+
       <section class="card panel" id="savedPanel">
         <div class="card-head"><h2>Configurations sauvegardées</h2><button class="btn ghost" id="closeSaved">Fermer</button></div>
         <div class="card-body">
@@ -712,7 +726,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.3.1 « Lab verrouillé » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.3.2 « Mon PC » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2751,6 +2765,12 @@ function createDecodedCart(){
  }
  state.cart={label:"Config décodée",desc:"Reconstruite depuis un descriptif",selection,decodeMeta};
  if(out.__color)state.cart.targetColor=out.__color;
+ if(window.__decodeToMyPc){
+   window.__decodeToMyPc=false;
+   saveMyPcProfile({label:"Mon PC",selection:{...selection},unknown:{},updatedAt:Date.now()});
+   state.cart.label="Mon PC";state.cart.desc="Mon PC réel — reconnu depuis ta description";
+   renderCart();openUpLab();showToast("PC enregistré comme « Mon PC » ! La prochaine fois : un seul appui.");return;
+ }
  renderCart();go(4);showToast("Config décodée et chargée dans le panier !");
 }
 function makeOriginalStub(cat,label,color){
@@ -2798,9 +2818,9 @@ function computeUpgradePlans(){
  if(goal==="stockage"){
    const cur=get("ssd",sel.ssd);
    const all=parts.ssd.filter(p=>(p.capacity||0)>(cur.capacity||1)&&(p.price||0)>0&&(p.price||0)<=budget*1.15);
-   if(!all.length)return {goal,budget,plans:[]};
+   if(!all.length)return {goal,budget,plans:[],hadCands:false};
    const strict=all.filter(p=>p.price<=budget);
-   const pool=strict.length?strict:all;
+   const pool=strict;
    const byTo=[...pool].sort((a,b)=>(a.price/a.capacity)-(b.price/b.capacity));
    const cheap=[...pool].sort((a,b)=>a.price-b.price)[0];
    const big=[...all].sort((a,b)=>b.capacity-a.capacity||a.price-b.price)[0];
@@ -2814,7 +2834,7 @@ function computeUpgradePlans(){
    push(mk(cheap,"💡 Ajout malin","la capacité en plus au meilleur prix d’entrée"));
    push(mk(byTo[0],"📦 Meilleur €/To","le stockage le plus rentable"));
    push(mk(big,"🛡️ Vision longue","la plus grosse capacité accessible"));
-   return {goal,budget,plans:chosen};
+   return {goal,budget,plans:chosen,hadCands:all.length>0};
  }
  const res=goal==="fps4k"?"4k":goal==="fps1440"?"1440p":"1080p";
  const before=upFps(sel,res);
@@ -2847,24 +2867,23 @@ function computeUpgradePlans(){
      if(delta>=5&&fin.cost<=budget*1.2)cands.push({changes,apply,cost:fin.cost,warns:fin.warns,after,delta,vram:cur.gpu.vram||8});
    });
  }
- if(!cands.length)return {goal,res,before,budget,plans:[]};
+ if(!cands.length)return {goal,res,before,budget,plans:[],hadCands:false};
  const strict=cands.filter(c=>c.cost<=budget);
- const valuePool=strict.length?strict:cands;
- const byValue=[...valuePool].sort((a,b)=>(a.cost/a.delta)-(b.cost/b.delta));
- const byFps=[...valuePool].sort((a,b)=>b.delta-a.delta);
+ const byValue=[...strict].sort((a,b)=>(a.cost/a.delta)-(b.cost/b.delta));
+ const byFps=[...strict].sort((a,b)=>b.delta-a.delta);
  const fut=cands.filter(c=>c.cost<=budget*1.15&&c.vram>=16).sort((a,b)=>b.delta-a.delta);
  const chosen=[];
  const push=(c,title,pitch)=>{if(c&&!chosen.find(x=>x.c===c))chosen.push({c,title,pitch,over:Math.max(0,c.cost-budget)})};
  push(byValue[0],"💡 Upgrade malin","le meilleur rapport €/FPS gagné");
  push(byFps[0],"🎮 Upgrade gaming","le plus de FPS dans ton budget");
- push(fut[0]||byFps[1]||byValue[1],"🛡️ Upgrade futureproof","voit plus loin : VRAM et marge d’alimentation");
- return {goal,res,before,budget,plans:chosen};
+ push(fut[0],"🛡️ Upgrade futureproof","voit plus loin : VRAM et marge d’alimentation");
+ return {goal,res,before,budget,plans:chosen,hadCands:true};
 }
 function renderUpgradePlans(){
  const zone=document.getElementById("upPlans");
  const R=computeUpgradePlans();window.__upResult=R;
  if(!R){zone.innerHTML='<p class="small-note">Charge d’abord un panier.</p>';return}
- if(!R.plans.length){zone.innerHTML='<p class="small-note">Aucun plan trouvé dans ce budget avec ces contraintes — essaie un budget plus large ou libère une pièce.</p>';return}
+ if(!R.plans.length){zone.innerHTML='<p class="small-note">'+(R.hadCands?("Des pistes existent, mais <strong>aucune ne tient dans ton budget de "+money(R.budget)+"</strong> — augmente le budget ou libère une contrainte."):"Aucun plan trouvé avec ces contraintes — essaie un budget plus large ou libère une pièce.")+'</p>';return}
  if(R.goal==="stockage"){
    zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<div class="small-note" style="color:#f0b45c">⚠ ${pl.warns.length} avertissement(s) : ${escapeHtml(pl.warns[0].title)}</div>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
  }else{
@@ -2886,6 +2905,75 @@ function openUpLab(){
  if(card)setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"start"}),120);
 }
 document.getElementById("upGo").onclick=renderUpgradePlans;
+/* ===== V8.3.2 Mon PC : le parcours de Noah ===== */
+const MYPC_KEY="compatpc-mypc-v1";
+function getMyPc(){try{return JSON.parse(localStorage.getItem(MYPC_KEY)||"null")}catch(e){return null}}
+function saveMyPcProfile(p){try{localStorage.setItem(MYPC_KEY,JSON.stringify(p))}catch(e){}}
+function openPanel(id){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function makeMyPcStub(cat,cpu,ram){
+ const names={motherboard:"Carte mère de mon PC (à préciser)","case":"Boîtier de mon PC (à préciser)",cooler:"Refroidissement de mon PC (à préciser)",ssd:"SSD de mon PC (à préciser)",psu:"Alimentation de mon PC (à préciser)",fans:"Ventilateurs de mon PC"};
+ const obj={id:"mypc-"+cat,name:names[cat],price:0,color:"neutral",custom:true,origin:"mypc",_assumed:{}};
+ if(cat==="motherboard"){obj.socket=cpu?cpu.socket:"AM5";obj.ram=ram?ram.type:"DDR5";obj.form="ATX";obj._assumed.form=true;obj.wifi=true}
+ if(cat==="case"){obj.forms=["ATX","mATX","ITX"];obj._assumed.forms=true;obj.maxGpu=400;obj._assumed.maxGpu=true;obj.rad=[240,280,360];obj._assumed.rad=true;obj.style="classic"}
+ if(cat==="cooler"){obj.rad=0;obj.sockets=[cpu?cpu.socket:"AM5"];obj.gif=false}
+ if(cat==="ssd"){obj.type="NVMe";obj.capacity=1;obj._assumed.capacity=true}
+ if(cat==="psu"){obj.watts=0;obj._assumed.watts=true}
+ if(cat==="fans"){obj.count=3;obj.size=120;obj.rgb=false}
+ return obj;
+}
+function ensureMyPcStub(cat,cpu,ram){
+ let p=get(cat,"mypc-"+cat);
+ if(!p){p=makeMyPcStub(cat,cpu,ram);parts[cat].push(p)}
+ else Object.assign(p,makeMyPcStub(cat,cpu,ram));
+ return p;
+}
+function renderMyPcForm(){
+ const box=document.getElementById("mypcForm");
+ const prof=getMyPc()||{selection:{},unknown:{}};
+ const MAND=["cpu","gpu","ram"],OPT=["motherboard","case","cooler","ssd","psu","fans"];
+ const opts=(cat,allowUnknown)=>{
+   const sel=prof.selection[cat];
+   const list=[...parts[cat]].filter(p=>!String(p.id).startsWith("mypc-")).sort((a,b)=>a.name.localeCompare(b.name));
+   return `<label style="display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:250px;flex:1">${labelCat(cat)}${allowUnknown?" (optionnel)":""}<select data-mypc="${cat}">${allowUnknown?`<option value="unknown"${prof.unknown&&prof.unknown[cat]?" selected":""}>Je ne sais pas</option>`:`<option value="">— choisis dans la liste —</option>`}${list.map(p=>`<option value="${p.id}"${sel===p.id?" selected":""}>${escapeHtml(p.name)}${p.price?" — "+money(p.price):""}</option>`).join("")}</select></label>`;
+ };
+ box.innerHTML=`<h3 style="margin:0 0 8px">Les trois pièces qui comptent</h3><div style="display:flex;gap:12px;flex-wrap:wrap">${MAND.map(c=>opts(c,false)).join("")}</div><h3 style="margin:16px 0 8px">Le reste, si tu le connais</h3><div style="display:flex;gap:12px;flex-wrap:wrap">${OPT.map(c=>opts(c,true)).join("")}</div>`;
+}
+function saveMyPcFromForm(){
+ const sel={},unknown={};let ok=true;
+ document.querySelectorAll("[data-mypc]").forEach(s=>{
+   const cat=s.dataset.mypc,v=s.value;
+   if(v==="unknown")unknown[cat]=true;
+   else if(v)sel[cat]=v;
+   else if(["cpu","gpu","ram"].includes(cat))ok=false;
+ });
+ if(!ok){showToast("Choisis au minimum ton processeur, ta carte graphique et ta mémoire.");return null}
+ const prof={label:"Mon PC",selection:sel,unknown,updatedAt:Date.now()};
+ saveMyPcProfile(prof);return prof;
+}
+function loadMyPcIntoCart(prof){
+ prof=prof||getMyPc();if(!prof||!prof.selection||!prof.selection.cpu)return false;
+ const cpu=get("cpu",prof.selection.cpu),ram=get("ram",prof.selection.ram);
+ if(!cpu||!get("gpu",prof.selection.gpu))return false;
+ const selection={...prof.selection};
+ ["motherboard","case","cooler","ssd","psu","fans"].forEach(cat=>{
+   if((prof.unknown&&prof.unknown[cat])||!selection[cat]){ensureMyPcStub(cat,cpu,ram);selection[cat]="mypc-"+cat}
+ });
+ computeFamilies();
+ state.cart={label:prof.label,desc:"Mon PC réel — les pièces « à préciser » sont signalées, jamais inventées",selection};
+ renderCart();
+ return true;
+}
+function openMyPc(){
+ const prof=getMyPc();
+ if(prof&&loadMyPcIntoCart(prof)){openUpLab();showToast("Ton PC est chargé — objectif, budget, et je te sors 3 plans !")}
+ else{renderMyPcForm();openPanel("mypcPanel")}
+}
+document.getElementById("doorMyPc").onclick=openMyPc;
+document.getElementById("closeMyPc").onclick=()=>{document.getElementById("mypcPanel").classList.remove("active");go(0)};
+document.getElementById("mypcEdit").onclick=()=>{renderMyPcForm();openPanel("mypcPanel")};
+document.getElementById("mypcSave").onclick=()=>{const prof=saveMyPcFromForm();if(prof&&loadMyPcIntoCart(prof)){document.getElementById("mypcPanel").classList.remove("active");openUpLab();showToast("PC enregistré ! La prochaine fois : un seul appui.")}};
+document.getElementById("mypcFromText").onclick=()=>{window.__decodeToMyPc=true;document.getElementById("mypcPanel").classList.remove("active");document.getElementById("openImport").click();const dt=document.getElementById("decodeText");if(dt)dt.focus();showToast("Colle la description de ton PC puis « Décoder » — je l’enregistrerai comme Mon PC.")};
+
 
 /* ===== Familles du Top 10 ===== */
 function COLOR_NOISE(){return /\b(white|black|blanc(he)?|noir(e)?|charcoal|chalk|snow|ice|silver|gris|grey|shadow|edition|oc)\b/gi}
