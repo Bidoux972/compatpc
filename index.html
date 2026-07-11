@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.3.2 — Shopping Gaming</title>
+<title>Compat'PC V8.3.3 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -426,7 +426,7 @@ html,body{max-width:100%;overflow-x:hidden}
             <p>Qu'est-ce qu'on fait aujourd'hui ?</p>
           </div>
           <div class="door-grid">
-            <div class="door" id="doorMyPc">
+            <div class="door" id="doorMyPc" style="grid-column:1/-1;border:1px solid #5b4794;background:linear-gradient(135deg,#171026,#12121a)">
               <h3>🔼 Upgrader mon PC</h3>
               <p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p>
             </div>
@@ -726,7 +726,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.3.2 « Mon PC » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.3.3 « Mon PC » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2769,7 +2769,7 @@ function createDecodedCart(){
    window.__decodeToMyPc=false;
    saveMyPcProfile({label:"Mon PC",selection:{...selection},unknown:{},updatedAt:Date.now()});
    state.cart.label="Mon PC";state.cart.desc="Mon PC réel — reconnu depuis ta description";
-   renderCart();openUpLab();showToast("PC enregistré comme « Mon PC » ! La prochaine fois : un seul appui.");return;
+   renderCart();renderMyPcDoor();openUpLab();showToast("PC enregistré comme « Mon PC » ! La prochaine fois : un seul appui.");return;
  }
  renderCart();go(4);showToast("Config décodée et chargée dans le panier !");
 }
@@ -2885,9 +2885,9 @@ function renderUpgradePlans(){
  if(!R){zone.innerHTML='<p class="small-note">Charge d’abord un panier.</p>';return}
  if(!R.plans.length){zone.innerHTML='<p class="small-note">'+(R.hadCands?("Des pistes existent, mais <strong>aucune ne tient dans ton budget de "+money(R.budget)+"</strong> — augmente le budget ou libère une contrainte."):"Aucun plan trouvé avec ces contraintes — essaie un budget plus large ou libère une pièce.")+'</p>';return}
  if(R.goal==="stockage"){
-   zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<div class="small-note" style="color:#f0b45c">⚠ ${pl.warns.length} avertissement(s) : ${escapeHtml(pl.warns[0].title)}</div>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
+   zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${pl.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${pl.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
  }else{
-   zone.innerHTML=R.plans.map((x,i)=>{const c=x.c;return `<div class="duel-box" style="margin-top:10px"><strong>${x.title}</strong> — ${x.pitch}<br>${c.changes.map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong> (${money(ch.to.price)})`).join("<br>")}<div class="small-note" style="margin-top:6px">Avant : <strong>${R.before} FPS</strong> → Après : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • Coût ${money(c.cost)} • <strong>${(c.cost/c.delta).toFixed(1)} €/FPS gagné</strong> <em>— estimation Compat’PC, valeur indicative</em></div>${x.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(x.over)}.</div>`:""}${c.warns&&c.warns.length?`<div class="small-note" style="color:#f0b45c">⚠ ${c.warns.length} avertissement(s) : ${escapeHtml(c.warns[0].title)}</div>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`}).join("");
+   zone.innerHTML=R.plans.map((x,i)=>{const c=x.c;return `<div class="duel-box" style="margin-top:10px"><strong>${x.title}</strong> — ${x.pitch}<br>${c.changes.map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong> (${money(ch.to.price)})`).join("<br>")}<div class="small-note" style="margin-top:6px">Avant : <strong>${R.before} FPS</strong> → Après : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • Coût ${money(c.cost)} • <strong>${(c.cost/c.delta).toFixed(1)} €/FPS gagné</strong> <em>— estimation Compat’PC, valeur indicative</em></div>${x.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(x.over)}.</div>`:""}${c.warns&&c.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${c.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${c.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`}).join("");
  }
  zone.querySelectorAll("[data-applyplan]").forEach(b=>b.onclick=()=>applyUpgradePlan(Number(b.dataset.applyplan)));
 }
@@ -2934,7 +2934,8 @@ function renderMyPcForm(){
  const opts=(cat,allowUnknown)=>{
    const sel=prof.selection[cat];
    const list=[...parts[cat]].filter(p=>!String(p.id).startsWith("mypc-")).sort((a,b)=>a.name.localeCompare(b.name));
-   return `<label style="display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:250px;flex:1">${labelCat(cat)}${allowUnknown?" (optionnel)":""}<select data-mypc="${cat}">${allowUnknown?`<option value="unknown"${prof.unknown&&prof.unknown[cat]?" selected":""}>Je ne sais pas</option>`:`<option value="">— choisis dans la liste —</option>`}${list.map(p=>`<option value="${p.id}"${sel===p.id?" selected":""}>${escapeHtml(p.name)}${p.price?" — "+money(p.price):""}</option>`).join("")}</select></label>`;
+   const HINT={cpu:"Gestionnaire des tâches → Performances → Processeur",gpu:"Gestionnaire des tâches → Performances → GPU",ram:"Gestionnaire des tâches → Performances → Mémoire"};
+   return `<label style="display:flex;flex-direction:column;gap:4px;font-size:12px;min-width:250px;flex:1">${labelCat(cat)}${allowUnknown?" (optionnel)":""}${HINT[cat]?`<span class="small-note">💡 Où trouver ça ? ${HINT[cat]}</span>`:""}<select data-mypc="${cat}">${allowUnknown?`<option value="unknown"${prof.unknown&&prof.unknown[cat]?" selected":""}>Je ne sais pas</option>`:`<option value="">— choisis dans la liste —</option>`}${list.map(p=>`<option value="${p.id}"${sel===p.id?" selected":""}>${escapeHtml(p.name)}${p.price?" — "+money(p.price):""}</option>`).join("")}</select></label>`;
  };
  box.innerHTML=`<h3 style="margin:0 0 8px">Les trois pièces qui comptent</h3><div style="display:flex;gap:12px;flex-wrap:wrap">${MAND.map(c=>opts(c,false)).join("")}</div><h3 style="margin:16px 0 8px">Le reste, si tu le connais</h3><div style="display:flex;gap:12px;flex-wrap:wrap">${OPT.map(c=>opts(c,true)).join("")}</div>`;
 }
@@ -2971,8 +2972,22 @@ function openMyPc(){
 document.getElementById("doorMyPc").onclick=openMyPc;
 document.getElementById("closeMyPc").onclick=()=>{document.getElementById("mypcPanel").classList.remove("active");go(0)};
 document.getElementById("mypcEdit").onclick=()=>{renderMyPcForm();openPanel("mypcPanel")};
-document.getElementById("mypcSave").onclick=()=>{const prof=saveMyPcFromForm();if(prof&&loadMyPcIntoCart(prof)){document.getElementById("mypcPanel").classList.remove("active");openUpLab();showToast("PC enregistré ! La prochaine fois : un seul appui.")}};
+document.getElementById("mypcSave").onclick=()=>{const prof=saveMyPcFromForm();if(prof&&loadMyPcIntoCart(prof)){document.getElementById("mypcPanel").classList.remove("active");openUpLab();renderMyPcDoor();showToast("PC enregistré ! La prochaine fois : un seul appui.")}};
 document.getElementById("mypcFromText").onclick=()=>{window.__decodeToMyPc=true;document.getElementById("mypcPanel").classList.remove("active");document.getElementById("openImport").click();const dt=document.getElementById("decodeText");if(dt)dt.focus();showToast("Colle la description de ton PC puis « Décoder » — je l’enregistrerai comme Mon PC.")};
+
+function renderMyPcDoor(){
+ const d=document.getElementById("doorMyPc");if(!d)return;
+ const prof=getMyPc();
+ const short=n=>n?n.replace(/\s*—\s*profil générique\s*/i,"").replace(/\([^)]*\)/g,"").trim():"?";
+ if(prof&&prof.selection&&prof.selection.cpu&&get("cpu",prof.selection.cpu)){
+   const cpu=get("cpu",prof.selection.cpu),gpu=get("gpu",prof.selection.gpu),ram=get("ram",prof.selection.ram);
+   const dt=prof.updatedAt?new Date(prof.updatedAt).toLocaleDateString("fr-FR"):"";
+   d.innerHTML=`<h3>🖥️ ${escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">Analyser un upgrade →</p>`;
+ }else{
+   d.innerHTML=`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
+ }
+}
+renderMyPcDoor();
 
 
 /* ===== Familles du Top 10 ===== */
