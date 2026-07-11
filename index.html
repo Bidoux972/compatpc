@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.2 — Shopping Gaming</title>
+<title>Compat'PC V8.3 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -516,6 +516,22 @@ html,body{max-width:100%;overflow-x:hidden}
           <div id="cartList" class="cart-list"></div>
           <div id="fpsPanel" class="fps-panel"></div>
           <div id="cartStatus"></div>
+          <div class="card" id="upLabCard" style="margin-top:16px;box-shadow:none">
+            <div class="card-head"><h2>🔼 Upgrade Lab</h2><span class="small-note">Estimation Compat’PC — valeur indicative</span></div>
+            <div class="card-body">
+              <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+                <label style="display:flex;flex-direction:column;gap:4px;font-size:12px">Objectif
+                  <select id="upGoal"><option value="fps1080">Plus de FPS (1080p)</option><option value="fps1440">Passer en 1440p</option><option value="fps4k">Passer en 4K</option><option value="stockage">Ajouter du stockage</option></select></label>
+                <label style="display:flex;flex-direction:column;gap:4px;font-size:12px">Budget
+                  <select id="upBudget"><option>100</option><option>250</option><option selected>500</option><option>800</option><option>1200</option></select></label>
+                <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepGpu">Je garde la carte graphique</label>
+                <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepCase">Je garde le boîtier</label>
+                <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepMobo">Je ne change pas carte mère/CPU</label>
+                <button class="btn" id="upGo">Proposer 3 plans</button>
+              </div>
+              <div id="upPlans"></div>
+            </div>
+          </div>
           <div class="expert-only" style="margin-top:16px">
             <div class="card" style="box-shadow:none">
               <div class="card-head"><h2>Détails techniques</h2></div>
@@ -696,7 +712,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.2 « Import fidèle » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.3 « Upgrade Lab » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1744,7 +1760,7 @@ function compatibility(){
 }
 
 function styleScore(){
- const s=state.cart.selection;const items=["case","cooler","fans","ram"].map(k=>get(k,s[k]));const target=state.mood?.includes("white")?"white":state.mood?.includes("black")||state.mood==="stealth"?"black":null;
+ const s=state.cart.selection;const items=["case","cooler","fans","ram"].map(k=>get(k,s[k]));const target=(state.cart&&state.cart.targetColor)||(state.mood?.includes("white")?"white":state.mood?.includes("black")||state.mood==="stealth"?"black":null);
  let score=100;if(target){const known=items.filter(x=>x.color!=="neutral");const match=known.filter(x=>x.color===target).length;score=Math.round(match/Math.max(1,known.length)*100)}
  if((state.mood||"").includes("aquarium")&&get("case",s.case).style!=="aquarium")score-=25;
  if((state.mood||"").includes("aquarium")&&!get("cooler",s.cooler).gif)score-=20;
@@ -1755,7 +1771,8 @@ function renderCart(){
  const list=document.getElementById("cartList");list.innerHTML="";
  Object.entries(state.cart.selection).forEach(([cat,id])=>{
   const p=get(cat,id);const d=document.createElement("div");d.className="cart-item";
-  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p><div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
+  const dm=state.cart.decodeMeta&&state.cart.decodeMeta[cat];
+  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
   <div style="display:flex;flex-direction:column;gap:7px"><button class="btn ghost" data-change="${cat}">Changer rapidement</button><button class="btn secondary" data-browse="${cat}">Voir toute la catégorie</button></div>`;
   list.appendChild(d)
  });
@@ -1913,8 +1930,20 @@ function addParsed(){
    if(sp)obj.speed=parseInt(sp[1],10);else{obj.speed=6000;obj._assumed.speed=true}
    obj.sticks=2;
  }
- if(cat==="ssd"){obj.capacity=Number(document.getElementById("pvCapacity")?.value)||p.capacity||(/2\s*To|2TB/i.test(obj.name)?2:1);obj.type="NVMe"}
- if(cat==="psu"){const w=obj.name.match(/(\d{3,4})\s*W/i);obj.watts=Number(document.getElementById("pvWatts")?.value)||p.watts||(w?Number(w[1]):750)}
+ if(cat==="cpu"){obj._assumed={};obj.tdp=105;obj._assumed.tdp=true;
+   const s=obj.name.match(/\b(AM5|AM4|LGA\s?1851|LGA\s?1700)\b/i);
+   if(s)obj.socket=s[1].toUpperCase().replace(/\s+/,"");
+   else if(/ryzen/i.test(obj.name)&&/\b[79]\d{3}/.test(obj.name))obj.socket="AM5";
+   else if(/ryzen/i.test(obj.name)&&/\b5\d{3}/.test(obj.name))obj.socket="AM4";
+   else if(/ultra/i.test(obj.name))obj.socket="LGA1851";
+   else{obj.socket="AM5";obj._assumed.socket=true}}
+ if(cat==="ssd"){obj._assumed={};
+   const c=Number(document.getElementById("pvCapacity")?.value)||p.capacity||( /([1248])\s*(?:To|TB)/i.test(obj.name)?Number(obj.name.match(/([1248])\s*(?:To|TB)/i)[1]):0);
+   if(c)obj.capacity=c;else{obj.capacity=1;obj._assumed.capacity=true}
+   obj.type="NVMe"}
+ if(cat==="psu"){obj._assumed={};const w=obj.name.match(/(\d{3,4})\s*W/i);
+   const ww=Number(document.getElementById("pvWatts")?.value)||p.watts||(w?Number(w[1]):0);
+   if(ww)obj.watts=ww;else{obj.watts=750;obj._assumed.watts=true}}
  if(cat==="fans"){obj.count=3;obj.size=120;obj.rgb=/RGB|ARGB/i.test(obj.name);obj.argb=obj.rgb}
  const destination=document.getElementById("importDestination").value;
  if(destination==="library"||destination==="both")addToPersonalLibrary(cat,obj);
@@ -2394,8 +2423,9 @@ function decodeShareCode(c){
 function renderSaved(){
  const arr=JSON.parse(localStorage.getItem("compatpc_v3_builds")||"[]"),w=document.getElementById("savedList");w.innerHTML="";
  if(!arr.length){w.innerHTML='<p style="color:var(--muted)">Aucune configuration sauvegardée.</p>';return}
- arr.forEach((b,i)=>{const d=document.createElement("div");d.className="saved";d.innerHTML=`<div><strong>${escapeHtml(b.name)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • ${escapeHtml(b.mood||"")}</div></div><div><button class="btn secondary" data-load="${i}">Charger</button></div>`;w.appendChild(d)});
- w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)})
+ arr.forEach((b,i)=>{const d=document.createElement("div");d.className="saved";d.innerHTML=`<div><strong>${escapeHtml(b.name)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • ${escapeHtml(b.mood||"")}</div></div><div><button class="btn secondary" data-load="${i}">Charger</button><button class="btn ghost" data-uplab="${i}">🔼 Upgrader</button></div>`;w.appendChild(d)});
+ w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)});
+ w.querySelectorAll("[data-uplab]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.uplab)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");openUpLab()})
 }
 function openSaved(){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs();renderPurchaseList()}
 function saveCurrent(){
@@ -2594,7 +2624,7 @@ function matchDecoded(det){
      const base=decCheapest(pool);
      const colored=colorSwapInFamily("gpu",base,color);
      if(color&&colored!==base)out.gpu={p:colored,how:"famille",note:"détecté : "+det.gpu.label+" — déclinaison "+(color==="white"?"blanche":"noire")+" de la même famille"};
-     else out.gpu={p:base,how:"exact",note:"détecté : "+det.gpu.label+(color&&base.color!==color?colorNote(false):"")};
+     else out.gpu={p:base,how:"specs",note:"caractéristiques reconnues : "+det.gpu.label+(color&&base.color!==color?colorNote(false):"")};
    }else{
      let eq=decNearest(parts.gpu.filter(p=>!/occasion/i.test(p.name)),gpuIndex,det.gpu.idx);
      eq=colorSwapInFamily("gpu",eq,color)||eq;
@@ -2622,7 +2652,7 @@ function matchDecoded(det){
    const pool=parts.ram.filter(p=>p.type===type&&(p.capacity||0)>=cap);
    if(pool.length){
      const pc=pickColored(pool,color);
-     out.ram={p:pc.p,how:(det.ram.type&&det.ram.cap)?(color&&pc.colorOk?"famille":"exact"):"approx",note:type+" "+(det.ram.cap||"≥16")+" Go"+(color?(pc.colorOk?" — kit "+(color==="white"?"blanc":"noir")+" choisi":colorNote(false)):"")};
+     out.ram={p:pc.p,how:(det.ram.type&&det.ram.cap)?(color&&pc.colorOk?"famille":"specs"):"approx",note:type+" "+(det.ram.cap||"≥16")+" Go"+(color?(pc.colorOk?" — kit "+(color==="white"?"blanc":"noir")+" choisi":colorNote(false)):"")};
    }else out.ram={p:decCheapest(parts.ram.filter(p=>(p.capacity||0)>=cap))||decCheapest(parts.ram),how:"approx",note:"équivalent le plus proche"};
  }else{
    const t=sock==="AM4"?"DDR4":"DDR5";
@@ -2641,7 +2671,7 @@ function matchDecoded(det){
  }
  // SSD
  out.ssd=det.ssd
-   ?{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=det.ssd.cap))||decCheapest(parts.ssd),how:"exact",note:det.ssd.cap+" To"}
+   ?{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=det.ssd.cap))||decCheapest(parts.ssd),how:"specs",note:det.ssd.cap+" To"}
    :{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=1)),how:"auto",note:"non détecté — complété"};
  // Refroidissement
  {const pool=parts.cooler.filter(p=>(p.sockets||[]).includes(sock));
@@ -2650,7 +2680,7 @@ function matchDecoded(det){
  // Alimentation
  const need=recommendedPsuWatts(out.cpu.p,out.gpu.p);
  if(det.psu&&det.psu.watts>=need){
-   out.psu={p:decCheapest(parts.psu.filter(p=>(p.watts||0)>=det.psu.watts))||decCheapest(parts.psu),how:"exact",note:det.psu.watts+" W détectés"};
+   out.psu={p:decCheapest(parts.psu.filter(p=>(p.watts||0)>=det.psu.watts))||decCheapest(parts.psu),how:"specs",note:det.psu.watts+" W détectés"};
  }else{
    out.psu={p:decCheapest(parts.psu.filter(p=>(p.watts||0)>=need))||decCheapest(parts.psu),how:det.psu?"approx":"auto",note:(det.psu?det.psu.watts+" W détectés mais ":"")+need+" W requis par cette config"};
  }
@@ -2660,6 +2690,11 @@ function matchDecoded(det){
   out.case={p:pc.p,how:"auto",note:"complété — la carte graphique rentre"+(color?colorNote(pc.colorOk):"")}}
  {const pc=pickColored(parts.fans,color);
   out.fans={p:pc.p,how:"auto",note:"complété"+(color?colorNote(pc.colorOk):"")}}
+ if(out.cpu&&det.cpu)out.cpu.src=det.cpu.label;
+ if(out.gpu)out.gpu.src=det.gpu?det.gpu.label:(det.gpuRaw||null);
+ if(out.ram&&det.ram)out.ram.src=((det.ram.type||"DDR5")+" "+(det.ram.cap||32)+" Go RAM");
+ if(out.ssd&&det.ssd)out.ssd.src=("SSD "+det.ssd.cap+" To");
+ if(out.psu&&det.psu)out.psu.src=("Alimentation "+det.psu.watts+" W");
  out.__color=color;
  return out;
 }
@@ -2669,24 +2704,152 @@ function runDecode(){
  if(text.length<15){box.innerHTML='<p class="small-note">Colle d\'abord le descriptif complet du PC (au moins la carte graphique et le processeur).</p>';return}
  const det=decodeConfigBlob(text);
  if(!det.gpu&&!det.cpu){box.innerHTML='<p class="small-note">Je n\'ai reconnu ni carte graphique ni processeur dans ce texte. Vérifie que le descriptif technique est bien inclus (modèles précis : « RTX 4060 », « Ryzen 5 7500F »…).</p>';return}
- const out=matchDecoded(det);
- const HOW={exact:["Détectée","gv-good"],famille:["Même famille","gv-good"],approx:["Équivalente en puissance","gv-mid"],auto:["Complétée par l\'app","gv-bad"],unknown:["Non reconnue","gv-bad"]};
- let total=0;
- const rows=["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"].map(cat=>{
+ window.__decode={out:matchDecoded(det),det};
+ renderDecodeReport();
+}
+function decodeHowLabel(how){return({exact:"Modèle exact identifié",specs:"Caractéristiques reconnues",famille:"Même famille",approx:"Équivalent proposé",auto:"Complété par l\u2019app",unknown:"Non reconnu"})[how]||how}
+function renderDecodeReport(){
+ const D=window.__decode;if(!D)return;const {out,det}=D;
+ const box=document.getElementById("decodeResult");
+ const CLS={exact:"gv-good",specs:"gv-good",famille:"gv-good",approx:"gv-mid",auto:"gv-bad",unknown:"gv-bad"};
+ const CATS=["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"];
+ let total=0,missing=0;
+ const rows=CATS.map(cat=>{
    const r=out[cat];if(!r||!r.p)return "";
    total+=r.p.price||0;
-   const [lbl,cls]=HOW[r.how];
-   return `<div class="duel-row"><div>${labelCat(cat)}<small>${escapeHtml(r.note)}</small></div><span class="${cls}" style="font-size:10.5px;font-weight:900">${lbl}</span><div style="text-align:right">${escapeHtml(r.p.name)}<small>${money(r.p.price)} ${fpIcon(cat,r.p)}</small></div></div>`;
+   const fixable=(r.how==="famille"||r.how==="approx"||r.how==="auto"||r.how==="unknown");
+   if(fixable&&r.src)missing++;
+   const btns=fixable?`<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${r.src?`<button class="btn ghost" data-addorig="${cat}" style="font-size:10.5px;padding:4px 9px">＋ Ajouter l\u2019original</button>`:""}<button class="btn ghost" data-choose="${cat}" style="font-size:10.5px;padding:4px 9px">Choisir autrement</button></div>`:"";
+   return `<div class="duel-row"><div>${labelCat(cat)}<small>${escapeHtml(r.note)}</small>${btns}</div><span class="${CLS[r.how]}" style="font-size:10.5px;font-weight:900">${decodeHowLabel(r.how)}</span><div style="text-align:right">${escapeHtml(r.p.name)}<small>${money(r.p.price)} ${fpIcon(cat,r.p)}</small></div></div>`;
  }).join("");
  const colorLine=out.__color?`<div class="small-note" style="margin:2px 0 8px">🎨 <strong>Style détecté : setup ${out.__color==="white"?"blanc":"noir"}</strong> — le coloris est respecté partout où la bibliothèque le permet ; chaque exception est signalée sur sa ligne.</div>`:"";
- box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><button class="btn" id="decodeCreate">Créer ce panier</button></div></div>`;
- document.getElementById("decodeCreate").onclick=()=>{
-   const selection={};for(const cat of ["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"]){if(out[cat]&&out[cat].p)selection[cat]=out[cat].p.id}
-   state.cart={label:"Config décodée",desc:"Reconstruite depuis un descriptif",selection};
-   renderCart();go(4);showToast("Config décodée et chargée dans le panier !");
- };
+ const addAll=missing?`<button class="btn secondary" id="decodeAddAll" style="font-size:11px">＋ Ajouter toutes les références manquantes (${missing})</button>`:"";
+ box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><span style="display:flex;gap:8px;flex-wrap:wrap">${addAll}<button class="btn secondary" id="decodeUpLab">Créer + 🔼 Upgrader</button><button class="btn" id="decodeCreate">Créer ce panier</button></span></div></div>`;
+ document.getElementById("decodeCreate").onclick=()=>{createDecodedCart()};
+ document.getElementById("decodeUpLab").onclick=()=>{createDecodedCart();openUpLab()};
+ const aa=document.getElementById("decodeAddAll");if(aa)aa.onclick=()=>{CATS.forEach(cat=>{const r=out[cat];if(r&&r.src&&(r.how==="famille"||r.how==="approx"||r.how==="auto"||r.how==="unknown"))addOriginalRef(cat,true)});renderDecodeReport();showToast("Références originales ajoutées — pense à compléter les prix !")};
+ box.querySelectorAll("[data-addorig]").forEach(b=>b.onclick=()=>addOriginalRef(b.dataset.addorig));
+ box.querySelectorAll("[data-choose]").forEach(b=>b.onclick=()=>openSimpleLibrary(b.dataset.choose));
+}
+function createDecodedCart(){
+ const {out}=window.__decode;
+ const selection={},decodeMeta={};
+ for(const cat of ["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"]){
+   if(out[cat]&&out[cat].p){selection[cat]=out[cat].p.id;decodeMeta[cat]={how:out[cat].how,note:out[cat].note}}
+ }
+ state.cart={label:"Config décodée",desc:"Reconstruite depuis un descriptif",selection,decodeMeta};
+ if(out.__color)state.cart.targetColor=out.__color;
+ renderCart();go(4);showToast("Config décodée et chargée dans le panier !");
+}
+function makeOriginalStub(cat,label,color){
+ const obj={id:"personal-"+Date.now()+"-"+Math.floor(Math.random()*999),name:label+" (import à compléter)",price:0,color:color||"black",custom:true,origin:"session",url:"",image:"",_assumed:{}};
+ if(cat==="gpu"){obj.vram=8;obj.length=300;obj.power=200;obj.brand=/rtx|geforce|gtx/i.test(label)?"nvidia":"amd";obj._assumed={vram:true,length:true,power:true};const v=label.match(/(\d{1,2})\s*(?:Go|GB)/i);if(v){obj.vram=Number(v[1]);delete obj._assumed.vram}}
+ if(cat==="cpu"){obj.tdp=105;obj._assumed={tdp:true};if(/\b[79]\d{3}/.test(label))obj.socket="AM5";else if(/\b5\d{3}/.test(label))obj.socket="AM4";else if(/ultra/i.test(label))obj.socket="LGA1851";else{obj.socket="AM5";obj._assumed.socket=true}}
+ if(cat==="ram"){obj.type=/ddr4/i.test(label)?"DDR4":"DDR5";obj.sticks=2;obj.speed=6000;obj._assumed.speed=true;const c=label.match(/(\d{2,3})\s*Go/i);obj.capacity=c?Number(c[1]):32;if(!c)obj._assumed.capacity=true}
+ if(cat==="ssd"){obj.type="NVMe";const c=label.match(/([1248])\s*To/i);obj.capacity=c?Number(c[1]):1;if(!c)obj._assumed.capacity=true}
+ if(cat==="psu"){const w=label.match(/(\d{3,4})\s*W/i);obj.watts=w?Number(w[1]):750;if(!w)obj._assumed.watts=true}
+ return obj;
+}
+function addOriginalRef(cat,silent){
+ const D=window.__decode;if(!D)return;const r=D.out[cat];if(!r||!r.src)return;
+ const stub=makeOriginalStub(cat,r.src,D.out.__color);
+ addToPersonalLibrary(cat,stub);computeFamilies();
+ D.out[cat]={p:stub,how:"exact",note:"référence originale ajoutée — prix et caractéristiques à compléter dans sa fiche",src:null};
+ if(!silent){renderDecodeReport();showToast("Référence ajoutée à ta bibliothèque — pense à compléter le prix !")}
 }
 document.getElementById("decodeBtn").onclick=runDecode;
+/* ===== V8.3 Upgrade Lab (idée de Noah) ===== */
+function upFps(sel,res){const g=get("gpu",sel.gpu),c=get("cpu",sel.cpu);if(!g||!c)return 0;return avgFpsOf(g,c,["Warzone","Elden Ring","Cyberpunk 2077"],res)}
+function computeUpgradePlans(){
+ if(!state.cart)return null;
+ const sel=state.cart.selection;
+ const goal=document.getElementById("upGoal").value;
+ const budget=Number(document.getElementById("upBudget").value)||500;
+ const keep={gpu:document.getElementById("upKeepGpu").checked,cs:document.getElementById("upKeepCase").checked,mobo:document.getElementById("upKeepMobo").checked};
+ const color=state.cart.targetColor||null;
+ if(goal==="stockage"){
+   const cur=get("ssd",sel.ssd);
+   const cands=parts.ssd.filter(p=>(p.capacity||0)>=(cur.capacity||1)&&p.id!==cur.id&&(p.price||0)<=budget*1.15&&(p.price||0)>0);
+   if(!cands.length)return {goal,plans:[]};
+   const byTo=[...cands].sort((a,b)=>(a.price/a.capacity)-(b.price/b.capacity));
+   const cheap=[...cands].sort((a,b)=>a.price-b.price)[0];
+   const big=[...cands].sort((a,b)=>b.capacity-a.capacity||a.price-b.price)[0];
+   const mk=(p,title,pitch)=>p&&({title,pitch,cost:p.price,changes:[{cat:"ssd",from:cur,to:p}],apply:{ssd:p.id},metric:Math.round(p.price/p.capacity)+" €/To",before:(cur.capacity||1)+" To",after:p.capacity+" To (en remplacement)"});
+   const chosen=[];const push=(pl)=>{if(pl&&!chosen.find(x=>x.apply.ssd===pl.apply.ssd))chosen.push(pl)};
+   push(mk(cheap,"💡 Ajout malin","la capacité en plus au meilleur prix d’entrée"));
+   push(mk(byTo[0],"📦 Meilleur €/To","le stockage le plus rentable"));
+   push(mk(big,"🛡️ Vision longue","la plus grosse capacité du budget"));
+   return {goal,plans:chosen};
+ }
+ const res=goal==="fps4k"?"4k":goal==="fps1440"?"1440p":"1080p";
+ const before=upFps(sel,res);
+ const cur={gpu:get("gpu",sel.gpu),cpu:get("cpu",sel.cpu),psu:get("psu",sel.psu),cs:get("case",sel.case),cool:get("cooler",sel.cooler)};
+ const cands=[];
+ if(!keep.gpu){
+   parts.gpu.filter(p=>!/occasion/i.test(p.name)&&(p.price||0)>0&&gpuIndex(p)>gpuIndex(cur.gpu)+5).forEach(g=>{
+     const changes=[{cat:"gpu",from:cur.gpu,to:g}];const apply={gpu:g.id};let cost=g.price||0;
+     const need=recommendedPsuWatts(cur.cpu,g);
+     if((cur.psu.watts||0)<need){const ps=decCheapest(parts.psu.filter(p=>(p.watts||0)>=need&&(p.price||0)>0));if(!ps)return;changes.push({cat:"psu",from:cur.psu,to:ps});apply.psu=ps.id;cost+=ps.price||0}
+     const avail=effectiveGpuClearance(cur.cs,cur.cool,"auto");
+     if((g.length||300)>avail){
+       if(keep.cs)return;
+       let pool=parts.case.filter(p=>(p.price||0)>0&&effectiveGpuClearance(p,cur.cool,"auto")>=(g.length||300));
+       if(color){const cp=pool.filter(p=>p.color===color);if(cp.length)pool=cp}
+       const cs2=decCheapest(pool);if(!cs2)return;
+       changes.push({cat:"case",from:cur.cs,to:cs2});apply.case=cs2.id;cost+=cs2.price||0;
+     }
+     const after=upFps({...sel,...apply},res);const delta=after-before;
+     if(delta>=5&&cost<=budget*1.2)cands.push({changes,apply,cost,after,delta,vram:g.vram||8});
+   });
+ }
+ if(!keep.mobo){
+   parts.cpu.filter(p=>(p.price||0)>0&&p.socket===cur.cpu.socket&&cpuIndex(p)>cpuIndex(cur.cpu)+5).forEach(c=>{
+     if(!(cur.cool.sockets||[]).includes(c.socket))return;
+     const apply={cpu:c.id};const cost=c.price||0;
+     const after=upFps({...sel,...apply},res);const delta=after-before;
+     if(delta>=5&&cost<=budget*1.2)cands.push({changes:[{cat:"cpu",from:cur.cpu,to:c}],apply,cost,after,delta,vram:cur.gpu.vram||8});
+   });
+ }
+ if(!cands.length)return {goal,res,before,plans:[]};
+ const inBudget=cands.filter(c=>c.cost<=budget);
+ const base=inBudget.length?inBudget:cands;
+ const byValue=[...base].sort((a,b)=>(a.cost/a.delta)-(b.cost/b.delta));
+ const byFps=[...(inBudget.length?inBudget:base)].sort((a,b)=>b.delta-a.delta);
+ const fut=cands.filter(c=>c.cost<=budget*1.15&&c.vram>=16).sort((a,b)=>b.delta-a.delta);
+ const chosen=[];
+ const push=(c,title,pitch)=>{if(c&&!chosen.find(x=>x.c===c))chosen.push({c,title,pitch})};
+ push(byValue[0],"💡 Upgrade malin","le meilleur rapport €/FPS gagné");
+ push(byFps[0],"🎮 Upgrade gaming","le plus de FPS dans ton budget");
+ push(fut[0]||byFps[1]||byValue[1],"🛡️ Upgrade futureproof","voit plus loin : VRAM et marge d’alimentation");
+ return {goal,res,before,plans:chosen};
+}
+function renderUpgradePlans(){
+ const zone=document.getElementById("upPlans");
+ const R=computeUpgradePlans();window.__upResult=R;
+ if(!R){zone.innerHTML='<p class="small-note">Charge d’abord un panier.</p>';return}
+ if(!R.plans.length){zone.innerHTML='<p class="small-note">Aucun plan trouvé dans ce budget avec ces contraintes — essaie un budget plus large ou libère une pièce.</p>';return}
+ if(R.goal==="stockage"){
+   zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div><button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
+ }else{
+   zone.innerHTML=R.plans.map((x,i)=>{const c=x.c;return `<div class="duel-box" style="margin-top:10px"><strong>${x.title}</strong> — ${x.pitch}<br>${c.changes.map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong> (${money(ch.to.price)})`).join("<br>")}<div class="small-note" style="margin-top:6px">Avant : <strong>${R.before} FPS</strong> → Après : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • Coût ${money(c.cost)} • <strong>${(c.cost/c.delta).toFixed(1)} €/FPS gagné</strong> <em>— estimation Compat’PC, valeur indicative</em></div><button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`}).join("");
+ }
+ zone.querySelectorAll("[data-applyplan]").forEach(b=>b.onclick=()=>applyUpgradePlan(Number(b.dataset.applyplan)));
+}
+function applyUpgradePlan(i){
+ const R=window.__upResult;if(!R||!R.plans[i])return;
+ const apply=R.goal==="stockage"?R.plans[i].apply:R.plans[i].c.apply;
+ Object.assign(state.cart.selection,apply);
+ if(state.cart.decodeMeta)Object.keys(apply).forEach(k=>delete state.cart.decodeMeta[k]);
+ renderCart();renderUpgradePlans();
+ showToast("Plan appliqué — panier mis à jour !");
+}
+function openUpLab(){
+ go(4);
+ const card=document.getElementById("upLabCard");
+ if(card)setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"start"}),120);
+}
+document.getElementById("upGo").onclick=renderUpgradePlans;
+
 /* ===== Familles du Top 10 ===== */
 function COLOR_NOISE(){return /\b(white|black|blanc(he)?|noir(e)?|charcoal|chalk|snow|ice|silver|gris|grey|shadow|edition|oc)\b/gi}
 function slugName(p,extraStrip){
@@ -2718,6 +2881,14 @@ function computeFamilies(){
    Object.values(groups).forEach(arr=>{
      const rep=arr.find(p=>/profil générique/i.test(p.name))||arr.reduce((a,b)=>((b.price||9e9)<(a.price||9e9)?b:a));
      arr.forEach(p=>{p.familyRep=(p===rep);p.familySize=arr.length});
+   });
+   const byRank={};
+   parts[cat].forEach(p=>{if(p.topRank)(byRank[p.topRank]=byRank[p.topRank]||new Set()).add(p.familyId)});
+   Object.entries(byRank).forEach(([rank,fams])=>{
+     if(fams.size<2)return;
+     const arr=[...fams].map(f=>({f,rep:parts[cat].find(x=>x.familyId===f&&x.familyRep)}));
+     const keeper=(arr.find(x=>/profil générique/i.test(x.rep.name))||arr.reduce((a,b)=>((b.rep.price||9e9)<(a.rep.price||9e9)?b:a))).f;
+     parts[cat].forEach(p=>{if(Number(p.topRank)===Number(rank)&&p.familyId!==keeper)delete p.topRank});
    });
  });
 }
