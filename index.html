@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.0 — Shopping Gaming</title>
+<title>Compat'PC V8.0.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -693,7 +693,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.0 « Moteur fiable » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.0.1 « Moteur fiable » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1238,6 +1238,7 @@ function estimateFps(game,gpu,cpu,res){
 }
 function fpsBadgeClass(f){return f>=120?"fps-top":f>=60?"fps-ok":"fps-low"}
 function fpsStripHtml(sel,res){
+ {const g0=arguments[0]&&arguments[0].gpu&&get("gpu",arguments[0].gpu),c0=arguments[0]&&arguments[0].cpu&&get("cpu",arguments[0].cpu);if(!g0||!c0)return '<span class="impact gv-bad">⚠ pièces manquantes</span>'}
  const gpu=get("gpu",sel.gpu),cpu=get("cpu",sel.cpu);
  return ["Fortnite","Warzone","Cyberpunk 2077"].map(n=>{
    const game=GAMES.find(g=>g.name===n);
@@ -1305,8 +1306,8 @@ function pertinenceChecks(b){
  }
  if(aquarium)checks.push({label:"Aquarium",pts:cs&&cs.style==="aquarium"?1:0});
  const us=state.usages||[];
- if(us.includes("esport")){const f=avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res);checks.push({label:"E-sport",pts:f>=144?1:f>=100?0.5:0})}
- if(us.includes("heavy")){const f=avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res);checks.push({label:"Gros jeux",pts:f>=75?1:f>=55?0.5:0})}
+ if(us.includes("esport")&&gpu&&cpu){const f=avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res);checks.push({label:"E-sport",pts:f>=144?1:f>=100?0.5:0})}
+ if(us.includes("heavy")&&gpu&&cpu){const f=avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res);checks.push({label:"Gros jeux",pts:f>=75?1:f>=55?0.5:0})}
  if(us.includes("quiet")){
    const m2=[(cool&&(cool.type==="Air"||(cool.rad||0)>=280)),(fans&&!fans.rgb&&!fans.argb),((gpu?.power||999)<=220)].filter(Boolean).length;
    checks.push({label:"Silence",pts:m2>=2?1:m2===1?0.5:0});
@@ -1375,7 +1376,7 @@ function chooseParts(profile){
    return s;
  }
  function ranked(cat,filter=()=>true){return parts[cat].filter(filter).sort((a,b)=>score(cat,b)-score(cat,a))}
- function pick(cat,filter=()=>true){const arr=ranked(cat,filter);return arr[0]?.id||parts[cat][0]?.id}
+ function pick(cat,filter=()=>true){const arr=ranked(cat,filter);return arr[0]?.id||null}
 
  const filters={
    cpu:p=>p.socket==="AM5",
@@ -1425,8 +1426,10 @@ function chooseParts(profile){
  return sel;
 }
 function buildFrom(profile,label,desc){
- const sel=chooseParts(profile);let total=0;Object.entries(sel).forEach(([k,id])=>total+=get(k,id).price);
- return {profile,label,desc,selection:sel,total};
+ const sel=chooseParts(profile);let total=0;
+ const missing=[];
+ Object.entries(sel).forEach(([k,id])=>{const p=id&&get(k,id);if(p)total+=p.price;else missing.push(k)});
+ return {profile,label,desc,selection:sel,total,missing};
 }
 function generate(){
  const cb=Number(document.getElementById("customBudget").value);if(cb)state.budget=cb;
@@ -1438,7 +1441,8 @@ function generate(){
  ];
  const res=state.screen||"1080p";
  state.builds.forEach(b=>{
-   const gpu=get("gpu",b.selection.gpu),cpu=get("cpu",b.selection.cpu);
+   const gpu=b.selection.gpu&&get("gpu",b.selection.gpu),cpu=b.selection.cpu&&get("cpu",b.selection.cpu);
+   if(!gpu||!cpu||(b.missing||[]).length){b.fpsAAA=0;b.fpsE=0;b.playable=false;b.pertPct=0;b.compatErrors=1;return}
    b.fpsAAA=avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res);
    b.fpsE=avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res);
    const checks=pertinenceChecks(b);
@@ -1449,6 +1453,8 @@ function generate(){
  let bestIdx=-1,best=-1;
  state.builds.forEach((b,i)=>{if(b.playable&&!b.compatErrors&&b.pertPct>best){best=b.pertPct;bestIdx=i}});
  state.recommendedIdx=bestIdx;
+ const sigs={};
+ state.builds.forEach((b,i)=>{const s2=Object.values(b.selection).join("|");if(sigs[s2]!==undefined)b.dupOf=sigs[s2];else{sigs[s2]=i;b.dupOf=undefined}});
  renderBuilds();go(3)
 }
 function renderBuilds(){
@@ -1463,13 +1469,14 @@ function renderBuilds(){
   const mood=moods.find(m=>m.id===state.mood)||moods[0];
   const d=document.createElement("div");d.className="build-card "+(i===state.recommendedIdx?"recommended":"");
   const lines=Object.entries(b.selection).map(([k,id])=>{
-    const part=get(k,id);
+    const part=id&&get(k,id);
+    if(!part)return `<div class="part-line"><span>${labelCat(k)}</span><span class="gv-bad">❌ Aucune pièce de la bibliothèque ne satisfait tes exigences</span></div>`;
     return `<div class="part-line"><span>${labelCat(k)}</span><span>${escapeHtml(part.name)}<br><a class="search-link" href="${googleUrl(part.name)}" target="_blank" rel="noopener">Voir sur Google</a></span></div>`;
   }).join("");
   const csB=get("case",b.selection.case);
   const coverArt=csB&&csB.image?`<img class="build-photo" src="${escapeHtml(csB.image)}" alt="${escapeHtml(csB.name)}" loading="lazy">`:renderArt("case",csB,true);
   d.innerHTML=`<div class="build-cover ${mood.visual}"><div class="build-art">${coverArt}</div></div><div class="build-content">
-  <div>${i===state.recommendedIdx?'<span class="badge">Recommandé</span>':""}${b.playable===false?'<span class="impact gv-bad">⚠ Sous le seuil jouable à cette résolution</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
+  <div>${i===state.recommendedIdx?'<span class="badge">Recommandé</span>':""}${b.playable===false?'<span class="impact gv-bad">⚠ Sous le seuil jouable à cette résolution</span>':""}${b.dupOf!==undefined?'<span class="impact gv-mid">⚠ Identique à « '+state.builds[b.dupOf].label+' » — tes contraintes ne laissent pas trois solutions distinctes</span>':""}</div><h3>${b.label}</h3><p>${b.desc}</p><div class="price">${money(b.total)}</div>
   <div class="fps-strip">${fpsStripHtml(b.selection,state.screen||"1080p")}</div>
   ${pertinenceHtml(b)}
   <div style="margin:4px 0 8px">${rankHtml(b.selection)}</div>
@@ -1545,7 +1552,7 @@ function analyzeExpert(){
  if(chosen<expertCategories.length)push("warn","Configuration incomplète",(expertCategories.length-chosen)+" catégorie(s) restent à choisir.");
 
  const total=expertCategories.reduce((sum,k)=>sum+(expertSelected(k)?.price||0),0);
- const score=Math.max(0,100-hard*24-warn*7-(expertCategories.length-chosen)*2);
+ const score=Math.max(0,ub.score-(expertCategories.length-chosen)*2);
  document.getElementById("expertCompatScore").textContent=score+"%";
  document.getElementById("expertTotal").textContent=money(total);
  renderExpertDash(cpu,gpu,cool,psu);
@@ -1696,6 +1703,7 @@ function analyzeBuild(sel,opts={}){
    if(!cool.rad)push("ok","Refroidissement et boîtier","Ventirad sélectionné.");
    else if((cs.rad||[]).includes(cool.rad))push("ok","Watercooling et boîtier","Radiateur "+cool.rad+" mm accepté.");
    else push("bad","Watercooling et boîtier","Le boîtier n\u2019accepte pas ce radiateur de "+cool.rad+" mm.",25);
+   if(cool.rad&&(opts.mount==="front"||opts.mount==="top"))push("warn","Emplacement du radiateur","Emplacement « "+(opts.mount==="front"?"façade":"dessus")+" » choisi : la bibliothèque ne détaille pas chaque emplacement — vérifie sur la fiche du boîtier que le "+cool.rad+" mm y est bien accepté.",0);
  }
  if(cpu&&cool){(cool.sockets||[]).includes(cpu.socket)?push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+"."):push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n\u2019est pas indiquée.",25)}
  let need=null;
@@ -1711,22 +1719,12 @@ function analyzeBuild(sel,opts={}){
  return {score:Math.max(0,score),checks,errors,warnings,need,clearanceMargin};
 }
 function compatibility(){
- const a=analyzeBuild(state.cart.selection,{mount:"auto"});
+ const a=analyzeBuild(state.cart.selection,{mount:state.expertAioMount||"auto"});
  const msgs=a.checks.filter(c=>c.kind!=="ok").map(c=>c.text);
  if(!msgs.length)msgs.push("Toutes les vérifications passent : sockets, formats, dimensions, refroidissement, alimentation.");
  return {score:a.score,msgs};
 }
-function legacyCompatibility(){
- const s=state.cart.selection, cpu=get("cpu",s.cpu), mb=get("motherboard",s.motherboard), ram=get("ram",s.ram), gpu=get("gpu",s.gpu), cs=get("case",s.case), cool=get("cooler",s.cooler), psu=get("psu",s.psu);
- let score=100, msgs=[];
- if(cpu.socket!==mb.socket){score-=40;msgs.push("Le processeur et la carte mère n’utilisent pas le même socket.")}
- if(ram.type!==mb.ram){score-=40;msgs.push("La mémoire ne correspond pas à la carte mère.")}
- if(gpu.length>cs.maxGpu){score-=35;msgs.push("La carte graphique est trop longue pour ce boîtier.")}
- if(cool.rad && !cs.rad.includes(cool.rad)){score-=25;msgs.push("Le watercooling ne rentre pas dans ce boîtier.")}
- const need=Math.ceil((120+gpu.power)*1.45/50)*50;if(psu.watts<need){score-=30;msgs.push("L’alimentation est trop faible.")}
- if(!msgs.length)msgs.push("Les pièces principales sont compatibles.");
- return {score:Math.max(0,score),msgs}
-}
+
 function styleScore(){
  const s=state.cart.selection;const items=["case","cooler","fans","ram"].map(k=>get(k,s[k]));const target=state.mood?.includes("white")?"white":state.mood?.includes("black")||state.mood==="stealth"?"black":null;
  let score=100;if(target){const known=items.filter(x=>x.color!=="neutral");const match=known.filter(x=>x.color===target).length;score=Math.round(match/Math.max(1,known.length)*100)}
