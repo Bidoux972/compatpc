@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.0.1 — Shopping Gaming</title>
+<title>Compat'PC V8.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -380,6 +380,8 @@ html,body{max-width:100%;overflow-x:hidden}
 .main,.card,.sidebar,.card-body{min-width:0}
 @media(max-width:860px){.shell{grid-template-columns:minmax(0,1fr)}}
 .verdict-warn{background:#2b1a0d;border:1px solid #7a5330;border-radius:14px;padding:14px;margin-bottom:14px;color:#ffd9b0;font-size:13.5px;line-height:1.6}
+
+.variant-badge{background:#171026;border-color:#5b4794;color:#c4b5fd;font-weight:700}
 </style>
 </head>
 <body>
@@ -536,6 +538,7 @@ html,body{max-width:100%;overflow-x:hidden}
         </div>
         <div class="card-body">
           <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px"><button class="btn secondary" id="openImport">🔗 Importer une pièce</button><button class="btn secondary" id="openPersonalLibrary">📦 Mes imports</button></div>
+          <div id="familyBar"></div>
           <div class="form-grid">
             <div class="field"><label>Rechercher</label><input id="simpleSearch" placeholder="Ex. RTX 5060 Ti, boîtier blanc, Kraken…"></div>
             <div class="field"><label>Catégorie</label><select id="simpleCategory"></select></div>
@@ -693,7 +696,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.0.1 « Moteur fiable » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.1 « Familles » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1097,7 +1100,7 @@ function featuredPool(){
    }
  }));
  expertCategories.forEach(cat=>{
-   const tops=parts[cat].filter(p=>p.topRank&&!p.image).sort((a,b)=>a.topRank-b.topRank||((a.price||0)-(b.price||0)));
+   const tops=parts[cat].filter(p=>p.topRank&&p.familyRep&&!p.image).sort((a,b)=>a.topRank-b.topRank||((a.price||0)-(b.price||0)));
    if(tops[0])pool.push({cat,p:tops[0],why:"★ n°"+tops[0].topRank+" — "+labelCat(cat)});
  });
  return pool.slice(0,24);
@@ -1488,7 +1491,9 @@ function renderBuilds(){
 function labelCat(k){return ({cpu:"Processeur",motherboard:"Carte mère",ram:"Mémoire",gpu:"Carte graphique",case:"Boîtier",cooler:"Refroidissement",fans:"Ventilateurs",ssd:"SSD",psu:"Alimentation"})[k]||k}
 function tierLabel(tier){return tier==="haut"?"Haut de gamme":tier==="moyen"?"Milieu de gamme":"Entrée de gamme"}
 function productBadges(p){
- const top=p?.topRank?`<span class="top-badge">★ TOP 10 · #${p.topRank}</span>`:"";
+ const top=p?.topRank?(p.familyRep
+   ?`<span class="top-badge">★ TOP 10 · #${p.topRank}</span>`
+   :`<span class="top-badge variant-badge">Variante du Top #${p.topRank}</span>`):"";
  const tier=p?.tier||"entrée";
  return `${top}<span class="tier-badge tier-${tier}">${tierLabel(tier)}</span>`;
 }
@@ -1512,13 +1517,13 @@ function renderExpertToolbox(){
    const groups={top:[],haut:[],moyen:[],entree:[],perso:[],autres:[]};
    sorted.forEach(p=>{
      if(p.origin==="personal"||p.custom)groups.perso.push(p);
-     else if(p.topRank)groups.top.push(p);
+     else if(p.topRank&&p.familyRep)groups.top.push(p);
      else if(p.tier==="haut")groups.haut.push(p);
      else if(p.tier==="moyen")groups.moyen.push(p);
      else if(p.tier==="entrée")groups.entree.push(p);
      else groups.autres.push(p);
    });
-   const opt=p=>`<option value="${p.id}">${fpIcon(cat,p)} ${p.topRank?"★ #"+p.topRank+" · ":""}${escapeHtml(p.name)} — ${money(p.price)}</option>`;
+   const opt=p=>`<option value="${p.id}">${fpIcon(cat,p)} ${p.topRank?(p.familyRep?"★ #"+p.topRank+" · ":"· var. ★#"+p.topRank+" · "):""}${escapeHtml(p.name)} — ${money(p.price)}</option>`;
    const grp=(label,arr)=>arr.length?`<optgroup label="${label}">${arr.map(opt).join("")}</optgroup>`:"";
    const options='<option value="">— Choisir —</option>'
      +grp("★ Top 10",groups.top)
@@ -1597,15 +1602,17 @@ function renderSimpleLibrary(){
  const style=document.getElementById("simpleStyle").value;
  const top=document.getElementById("simpleTop").value;
  updateLibraryFilters();
+ renderFamilyBar();
  const tier=document.getElementById("simpleTier").value;
  const brand=document.getElementById("simpleBrand")?.value||"all";
  let rows=[];
  for(const k of expertCategories){
    if(cat!=="all"&&k!==cat)continue;
    for(const p of parts[k]){
+      if(FAMILY_VIEW){if(k===FAMILY_VIEW.cat&&p.topRank===FAMILY_VIEW.rank)rows.push({cat:k,p});continue;}
      if(q&&!(`${p.name} ${k}`.toLowerCase().includes(q)))continue;
      if(color!=="all"&&(p.color||"neutral")!==color)continue;
-     if(top==="top"&&!p.topRank)continue;
+     if(top==="top"&&!(p.topRank&&p.familyRep))continue;
      if(tier!=="all"&&p.tier!==tier)continue;
      if(brand!=="all"){
        const nm=p.name||"";
@@ -1634,7 +1641,7 @@ function renderSimpleLibrary(){
    if(sort==="price-desc")return (B.p.price||0)-(A.p.price||0);
    if(sort==="perf")return perfOf(B)-perfOf(A);
    if(sort==="name")return A.p.name.localeCompare(B.p.name,"fr");
-   const ta=A.p.topRank||99,tb=B.p.topRank||99;
+   const ta=(A.p.topRank||99)*2+(A.p.topRank&&!A.p.familyRep?1:0),tb=(B.p.topRank||99)*2+(B.p.topRank&&!B.p.familyRep?1:0);
    if(ta!==tb)return ta-tb;
    const ga=tierRank[A.p.tier]??3,gb=tierRank[B.p.tier]??3;
    if(ga!==gb)return ga-gb;
@@ -1646,7 +1653,7 @@ function renderSimpleLibrary(){
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
-   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
+   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.topRank&&p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.topRank}">${p.familySize-1} variante(s) ▸</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
  if(rows.length>LIB_LIMIT){
@@ -1657,6 +1664,7 @@ function renderSimpleLibrary(){
    more.onclick=()=>{LIB_LIMIT+=120;renderSimpleLibrary()};
    g.appendChild(more);
  }
+ g.querySelectorAll("[data-family]").forEach(b=>b.onclick=()=>{const [c,r]=b.dataset.family.split("|");FAMILY_VIEW={cat:c,rank:Number(r)};LIB_LIMIT=120;renderSimpleLibrary()});
  g.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  g.querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
    const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();go(4);showToast("Pièce ajoutée au panier.");
@@ -1908,7 +1916,7 @@ function specRows(cat,p){
  if(cat==="fans"){add("Taille",(p.size||120)+" mm");add("Par pack",p.count||1);add("RGB",(p.rgb||p.argb)?"Oui":"Non")}
  add("Couleur",{white:"Blanc",black:"Noir",neutral:"Neutre"}[p.color]||p.color);
  if(p.tier)add("Gamme",{"entrée":"Entrée de gamme","moyen":"Milieu de gamme","haut":"Haut de gamme"}[p.tier]||p.tier);
- if(p.topRank)add("Classement","★ Top 10 — n°"+p.topRank);
+ if(p.topRank)add("Classement",p.familyRep?("★ Top 10 — n°"+p.topRank+" (représentant de la famille)"):("Variante du Top n°"+p.topRank+" — même puce, habillage différent"));
  if(p.origin==="personal"||p.custom)add("Origine","Import famille / perso");
  return rows;
 }
@@ -2398,7 +2406,7 @@ document.getElementById("importPersonalFile").onchange=async e=>{
 document.getElementById("openSimpleLibrary").onclick=()=>openSimpleLibrary();
 document.getElementById("closeSimpleLibrary").onclick=()=>{document.getElementById("simpleLibrary").classList.remove("active");go(state.cart?4:state.step)};
 ["simpleSearch","simpleCategory","simpleColor","simpleStyle","simpleTop","simpleTier","simpleSort","simpleBrand"].forEach(id=>{
- const el=document.getElementById(id);el.addEventListener(id==="simpleSearch"?"input":"change",()=>{LIB_LIMIT=120;renderSimpleLibrary()});
+ const el=document.getElementById(id);el.addEventListener(id==="simpleSearch"?"input":"change",()=>{LIB_LIMIT=120;FAMILY_VIEW=null;renderSimpleLibrary()});
 });
 
 document.getElementById("expertAioMount").onchange=e=>{state.expertAioMount=e.target.value;analyzeExpert()};
@@ -2473,6 +2481,7 @@ document.querySelectorAll(".panel").forEach(p=>whereObserver.observe(p,{attribut
 updateWhere();
 document.getElementById("publishConfig").onclick=publishConfig;
 document.getElementById("startPurchase").onclick=createPurchaseProject;
+computeFamilies();
 renderMoods();renderBudgets();renderUsages();renderSteps();renderShop();
 syncLibraryFromCloud();
 syncImagesFromCloud();
@@ -2569,6 +2578,29 @@ function runDecode(){
  };
 }
 document.getElementById("decodeBtn").onclick=runDecode;
+/* ===== Familles du Top 10 ===== */
+function computeFamilies(){
+ expertCategories.forEach(cat=>{
+   const groups={};
+   parts[cat].forEach(p=>{if(p.topRank)(groups[p.topRank]=groups[p.topRank]||[]).push(p)});
+   Object.values(groups).forEach(arr=>{
+     const rep=arr.find(p=>/profil générique/i.test(p.name))||arr.reduce((a,b)=>((b.price||9e9)<(a.price||9e9)?b:a));
+     arr.forEach(p=>{p.familyRep=(p===rep);p.familySize=arr.length});
+   });
+ });
+}
+let FAMILY_VIEW=null;
+function familyLabel(cat,rank){
+ const rep=parts[cat].find(p=>p.topRank===rank&&p.familyRep);
+ return rep?rep.name.replace(/\s*—\s*profil générique\s*/i,"").trim():"";
+}
+function exitFamilyView(){FAMILY_VIEW=null;LIB_LIMIT=120;renderSimpleLibrary()}
+function renderFamilyBar(){
+ const bar=document.getElementById("familyBar");if(!bar)return;
+ if(!FAMILY_VIEW){bar.innerHTML="";return}
+ const n=parts[FAMILY_VIEW.cat].filter(p=>p.topRank===FAMILY_VIEW.rank).length;
+ bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Famille <strong>★ Top 10 · #${FAMILY_VIEW.rank}</strong> — ${escapeHtml(familyLabel(FAMILY_VIEW.cat,FAMILY_VIEW.rank))} : ${n} déclinaison(s) de marque, couleur et refroidissement. Mêmes FPS, habillage différent.</span><button class="btn secondary" onclick="exitFamilyView()">← Toute la bibliothèque</button></div>`;
+}
 /* ===== Filtres contextuels de la bibliothèque ===== */
 let LIB_LIMIT=120;
 let lastFilterCat=null;
