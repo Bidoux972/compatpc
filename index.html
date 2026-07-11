@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.1.1 — Shopping Gaming</title>
+<title>Compat'PC V8.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -696,7 +696,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.1.1 « Familles pures » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.2 « Import fidèle » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1695,11 +1695,17 @@ function analyzeBuild(sel,opts={}){
  const cpu=get("cpu",sel.cpu),mb=get("motherboard",sel.motherboard),ram=get("ram",sel.ram),gpu=get("gpu",sel.gpu),cs=get("case",sel.case),cool=get("cooler",sel.cooler),psu=get("psu",sel.psu);
  const checks=[];let score=100;
  const push=(kind,title,text,pen=0)=>{checks.push({kind,title,text});if(kind!=="ok")score-=pen};
- if(cpu&&mb){cpu.socket===mb.socket?push("ok","Processeur et carte mère","Même socket : "+cpu.socket+"."):push("bad","Processeur et carte mère","Sockets différents : "+cpu.socket+" et "+mb.socket+".",40)}
- if(ram&&mb){ram.type===mb.ram?push("ok","Mémoire et carte mère","La mémoire "+ram.type+" correspond."):push("bad","Mémoire et carte mère","La carte mère demande "+mb.ram+", mais la mémoire choisie est "+ram.type+".",40)}
- if(mb&&cs){(cs.forms||[]).includes(mb.form)?push("ok","Carte mère et boîtier","Le format "+mb.form+" rentre dans le boîtier."):push("bad","Carte mère et boîtier","Le boîtier n\u2019accepte pas le format "+mb.form+".",30)}
+ const AS=(p,f)=>!!(p&&p._assumed&&p._assumed[f]);
+ const unverif=(title,champ)=>push("warn",title,"Non vérifiable : "+champ+" estimé lors de l\u2019import — vérifie sur la fiche marchande.",4);
+ if(cpu&&mb){if(AS(mb,"socket"))unverif("Processeur et carte mère","le socket de la carte mère");
+   else cpu.socket===mb.socket?push("ok","Processeur et carte mère","Même socket : "+cpu.socket+"."):push("bad","Processeur et carte mère","Sockets différents : "+cpu.socket+" et "+mb.socket+".",40)}
+ if(ram&&mb){if(AS(mb,"ram"))unverif("Mémoire et carte mère","le type de mémoire de la carte mère");
+   else ram.type===mb.ram?push("ok","Mémoire et carte mère","La mémoire "+ram.type+" correspond."):push("bad","Mémoire et carte mère","La carte mère demande "+mb.ram+", mais la mémoire choisie est "+ram.type+".",40)}
+ if(mb&&cs){if(AS(mb,"form")||AS(cs,"forms"))unverif("Carte mère et boîtier","le format");
+   else (cs.forms||[]).includes(mb.form)?push("ok","Carte mère et boîtier","Le format "+mb.form+" rentre dans le boîtier."):push("bad","Carte mère et boîtier","Le boîtier n\u2019accepte pas le format "+mb.form+".",30)}
  let clearanceMargin=null;
- if(gpu&&cs){
+ if(gpu&&cs&&(AS(gpu,"length")||AS(cs,"maxGpu"))){unverif("Carte graphique et boîtier","la longueur de la carte ou le dégagement du boîtier")}
+ else if(gpu&&cs){
    const available=effectiveGpuClearance(cs,cool,opts.mount||"auto");
    const margin=available-(gpu.length||0);clearanceMargin=margin;
    const frontPenalty=(cs.maxGpu||0)-available;
@@ -1708,15 +1714,18 @@ function analyzeBuild(sel,opts={}){
    else if(margin>=0)push("warn","Carte graphique et boîtier","Elle rentre, mais avec seulement "+margin+" mm de marge."+mountNote,6);
    else push("bad","Carte graphique et boîtier","Elle dépasse la place réellement disponible de "+Math.abs(margin)+" mm."+mountNote,35);
  }
- if(cool&&cs){
+ if(cool&&cs&&(AS(cool,"rad")||AS(cs,"rad"))){unverif("Refroidissement et boîtier","la taille de radiateur acceptée")}
+ else if(cool&&cs){
    if(!cool.rad)push("ok","Refroidissement et boîtier","Ventirad sélectionné.");
    else if((cs.rad||[]).includes(cool.rad))push("ok","Watercooling et boîtier","Radiateur "+cool.rad+" mm accepté.");
    else push("bad","Watercooling et boîtier","Le boîtier n\u2019accepte pas ce radiateur de "+cool.rad+" mm.",25);
    if(cool.rad&&(opts.mount==="front"||opts.mount==="top"))push("warn","Emplacement du radiateur","Emplacement « "+(opts.mount==="front"?"façade":"dessus")+" » choisi : la bibliothèque ne détaille pas chaque emplacement — vérifie sur la fiche du boîtier que le "+cool.rad+" mm y est bien accepté.",0);
  }
- if(cpu&&cool){(cool.sockets||[]).includes(cpu.socket)?push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+"."):push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n\u2019est pas indiquée.",25)}
+ if(cpu&&cool){if(AS(cool,"sockets"))unverif("Refroidissement et processeur","la liste des sockets du refroidisseur");
+   else (cool.sockets||[]).includes(cpu.socket)?push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+"."):push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n\u2019est pas indiquée.",25)}
  let need=null;
- if(gpu&&psu){
+ if(gpu&&psu&&(AS(gpu,"power")||AS(psu,"watts"))){unverif("Alimentation","la consommation réelle (import)")}
+ else if(gpu&&psu){
    need=recommendedPsuWatts(cpu,gpu);
    if(psu.watts>=need){
      push("ok","Alimentation","Puissance suffisante. Recommandation estimée : "+need+" W, calculée avec le CPU et le GPU.");
@@ -1871,11 +1880,39 @@ async function analyzeUrl(){
 function addParsed(){
  const p=window.parsedProduct,cat=p.cat,id="personal-"+Date.now();
  const obj={id,name:document.getElementById("pvName").value,price:Number(document.getElementById("pvPrice").value)||0,color:document.getElementById("pvColor").value,custom:true,origin:"session",url:p.url,image:p.image||"",brand:p.brand||"",description:p.description||"",currency:p.currency||"EUR",styles:p.styles||[]};
- if(cat==="gpu"){obj.vram=Number(document.getElementById("pvVram").value)||p.vram||8;obj.length=Number(document.getElementById("pvLength").value)||p.length||300;obj.power=Number(document.getElementById("pvPower")?.value)||p.power||200;obj.brand=p.gpuBrand||(/RTX|GeForce/i.test(obj.name)?"nvidia":"amd");obj.precision="exact"}
- if(cat==="cooler"){obj.rad=Number(document.getElementById("pvRad").value)||240;obj.sockets=["AM4","AM5","LGA1700","LGA1851"];obj.gif=document.getElementById("pvGif").value==="true";obj.lcd=obj.gif;obj.styles=obj.gif?["lcd","gif"]:[]}
- if(cat==="case"){obj.forms=p.forms||["ATX","mATX","ITX"];obj.maxGpu=Number(document.getElementById("pvMaxGpu")?.value)||p.maxGpu||400;obj.rad=p.radList||[240,280,360];obj.style=p.style||(/aquarium|vision|panoramic|verre|o11|h6|h9|nv5|y60|y70/i.test(obj.name)?"aquarium":"classic");obj.styles=[...new Set([...(obj.styles||[]),...(obj.style==="aquarium"?["aquarium"]:[])])]}
- if(cat==="motherboard"){obj.socket="AM5";obj.ram="DDR5";obj.form="ATX";obj.wifi=true}
- if(cat==="ram"){obj.type=/DDR4/i.test(obj.name)?"DDR4":"DDR5";obj.capacity=32;obj.sticks=2;obj.speed=6000}
+ if(cat==="gpu"){obj._assumed={};
+   obj.vram=Number(document.getElementById("pvVram").value)||p.vram||0;if(!obj.vram){obj.vram=8;obj._assumed.vram=true}
+   obj.length=Number(document.getElementById("pvLength").value)||p.length||0;if(!obj.length){obj.length=300;obj._assumed.length=true}
+   obj.power=Number(document.getElementById("pvPower")?.value)||p.power||0;if(!obj.power){obj.power=200;obj._assumed.power=true}
+   obj.brand=p.gpuBrand||(/RTX|GeForce/i.test(obj.name)?"nvidia":"amd");obj.precision="exact"}
+ if(cat==="cooler"){obj._assumed={};
+   obj.rad=Number(document.getElementById("pvRad").value)||0;if(!obj.rad&&!/ventirad|tour|air/i.test(obj.name)){obj.rad=240;obj._assumed.rad=true}
+   obj.sockets=["AM4","AM5","LGA1700","LGA1851"];obj._assumed.sockets=true;
+   obj.gif=document.getElementById("pvGif").value==="true";obj.lcd=obj.gif;obj.styles=obj.gif?["lcd","gif"]:[]}
+ if(cat==="case"){obj._assumed={};
+   obj.forms=p.forms;if(!obj.forms){obj.forms=["ATX","mATX","ITX"];obj._assumed.forms=true}
+   obj.maxGpu=Number(document.getElementById("pvMaxGpu")?.value)||p.maxGpu||0;if(!obj.maxGpu){obj.maxGpu=400;obj._assumed.maxGpu=true}
+   obj.rad=p.radList;if(!obj.rad){obj.rad=[240,280,360];obj._assumed.rad=true}
+   obj.style=p.style||(/aquarium|vision|panoramic|verre|o11|h6|h9|nv5|y60|y70/i.test(obj.name)?"aquarium":"classic");obj.styles=[...new Set([...(obj.styles||[]),...(obj.style==="aquarium"?["aquarium"]:[])])]}
+ if(cat==="motherboard"){
+   obj._assumed={};
+   const sk=obj.name.match(/\b(AM5|AM4|LGA\s?1851|LGA\s?1700)\b/i);
+   if(sk)obj.socket=sk[1].toUpperCase().replace(/\s+/,"");else{obj.socket="AM5";obj._assumed.socket=true}
+   const dd=obj.name.match(/\bDDR([45])\b/i);
+   if(dd)obj.ram="DDR"+dd[1];else{obj.ram=obj.socket==="AM4"?"DDR4":"DDR5";obj._assumed.ram=true}
+   const fm=obj.name.match(/\b(mATX|micro[- ]?ATX|Mini[- ]?ITX|ITX|E-?ATX|ATX)\b/i);
+   if(fm){const f=fm[1].toUpperCase();obj.form=/MICRO|MATX/.test(f)?"mATX":/ITX/.test(f)?"ITX":"ATX"}else{obj.form="ATX";obj._assumed.form=true}
+   obj.wifi=/wifi/i.test(obj.name)||undefined;if(obj.wifi===undefined){obj.wifi=true;obj._assumed.wifi=true}
+ }
+ if(cat==="ram"){
+   obj._assumed={};
+   obj.type=/DDR4/i.test(obj.name)?"DDR4":"DDR5";
+   const cp=obj.name.match(/\b(8|16|24|32|48|64|96|128)\s*(?:Go|GB)\b/i);
+   if(cp)obj.capacity=parseInt(cp[1],10);else{obj.capacity=32;obj._assumed.capacity=true}
+   const sp=obj.name.match(/\b([3-8]\d{3})\s*(?:MHz|MT)/i);
+   if(sp)obj.speed=parseInt(sp[1],10);else{obj.speed=6000;obj._assumed.speed=true}
+   obj.sticks=2;
+ }
  if(cat==="ssd"){obj.capacity=Number(document.getElementById("pvCapacity")?.value)||p.capacity||(/2\s*To|2TB/i.test(obj.name)?2:1);obj.type="NVMe"}
  if(cat==="psu"){const w=obj.name.match(/(\d{3,4})\s*W/i);obj.watts=Number(document.getElementById("pvWatts")?.value)||p.watts||(w?Number(w[1]):750)}
  if(cat==="fans"){obj.count=3;obj.size=120;obj.rgb=/RGB|ARGB/i.test(obj.name);obj.argb=obj.rgb}
@@ -1918,6 +1955,10 @@ function specRows(cat,p){
  if(cat==="fans"){add("Taille",(p.size||120)+" mm");add("Par pack",p.count||1);add("RGB",(p.rgb||p.argb)?"Oui":"Non")}
  add("Couleur",{white:"Blanc",black:"Noir",neutral:"Neutre"}[p.color]||p.color);
  if(p.tier)add("Gamme",{"entrée":"Entrée de gamme","moyen":"Milieu de gamme","haut":"Haut de gamme"}[p.tier]||p.tier);
+ if(p._assumed&&Object.keys(p._assumed).length){
+   const L={socket:"socket",ram:"type de mémoire",form:"format",wifi:"Wi-Fi",length:"longueur",power:"consommation",vram:"VRAM",maxGpu:"dégagement GPU",forms:"formats acceptés",rad:"radiateur(s)",sockets:"sockets supportés",watts:"puissance",capacity:"capacité",speed:"vitesse"};
+   add("⚠ Import","À confirmer sur la fiche marchande : "+Object.keys(p._assumed).map(k=>L[k]||k).join(", "));
+ }
  if(p.topRank)add("Classement",p.familyRep?("★ Top 10 — n°"+p.topRank+" (représentant de la famille)"):("Variante du Top n°"+p.topRank));
  if(p.familySize>1&&!p.familyRep)add("Famille",variantText(cat)||"déclinaison du même produit");
  if(p.origin==="personal"||p.custom)add("Origine","Import famille / perso");
@@ -2491,31 +2532,78 @@ syncImagesFromCloud();
 syncPricesFromCloud();
 document.querySelectorAll(".refcount").forEach(e=>e.textContent=expertCategories.reduce((s,k)=>s+parts[k].length,0));
 /* ===== Décodeur de config ===== */
+function decodeFieldsIn(zone,det){
+ if(!det.gpu)for(const [re,idx] of GPU_PERF){const m=zone.match(re);if(m){det.gpu={re,idx,label:m[0]};break}}
+ if(!det.gpu&&!det.gpuRaw){const g=zone.match(/(?:RTX|GTX|Radeon\s+RX|Arc)\s*[A-Z]?\d{3,4}[A-Za-z ]{0,10}/i);if(g)det.gpuRaw=g[0].trim()}
+ if(!det.cpu)for(const [re,idx] of CPU_PERF){const m=zone.match(re);if(m){det.cpu={re,idx,label:m[0]};break}}
+ if(!det.ram){
+   const ddr=zone.match(/DDR\s?([45])/i);
+   const ramCap=zone.match(/\b(16|24|32|48|64|96|128)\s*(?:Go|GB)\b(?!\s*(?:GDDR|G?DDR|de\s+m[ée]moire\s+vid[ée]o|VRAM))/i);
+   if(ddr||ramCap)det.ram={type:ddr?("DDR"+ddr[1]):null,cap:ramCap?parseInt(ramCap[1],10):null};
+ }
+ if(!det.ssd){
+   const to=zone.match(/\b([1248])\s*(?:To|TB)\b/i);
+   const goSsd=zone.match(/(?:SSD|M\.2)[^.\n]{0,25}\b(480|500|512|960|1000|2000|4000)\s*(?:Go|GB)\b|\b(480|500|512|960|1000|2000|4000)\s*(?:Go|GB)\b[^.\n]{0,25}(?:SSD|M\.2)/i);
+   if(to)det.ssd={cap:parseInt(to[1],10)};
+   else if(goSsd)det.ssd={cap:Math.max(1,Math.round(parseInt(goSsd[1]||goSsd[2],10)/1000))||1};
+ }
+ if(!det.psu){const w=zone.match(/\b([5-9]\d{2}|1[0-6]\d{2})\s*W(?:atts)?\b/i);if(w)det.psu={watts:parseInt(w[1],10)}}
+ if(!det.platform){if(/AM5/i.test(zone))det.platform="AM5";else if(/AM4/i.test(zone))det.platform="AM4"}
+ if(!det.chipset){const c=zone.match(/\b(X870E?|B850|B650E?|X670E?|A620)/i);if(c)det.chipset=c[1].toUpperCase()}
+ return det;
+}
 function decodeConfigBlob(text){
  const det={};
- for(const [re,idx] of GPU_PERF){const m=text.match(re);if(m){det.gpu={re,idx,label:m[0]};break}}
- for(const [re,idx] of CPU_PERF){const m=text.match(re);if(m){det.cpu={re,idx,label:m[0]};break}}
- const ddr=text.match(/DDR\s?([45])/i);
- const ramCap=text.match(/\b(16|24|32|48|64|96|128)\s*Go\b(?!\s*(?:GDDR|G?DDR|de\s+m[ée]moire\s+vid[ée]o|VRAM))/i);
- if(ddr||ramCap)det.ram={type:ddr?("DDR"+ddr[1]):null,cap:ramCap?parseInt(ramCap[1],10):null};
- const to=text.match(/\b([1248])\s*To\b/i);
- const goSsd=text.match(/(?:SSD[^.\n]{0,20}\b(480|500|512|960|1000|2000)\s*Go\b|\b(480|500|512|960|1000|2000)\s*Go\b[^.\n]{0,20}SSD)/i);
- if(to)det.ssd={cap:parseInt(to[1],10)};
- else if(goSsd)det.ssd={cap:Math.max(1,Math.round(parseInt(goSsd[1]||goSsd[2],10)/1000))||1};
- const w=text.match(/\b([5-9]\d{2}|1[0-6]\d{2})\s*W(?:atts)?\b/i);
- if(w)det.psu={watts:parseInt(w[1],10)};
- if(/AM5/i.test(text))det.platform="AM5";else if(/AM4/i.test(text))det.platform="AM4";
+ // zones par ordre de fiabilité : titre, résumé de configuration, bloc composants, texte entier
+ const zones=[text.slice(0,350)];
+ const mSum=text.match(/(?:Informations sur le produit|Konfiguration\b|^Configuration\b)[\s\S]{0,2600}/im);if(mSum)zones.push(mSum[0]);
+ const mSum2=text.match(/(?:Processeur|Bloc d'alimentation|Carte graphique)\s*:[\s\S]{0,1600}/i);if(mSum2)zones.push(mSum2[0]);
+ zones.push(text);
+ zones.forEach(z=>decodeFieldsIn(z,det));
+ // style : phrases fortes en tête, sinon ratio global
+ const head=text.slice(0,450).toLowerCase();
+ if(/[ée]dition blanche|white build|white edition|snow edition|wei[ßs]e? edition|\bblanc(he)?\b/i.test(head))det.color="white";
+ else if(/[ée]dition noire|black build|black edition|\bnoir(e)?\b/i.test(head))det.color="black";
+ else{
+   const w=(text.match(/\b(white|blanc|blanche|wei[ßs])\b/gi)||[]).length;
+   const bl=(text.match(/\b(black|noir|noire|schwarz)\b/gi)||[]).length;
+   if(w>bl*1.5&&w>=3)det.color="white";else if(bl>w*1.5&&bl>=3)det.color="black";
+ }
  return det;
 }
 function decCheapest(arr){return arr.length?arr.reduce((a,b)=>((b.price||9e9)<(a.price||9e9)?b:a)):null}
 function decNearest(arr,scoreFn,target){let best=null,bd=1e9;for(const p of arr){const d=Math.abs(scoreFn(p)-target);if(d<bd){bd=d;best=p}}return best}
+function pickColored(pool,color){
+ if(!pool.length)return {p:null,colorOk:false};
+ if(!color)return {p:decCheapest(pool),colorOk:true};
+ const c=pool.filter(x=>x.color===color);
+ return c.length?{p:decCheapest(c),colorOk:true}:{p:decCheapest(pool),colorOk:false};
+}
+function colorSwapInFamily(cat,p,color){
+ if(!color||!p||p.color===color)return p;
+ const twin=parts[cat].find(x=>x.familyId===p.familyId&&x.color===color);
+ return twin||p;
+}
 function matchDecoded(det){
- const out={};
+ const out={};const color=det.color||null;
+ const colorNote=(ok)=>ok?"":" — coloris "+(color==="white"?"blanc":"noir")+" introuvable dans la bibliothèque pour cette pièce";
+ // GPU
  if(det.gpu){
    const pool=parts.gpu.filter(p=>det.gpu.re.test(p.name));
-   if(pool.length)out.gpu={p:decCheapest(pool),how:"exact",note:"détecté : "+det.gpu.label};
-   else out.gpu={p:decNearest(parts.gpu,gpuIndex,det.gpu.idx),how:"approx",note:det.gpu.label+" absent — équivalent en puissance"};
+   if(pool.length){
+     const base=decCheapest(pool);
+     const colored=colorSwapInFamily("gpu",base,color);
+     if(color&&colored!==base)out.gpu={p:colored,how:"famille",note:"détecté : "+det.gpu.label+" — déclinaison "+(color==="white"?"blanche":"noire")+" de la même famille"};
+     else out.gpu={p:base,how:"exact",note:"détecté : "+det.gpu.label+(color&&base.color!==color?colorNote(false):"")};
+   }else{
+     let eq=decNearest(parts.gpu.filter(p=>!/occasion/i.test(p.name)),gpuIndex,det.gpu.idx);
+     eq=colorSwapInFamily("gpu",eq,color)||eq;
+     out.gpu={p:eq,how:"approx",note:det.gpu.label+" absent — équivalent en puissance"+(color&&eq.color!==color?colorNote(false):"")};
+   }
+ }else if(det.gpuRaw){
+   out.gpu={p:decCheapest(parts.gpu.filter(p=>!/occasion/i.test(p.name))),how:"unknown",note:"« "+det.gpuRaw+" » non reconnu par la bibliothèque — complété par défaut, à vérifier"};
  }
+ // CPU
  if(det.cpu){
    const pool=parts.cpu.filter(p=>det.cpu.re.test(p.name));
    if(pool.length)out.cpu={p:decCheapest(pool),how:"exact",note:"détecté : "+det.cpu.label};
@@ -2527,35 +2615,52 @@ function matchDecoded(det){
  }
  if(!out.gpu)out.gpu={p:decCheapest(parts.gpu.filter(p=>!/occasion/i.test(p.name))),how:"auto",note:"non détectée — complétée"};
  const sock=out.cpu.p.socket;
+ // RAM
  if(det.ram){
    const type=det.ram.type||(sock==="AM4"?"DDR4":"DDR5");
    const cap=det.ram.cap||16;
    const pool=parts.ram.filter(p=>p.type===type&&(p.capacity||0)>=cap);
-   out.ram=pool.length?{p:decCheapest(pool),how:(det.ram.type&&det.ram.cap)?"exact":"approx",note:type+" "+(det.ram.cap||"≥16")+" Go"}:{p:decCheapest(parts.ram.filter(p=>(p.capacity||0)>=cap))||decCheapest(parts.ram),how:"approx",note:"équivalent le plus proche"};
+   if(pool.length){
+     const pc=pickColored(pool,color);
+     out.ram={p:pc.p,how:(det.ram.type&&det.ram.cap)?(color&&pc.colorOk?"famille":"exact"):"approx",note:type+" "+(det.ram.cap||"≥16")+" Go"+(color?(pc.colorOk?" — kit "+(color==="white"?"blanc":"noir")+" choisi":colorNote(false)):"")};
+   }else out.ram={p:decCheapest(parts.ram.filter(p=>(p.capacity||0)>=cap))||decCheapest(parts.ram),how:"approx",note:"équivalent le plus proche"};
  }else{
    const t=sock==="AM4"?"DDR4":"DDR5";
-   out.ram={p:decCheapest(parts.ram.filter(p=>p.type===t&&(p.capacity||0)>=16)),how:"auto",note:"non détectée — complétée en "+t};
+   const pc=pickColored(parts.ram.filter(p=>p.type===t&&(p.capacity||0)>=16),color);
+   out.ram={p:pc.p,how:"auto",note:"non détectée — complétée en "+t+(color?colorNote(pc.colorOk):"")};
  }
+ // Carte mère : chipset détecté > socket
  let mbPool=parts.motherboard.filter(p=>p.socket===sock&&p.ram===out.ram.p.type);
+ if(det.chipset){const cp=mbPool.filter(p=>p.name.toUpperCase().includes(det.chipset));if(cp.length)mbPool=cp}
  if(!mbPool.length)mbPool=parts.motherboard.filter(p=>p.socket===sock);
- out.motherboard={p:decCheapest(mbPool)||decCheapest(parts.motherboard),how:"auto",note:"assortie au processeur ("+sock+", "+out.ram.p.type+")"};
+ {const pc=pickColored(mbPool.length?mbPool:parts.motherboard,color);
+  out.motherboard={p:pc.p,how:det.chipset&&pc.p.name.toUpperCase().includes(det.chipset||"")?"famille":"auto",note:(det.chipset?("chipset "+det.chipset+" détecté — "):"assortie au processeur (")+(det.chipset?"carte assortie":sock+", "+out.ram.p.type+")")+(color?colorNote(pc.colorOk):"")}}
  if(out.motherboard.p.ram!==out.ram.p.type){
    const pr=parts.ram.filter(p=>p.type===out.motherboard.p.ram&&(p.capacity||0)>=(out.ram.p.capacity||16));
    if(pr.length)out.ram={p:decCheapest(pr),how:"approx",note:"ajustée au type accepté par la carte mère"};
  }
+ // SSD
  out.ssd=det.ssd
    ?{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=det.ssd.cap))||decCheapest(parts.ssd),how:"exact",note:det.ssd.cap+" To"}
    :{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=1)),how:"auto",note:"non détecté — complété"};
- out.cooler={p:decCheapest(parts.cooler.filter(p=>(p.sockets||[]).includes(sock)))||decCheapest(parts.cooler),how:"auto",note:"complété (compatible "+sock+")"};
+ // Refroidissement
+ {const pool=parts.cooler.filter(p=>(p.sockets||[]).includes(sock));
+  const pc=pickColored(pool.length?pool:parts.cooler,color);
+  out.cooler={p:pc.p,how:"auto",note:"complété (compatible "+sock+")"+(color?colorNote(pc.colorOk):"")}}
+ // Alimentation
  const need=recommendedPsuWatts(out.cpu.p,out.gpu.p);
  if(det.psu&&det.psu.watts>=need){
    out.psu={p:decCheapest(parts.psu.filter(p=>(p.watts||0)>=det.psu.watts))||decCheapest(parts.psu),how:"exact",note:det.psu.watts+" W détectés"};
  }else{
    out.psu={p:decCheapest(parts.psu.filter(p=>(p.watts||0)>=need))||decCheapest(parts.psu),how:det.psu?"approx":"auto",note:(det.psu?det.psu.watts+" W détectés mais ":"")+need+" W requis par cette config"};
  }
- const csPool=parts.case.filter(p=>(effectiveGpuClearance(p,out.cooler.p,"auto")||400)>=(out.gpu.p.length||300));
- out.case={p:decCheapest(csPool)||decCheapest(parts.case),how:"auto",note:"complété — la carte graphique rentre"};
- out.fans={p:decCheapest(parts.fans),how:"auto",note:"complété"};
+ // Boîtier + ventilateurs au coloris
+ {const csPool=parts.case.filter(p=>(effectiveGpuClearance(p,out.cooler.p,"auto")||400)>=(out.gpu.p.length||300));
+  const pc=pickColored(csPool.length?csPool:parts.case,color);
+  out.case={p:pc.p,how:"auto",note:"complété — la carte graphique rentre"+(color?colorNote(pc.colorOk):"")}}
+ {const pc=pickColored(parts.fans,color);
+  out.fans={p:pc.p,how:"auto",note:"complété"+(color?colorNote(pc.colorOk):"")}}
+ out.__color=color;
  return out;
 }
 function runDecode(){
@@ -2565,7 +2670,7 @@ function runDecode(){
  const det=decodeConfigBlob(text);
  if(!det.gpu&&!det.cpu){box.innerHTML='<p class="small-note">Je n\'ai reconnu ni carte graphique ni processeur dans ce texte. Vérifie que le descriptif technique est bien inclus (modèles précis : « RTX 4060 », « Ryzen 5 7500F »…).</p>';return}
  const out=matchDecoded(det);
- const HOW={exact:["Détectée","gv-good"],approx:["Équivalente","gv-mid"],auto:["Complétée par l\'app","gv-bad"]};
+ const HOW={exact:["Détectée","gv-good"],famille:["Même famille","gv-good"],approx:["Équivalente en puissance","gv-mid"],auto:["Complétée par l\'app","gv-bad"],unknown:["Non reconnue","gv-bad"]};
  let total=0;
  const rows=["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"].map(cat=>{
    const r=out[cat];if(!r||!r.p)return "";
@@ -2573,9 +2678,10 @@ function runDecode(){
    const [lbl,cls]=HOW[r.how];
    return `<div class="duel-row"><div>${labelCat(cat)}<small>${escapeHtml(r.note)}</small></div><span class="${cls}" style="font-size:10.5px;font-weight:900">${lbl}</span><div style="text-align:right">${escapeHtml(r.p.name)}<small>${money(r.p.price)} ${fpIcon(cat,r.p)}</small></div></div>`;
  }).join("");
- box.innerHTML=`<div class="duel-box">${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><button class="btn" id="decodeCreate">Créer ce panier</button></div></div>`;
+ const colorLine=out.__color?`<div class="small-note" style="margin:2px 0 8px">🎨 <strong>Style détecté : setup ${out.__color==="white"?"blanc":"noir"}</strong> — le coloris est respecté partout où la bibliothèque le permet ; chaque exception est signalée sur sa ligne.</div>`:"";
+ box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><button class="btn" id="decodeCreate">Créer ce panier</button></div></div>`;
  document.getElementById("decodeCreate").onclick=()=>{
-   const selection={};for(const cat of Object.keys(out))selection[cat]=out[cat].p.id;
+   const selection={};for(const cat of ["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"]){if(out[cat]&&out[cat].p)selection[cat]=out[cat].p.id}
    state.cart={label:"Config décodée",desc:"Reconstruite depuis un descriptif",selection};
    renderCart();go(4);showToast("Config décodée et chargée dans le panier !");
  };
