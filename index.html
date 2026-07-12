@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.8 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.4.9 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -351,9 +351,6 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
  .sidebar.rail{position:sticky;top:0;z-index:80;background:rgba(10,10,13,.95);backdrop-filter:blur(10px);border-radius:0 0 14px 14px}
  .rail .side-actions{flex-direction:row;overflow-x:auto;padding-bottom:4px}
  .rail-btn{min-width:74px}
-body:not(.copilote) #guidedImport{display:none}
-body.copilote:not(.show-adv) .import-advanced{display:none!important}
-body:not(.copilote) #labKeeps>summary{display:none}
  .rail-sep{display:none}
 }
 
@@ -385,6 +382,11 @@ html,body{max-width:100%;overflow-x:hidden}
 .verdict-warn{background:#2b1a0d;border:1px solid #7a5330;border-radius:14px;padding:14px;margin-bottom:14px;color:#ffd9b0;font-size:13.5px;line-height:1.6}
 
 .variant-badge{background:#171026;border-color:#5b4794;color:#c4b5fd;font-weight:700}
+/* ===== Règles de mode (hors media query : valables partout) ===== */
+body:not(.copilote) #guidedImport{display:none}
+body.copilote:not(.show-adv) .import-advanced{display:none!important}
+body:not(.copilote) #labKeeps>summary{display:none}
+body.copilote .expert-only{display:none!important}
 </style>
 </head>
 <body>
@@ -744,7 +746,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.8 « Aujourd'hui / Demain » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.9 « Modes unifiés » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2608,7 +2610,7 @@ document.getElementById("expertMode").onclick=()=>{
 };
 
 function currentUser(){return (localStorage.getItem("compatpc_user")||"").trim()}
-function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";document.body.classList.toggle("copilote",getAppMode()==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}showToast("Salut "+n+" ! Bon projet 🚀"+(getAppMode()==="copilote"?" — mode Guidé 🎯":""))}
+function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";applyAppMode();showToast("Salut "+n+" ! Bon projet 🚀"+(getAppMode()==="copilote"?" — mode Guidé 🎯":""))}
 function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?");const g=document.getElementById("homeGreeting");if(g)g.textContent=currentUser()?("Salut "+currentUser()+" ! 👋"):"Salut ! 👋"}
 function showWelcome(){document.getElementById("welcomeOther").value="";document.getElementById("welcomeOverlay").style.display="flex"}
 document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
@@ -3115,7 +3117,16 @@ document.getElementById("doorMyPc").onclick=openMyPc;
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
 function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase())}
 function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
-function setAppMode(m){localStorage.setItem(modeKey(),m);document.body.classList.toggle("copilote",m==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}}
+function applyAppMode(){
+ const cop=getAppMode()==="copilote";
+ document.body.classList.toggle("copilote",cop);
+ state.expert=!cop;
+ const app=document.getElementById("app");if(app)app.classList.toggle("expert",!cop);
+ renderModeToggle();
+ try{renderSimpleLibrary()}catch(e){}
+ try{if(state.cart)renderCart()}catch(e){}
+}
+function setAppMode(m){localStorage.setItem(modeKey(),m);applyAppMode()}
 function renderModeToggle(){
  const b=document.getElementById("modeToggle");if(!b)return;
  const on=getAppMode()==="copilote";
@@ -3236,8 +3247,7 @@ document.getElementById("modeToggle").onclick=()=>{
  showToast(to==="copilote"?"🎯 Mode Guidé : je te conseille à chaque étape, en langage de jeux.":"🔧 Mode Complet : toutes les données, aucun filtre — le cockpit intégral.");
 };
 try{const l=localStorage.getItem("compatpc-mode");if(l){if(!localStorage.getItem(modeKey()))localStorage.setItem(modeKey(),l);localStorage.removeItem("compatpc-mode")}}catch(e){}
-document.body.classList.toggle("copilote",getAppMode()==="copilote");
-renderModeToggle();
+applyAppMode();
 
 document.getElementById("closeMyPc").onclick=()=>{document.getElementById("mypcPanel").classList.remove("active");go(0)};
 document.getElementById("mypcEdit").onclick=()=>{renderMyPcForm();openPanel("mypcPanel")};
