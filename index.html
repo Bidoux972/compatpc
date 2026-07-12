@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.9 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.4.10 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -746,7 +746,7 @@ body.copilote .expert-only{display:none!important}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.9 « Modes unifiés » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.10 « Modes clairs » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -3126,11 +3126,11 @@ function applyAppMode(){
  try{renderSimpleLibrary()}catch(e){}
  try{if(state.cart)renderCart()}catch(e){}
 }
-function setAppMode(m){localStorage.setItem(modeKey(),m);applyAppMode()}
+function setAppMode(m,chosen){localStorage.setItem(modeKey(),m);if(chosen)try{localStorage.setItem("compatpc-chosen:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase()),"1")}catch(e){}applyAppMode()}
 function renderModeToggle(){
  const b=document.getElementById("modeToggle");if(!b)return;
  const on=getAppMode()==="copilote";
- b.innerHTML=`<span class="rail-ico">${on?"🎯":"🔧"}</span>${on?"Guidé":"Complet"}`;
+ b.innerHTML=`<span class="rail-ico">${on?"🎯":"🔧"}</span>${on?"Guidé":"Complet"}<span style="font-size:8px;opacity:.65;font-weight:600;letter-spacing:0">toucher pour changer</span>`;
  const lk=document.getElementById("labKeeps");if(lk)lk.toggleAttribute("open",!on);
  b.classList.toggle("active",false);
  b.style.borderColor=on?"#5b4794":"transparent";
@@ -3243,10 +3243,14 @@ function compareDecodedToMyPc(){
 }
 document.getElementById("modeToggle").onclick=()=>{
  const to=getAppMode()==="copilote"?"expert":"copilote";
- setAppMode(to);
+ setAppMode(to,true);
  showToast(to==="copilote"?"🎯 Mode Guidé : je te conseille à chaque étape, en langage de jeux.":"🔧 Mode Complet : toutes les données, aucun filtre — le cockpit intégral.");
 };
-try{const l=localStorage.getItem("compatpc-mode");if(l){if(!localStorage.getItem(modeKey()))localStorage.setItem(modeKey(),l);localStorage.removeItem("compatpc-mode")}}catch(e){}
+try{const l=localStorage.getItem("compatpc-mode");if(l)localStorage.removeItem("compatpc-mode")}catch(e){}
+try{if(!localStorage.getItem("compatpc-repair-8410")){
+  Object.keys(localStorage).filter(k=>k.startsWith("compatpc-mode:")).forEach(k=>{if(!localStorage.getItem("compatpc-chosen:"+k.slice(14)))localStorage.removeItem(k)});
+  localStorage.setItem("compatpc-repair-8410","1");
+}}catch(e){}
 applyAppMode();
 
 document.getElementById("closeMyPc").onclick=()=>{document.getElementById("mypcPanel").classList.remove("active");go(0)};
