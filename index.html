@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.1 — Shopping Gaming</title>
+<title>Compat'PC V8.4.2 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -728,7 +728,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.1 « Mon PC · Projet · Liste d'achat » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.2 « Repères » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1801,7 +1801,7 @@ function renderCart(){
  Object.entries(state.cart.selection).forEach(([cat,id])=>{
   const p=get(cat,id);const d=document.createElement("div");d.className="cart-item";
   const dm=state.cart.decodeMeta&&state.cart.decodeMeta[cat];
-  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
+  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}${window.__justChanged&&window.__justChanged.has(cat)?' <span class="gv-good" style="font-size:10px;font-weight:900">🆕 MIS À JOUR</span>':""}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
   <div style="display:flex;flex-direction:column;gap:7px"><button class="btn ghost" data-change="${cat}">Changer rapidement</button><button class="btn secondary" data-browse="${cat}">Voir toute la catégorie</button></div>`;
   list.appendChild(d)
  });
@@ -2555,7 +2555,7 @@ document.getElementById("brandHome").onclick=()=>showPanel("shopHome");
 updateUserChip();
 if(!currentUser())showWelcome();
 /* ===== Où suis-je + états actifs du menu ===== */
-const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats"};
+const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats",mypcPanel:"Mon PC"};
 const STEP_NAMES=["Parcours — Style","Parcours — Budget","Parcours — Usages","Parcours — Propositions","Projet"];
 const SIDE_MAP={shopHome:"goHome",simpleLibrary:"openSimpleLibrary",expertWorkshop:"openExpertWorkshop",importPanel:"openImport",personalLibraryPanel:"openPersonalLibrary",savedPanel:"openSaved"};
 let whereBusy=false;
@@ -2572,9 +2572,10 @@ function updateWhere(){
    }
    const label="📍 "+(name||"Accueil");
    if(bar&&bar.textContent!==label)bar.textContent=label;
-   const btnId=active&&SIDE_MAP[active.id];
+   let btnId=active&&SIDE_MAP[active.id];
+   if(!btnId&&active&&active.dataset.step!==undefined)btnId=Number(active.dataset.step)===4?"navPanier":"navCreer";
    document.querySelectorAll(".side-actions .btn").forEach(b=>{
-     const should=btnId&&b.id===btnId;
+     const should=!!(btnId&&b.id===btnId);
      if(b.classList.contains("active")!==should)b.classList.toggle("active",should);
    });
  }finally{whereBusy=false}
@@ -2762,6 +2763,7 @@ function renderDecodeReport(){
 }
 function createDecodedCart(){
  if(!confirmReplaceCart())return;
+ window.__justChanged=null;
  const {out}=window.__decode;
  const selection={},decodeMeta={};
  for(const cat of ["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"]){
@@ -2897,11 +2899,26 @@ function renderUpgradePlans(){
 }
 function applyUpgradePlan(i){
  const R=window.__upResult;if(!R||!R.plans[i])return;
- const apply=R.goal==="stockage"?R.plans[i].apply:R.plans[i].c.apply;
+ const plan=R.plans[i];
+ const apply=R.goal==="stockage"?plan.apply:plan.c.apply;
+ window.__justChanged=new Set(Object.keys(apply));
  Object.assign(state.cart.selection,apply);
  if(state.cart.decodeMeta)Object.keys(apply).forEach(k=>delete state.cart.decodeMeta[k]);
- renderCart();renderUpgradePlans();
+ renderCart();
+ renderAppliedRecap(plan,R);
  showToast("Plan appliqué — projet mis à jour !");
+}
+function renderAppliedRecap(plan,R){
+ const zone=document.getElementById("upPlans");if(!zone)return;
+ const isStock=R.goal==="stockage";
+ const c=isStock?plan:plan.c;
+ const changes=(c.changes||[]).map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>");
+ const perf=isStock?`${plan.before} → <strong>${plan.after}</strong>`:`Avant : <strong>${R.before} FPS</strong> → maintenant : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res})`;
+ zone.innerHTML=`<div class="duel-box" style="margin-top:10px;border-color:#3f7d4f"><strong>✅ Plan appliqué ! Voici ce qui a changé :</strong><br>${changes}<div class="small-note" style="margin-top:6px">${perf} • Coût ${money(c.cost)}</div><div class="small-note" style="margin-top:4px">Les pièces mises à jour portent le badge 🆕 dans la liste ci-dessus.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="recapSeeParts">⬆ Voir mes pièces mises à jour</button><button class="btn secondary" id="recapMorePlans">🔁 Chercher un autre upgrade</button><button class="btn ghost" id="recapUndo">↩ Annuler ce plan</button></div></div>`;
+ const g=id=>document.getElementById(id);
+ g("recapSeeParts").onclick=()=>{const cl=document.getElementById("cartList");if(cl)cl.scrollIntoView({behavior:"smooth",block:"start"})};
+ g("recapMorePlans").onclick=()=>renderUpgradePlans();
+ g("recapUndo").onclick=()=>{window.__justChanged=null;cartUndo();renderUpgradePlans();showToast("Plan annulé — ton projet est revenu comme avant.")};
 }
 function openUpLab(){
  go(4);
