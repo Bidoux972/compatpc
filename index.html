@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.10 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.4.11 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -746,7 +746,7 @@ body.copilote .expert-only{display:none!important}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.10 « Modes clairs » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.11 « Le blanc est un choix » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1460,7 +1460,14 @@ function chooseParts(profile){
    if((p.price||0)>targetPrice[cat]*1.6)s-=25;
    return s;
  }
- function ranked(cat,filter=()=>true){return parts[cat].filter(filter).sort((a,b)=>score(cat,b)-score(cat,a))}
+ const COLOR_STRICT=new Set(["case","fans","cooler","ram","motherboard","gpu"]);
+ const colorTier=p=>p.color===targetColor?2:p.color==="neutral"?1:0;
+ function ranked(cat,filter=()=>true){
+   return parts[cat].filter(filter).sort((a,b)=>{
+     if(targetColor&&COLOR_STRICT.has(cat)){const d=colorTier(b)-colorTier(a);if(d)return d} // la couleur voulue passe TOUJOURS d'abord
+     return score(cat,b)-score(cat,a);
+   });
+ }
  function pick(cat,filter=()=>true){const arr=ranked(cat,filter);return arr[0]?.id||null}
 
  const filters={
@@ -1494,17 +1501,23 @@ function chooseParts(profile){
 
  const cap=budget*(cheap?0.92:premium?1.10:1.0);
  const order=["gpu","cooler","case","cpu","motherboard","ram","fans","ssd"];
- let guard=0;
- while(guard++<25){
+ let guard=0,allowColorDrop=false;
+ const dropOrder=["motherboard","gpu","cooler","ram"]; // boîtier et ventilos = l'identité du style : JAMAIS sacrifiés — on avoue plutôt le dépassement
+ while(guard++<60){
    let total=0;for(const [k,id] of Object.entries(sel))total+=get(k,id)?.price||0;
    if(total<=cap)break;
    let done=false;
-   for(const cat of order){
+   const scan=allowColorDrop?dropOrder:order;
+   for(const cat of scan){
      const cur=get(cat,sel[cat]);if(!cur)continue;
-     const cheaper=ranked(cat,p=>filters[cat](p)&&(p.price||0)<cur.price-10);
-     if(cheaper.length){sel[cat]=cheaper[0].id;done=true;break}
+     const keepTier=targetColor&&COLOR_STRICT.has(cat)&&!allowColorDrop;
+     const cheaper=ranked(cat,p=>filters[cat](p)&&(p.price||0)<cur.price-10&&(!keepTier||colorTier(p)>=colorTier(cur)));
+     if(cheaper.length){sel[cat]=cheaper[0].id;done=true;allowColorDrop=false;break}
    }
-   if(!done)break;
+   if(!done){
+     if(!allowColorDrop&&targetColor){allowColorDrop=true;continue}
+     break;
+   }
  }
  need=recommendedPsuWatts(get("cpu",sel.cpu),get("gpu",sel.gpu));
  if((get("psu",sel.psu)?.watts||0)<need)sel.psu=pick("psu",p=>(p.watts||0)>=need);
