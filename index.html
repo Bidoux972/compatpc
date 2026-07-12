@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.3 — Shopping Gaming</title>
+<title>Compat'PC V8.4.5 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -351,6 +351,7 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
  .sidebar.rail{position:sticky;top:0;z-index:80;background:rgba(10,10,13,.95);backdrop-filter:blur(10px);border-radius:0 0 14px 14px}
  .rail .side-actions{flex-direction:row;overflow-x:auto;padding-bottom:4px}
  .rail-btn{min-width:74px}
+body:not(.copilote) #guidedImport{display:none}
  .rail-sep{display:none}
 }
 
@@ -624,6 +625,14 @@ html,body{max-width:100%;overflow-x:hidden}
       <section class="card panel" id="importPanel">
         <div class="card-head"><h2>Ajouter une pièce depuis un lien</h2><button class="btn ghost" id="closeImport">Fermer</button></div>
         <div class="card-body">
+          <div id="guidedImport" class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:14px">
+            <h3 style="margin:0 0 6px">Tu as trouvé un PC (ou une pièce) qui te plaît ? 😍</h3>
+            <p class="small-note" style="margin:0 0 10px">Deux façons de me le montrer — les deux marchent très bien :</p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn" onclick="guidedLink()">🔗 J’ai le lien de la page</button>
+              <button class="btn secondary" onclick="guidedPaste()">📋 J’ai copié la description</button>
+            </div>
+          </div>
           <div class="import-box">
             <div class="form-grid">
               <div class="field"><label>Lien du produit</label><input id="productUrl" placeholder="Colle simplement l’URL du produit"></div>
@@ -637,6 +646,7 @@ html,body{max-width:100%;overflow-x:hidden}
               </select>
             </div>
             <div class="nav-row"><span id="importProgress" class="small-note"></span><button class="btn" id="analyzeProduct">Analyser automatiquement</button></div>
+            <div id="linkFailGuide"></div>
             <details style="margin-top:12px">
               <summary class="small-note" style="cursor:pointer">Le site bloque l’analyse ? Utiliser le mode de secours</summary>
               <div class="field" style="margin-top:10px"><label>Texte du produit</label><textarea id="productText" placeholder="Colle le titre ou les caractéristiques seulement en cas d’échec"></textarea></div>
@@ -730,7 +740,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.3 « Copilote » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.5 « Noah d'abord » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1285,12 +1295,37 @@ function fpsStripHtml(sel,res){
    return `<span class="fps-badge ${fpsBadgeClass(f)}">${n.replace(" 2077","")} ~${f} FPS</span>`;
  }).join("");
 }
+function fpsVerdict(f){
+ if(f>=120)return ["🟢","ultra fluide"];
+ if(f>=75)return ["🟢","très fluide"];
+ if(f>=50)return ["🟡","ça passe bien"];
+ if(f>=30)return ["🟠","jouable mais juste"];
+ return ["🔴","trop juste"];
+}
+function gameGainPhrase(b,a){
+ const vB=fpsVerdict(b)[1],vA=fpsVerdict(a)[1];
+ if(a-b<8)return "déjà très bien, peu de différence";
+ if(vA===vB)return "encore plus fluide";
+ return "passe de « "+vB+" » à « "+vA+" »";
+}
+function planGameLines(apply,res){
+ const sel=state.cart.selection;
+ const cpuA=get("cpu",sel.cpu),gpuA=get("gpu",sel.gpu);
+ const nsel={...sel,...apply};
+ const cpuB=get("cpu",nsel.cpu),gpuB=get("gpu",nsel.gpu);
+ return ["Fortnite","Cyberpunk 2077","Elden Ring"].map(n=>{
+   const g=GAMES.find(x=>x.name===n);
+   const b=estimateFps(g,gpuA,cpuA,res),a=estimateFps(g,gpuB,cpuB,res);
+   return `<strong>${n}</strong> : ${gameGainPhrase(b,a)} ${fpsVerdict(a)[0]}`;
+ }).join("<br>");
+}
 function fpsPanelHtml(sel,res){
  const gpu=get("gpu",sel.gpu),cpu=get("cpu",sel.cpu);
  const rows=GAMES.map(g=>{
    const f=estimateFps(g,gpu,cpu,res);
    const w=Math.min(100,Math.round(f/3));
-   return `<div class="fps-row"><span>${g.name}</span><div class="fps-track"><div class="fps-fill ${fpsBadgeClass(f)}" style="width:${w}%"></div></div><strong data-count="${f}" data-key="fps-${g.name}" data-suffix=" FPS" data-tilde="~">~${f} FPS</strong></div>`;
+   const vd=(typeof getAppMode==="function"&&getAppMode()==="copilote")?fpsVerdict(f):null;
+   return `<div class="fps-row"><span>${g.name}${vd?` <span style="font-size:10.5px;opacity:.9">${vd[0]} ${vd[1]}</span>`:""}</span><div class="fps-track"><div class="fps-fill ${fpsBadgeClass(f)}" style="width:${w}%"></div></div><strong data-count="${f}" data-key="fps-${g.name}" data-suffix=" FPS" data-tilde="~">~${f} FPS</strong></div>`;
  }).join("");
  const tabs=["1080p","1440p","4k"].map(r=>`<button class="fps-tab ${r===res?"active":""}" data-fps-res="${r}">${r==="4k"?"4K":r}</button>`).join("");
  return `<div class="fps-head"><h4>🎮 Performances estimées ${rankHtml(sel)}</h4><div class="fps-tabs">${tabs}</div></div>${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
@@ -1915,6 +1950,7 @@ async function analyzeUrl(){
  if(!/^https?:\/\//i.test(url)){showToast("Colle une URL complète commençant par http ou https.");return}
  const progress=document.getElementById("importProgress"),button=document.getElementById("analyzeProduct");
  progress.className="small-note import-loading";progress.textContent="Lecture de la page…";button.disabled=true;
+ const lfg=document.getElementById("linkFailGuide");if(lfg)lfg.innerHTML="";
  try{
    const response=await fetch("/api/import-product",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({url,category:document.getElementById("productCategory").value})});
    const data=await response.json().catch(()=>({}));
@@ -1922,8 +1958,16 @@ async function analyzeUrl(){
    showImportedPreview(data.product,data.warnings||[]);
    progress.className="small-note";progress.textContent="Fiche automatiquement préremplie.";
  }catch(err){
-   progress.className="small-note";progress.textContent="Import automatique bloqué : ouvre la page produit, copie le texte de la fiche (Ctrl+A puis Ctrl+C) et colle-le dans « Analyse de secours » ci-dessous — ça marche à tous les coups.";
-   showToast(err.message||"Import impossible.");
+   progress.className="small-note";
+   if(getAppMode()==="copilote"){
+     progress.textContent="";
+     const g=document.getElementById("linkFailGuide");
+     if(g)g.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-top:10px"><strong>Ce site ne laisse pas Compat’PC lire la page. Ce n’est pas grave ! 😊</strong><ol style="margin:8px 0 8px 18px;padding:0;font-size:12.5px"><li>Ouvre la page du PC dans ton navigateur</li><li>Sélectionne tout le texte : <strong>Ctrl+A</strong></li><li>Copie : <strong>Ctrl+C</strong></li><li>Reviens ici et colle dans le grand champ : <strong>Ctrl+V</strong></li></ol><button class="btn" onclick="guidedPaste()">📋 Je colle la description</button></div>`;
+     showToast("Pas grave — on passe par le copier-coller, ça marche à tous les coups !");
+   }else{
+     progress.textContent="Import automatique bloqué : ouvre la page produit, copie le texte de la fiche (Ctrl+A puis Ctrl+C) et colle-le dans « Analyse de secours » ci-dessous — ça marche à tous les coups.";
+     showToast(err.message||"Import impossible.");
+   }
  }finally{button.disabled=false}
 }
 function addParsed(){
@@ -2757,9 +2801,16 @@ function renderDecodeReport(){
  }).join("");
  const colorLine=out.__color?`<div class="small-note" style="margin:2px 0 8px">🎨 <strong>Style détecté : setup ${out.__color==="white"?"blanc":"noir"}</strong> — le coloris est respecté partout où la bibliothèque le permet ; chaque exception est signalée sur sa ligne.</div>`:"";
  const addAll=missing?`<button class="btn secondary" id="decodeAddAll" style="font-size:11px">＋ Ajouter toutes les références manquantes (${missing})</button>`:"";
- box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><span style="display:flex;gap:8px;flex-wrap:wrap">${addAll}<button class="btn secondary" id="decodeUpLab">🔼 Voir comment l’améliorer</button><button class="btn" id="decodeCreate">En faire mon projet</button></span></div></div>`;
- document.getElementById("decodeCreate").onclick=()=>{createDecodedCart()};
+ const cop=getAppMode()==="copilote";
+ const actions=cop
+   ?`<div style="width:100%"><strong>Que veux-tu faire avec ce PC ?</strong><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn secondary" id="decKeep">🗂 Le garder dans mes projets</button><button class="btn secondary" id="decCompare">⚖️ Le comparer à Mon PC</button><button class="btn secondary" id="decodeUpLab">🔼 Voir si je peux l’améliorer</button><button class="btn" id="decToBuy">🛒 Transformer en liste d’achat</button></div><div style="margin-top:8px">${addAll}</div></div>`
+   :`<span style="display:flex;gap:8px;flex-wrap:wrap">${addAll}<button class="btn secondary" id="decodeUpLab">🔼 Voir comment l’améliorer</button><button class="btn" id="decodeCreate">En faire mon projet</button></span>`;
+ box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span>${actions}</div><div id="decodeCompareBox"></div></div>`;
+ const dc=document.getElementById("decodeCreate");if(dc)dc.onclick=()=>{createDecodedCart()};
  document.getElementById("decodeUpLab").onclick=()=>{createDecodedCart();openUpLab()};
+ const dk=document.getElementById("decKeep");if(dk)dk.onclick=decKeepProject;
+ const dcp=document.getElementById("decCompare");if(dcp)dcp.onclick=compareDecodedToMyPc;
+ const dtb=document.getElementById("decToBuy");if(dtb)dtb.onclick=decToBuy;
  const aa=document.getElementById("decodeAddAll");if(aa)aa.onclick=()=>{CATS.forEach(cat=>{const r=out[cat];if(r&&r.src&&(r.how==="famille"||r.how==="approx"||r.how==="auto"||r.how==="unknown"))addOriginalRef(cat,true)});renderDecodeReport();showToast("Références originales ajoutées — pense à compléter les prix !")};
  box.querySelectorAll("[data-addorig]").forEach(b=>b.onclick=()=>addOriginalRef(b.dataset.addorig));
  box.querySelectorAll("[data-choose]").forEach(b=>b.onclick=()=>{window.__keepDecodeTarget=true;window.decodeReplaceTarget=b.dataset.choose;openSimpleLibrary(b.dataset.choose);showToast("Choisis la pièce qui remplacera cette ligne du décodage")});
@@ -2895,6 +2946,26 @@ function renderUpgradePlans(){
  if(!R.plans.length){zone.innerHTML='<p class="small-note">'+(R.hadCands?("Des pistes existent, mais <strong>aucune ne tient dans ton budget de "+money(R.budget)+"</strong> — augmente le budget ou libère une contrainte."):"Aucun plan trouvé avec ces contraintes — essaie un budget plus large ou libère une pièce.")+'</p>';return}
  if(R.goal==="stockage"){
    zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${pl.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${pl.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
+ }else if(getAppMode()==="copilote"){
+   const mainIdx=Math.max(0,R.plans.findIndex(x=>x.title.includes("gaming")));
+   const card=(x,i,main)=>{
+     const c=x.c;
+     const games=planGameLines(c.apply,R.res==="4k"?"4k":R.res);
+     const verify=c.warns&&c.warns.length
+       ?`<details class="small-note" style="color:#f0b45c"><summary style="cursor:pointer">Oui — ${c.warns.length} chose(s) à vérifier avant d\u2019acheter</summary><ul style="margin:6px 0 0 16px;padding:0">${c.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`
+       :`<span class="gv-good" style="font-size:11px;font-weight:900">Non — tout est vérifié ✔</span>`;
+     return `<div class="duel-box" style="margin-top:10px${main?";border-color:#5b4794":""}">
+       ${main?`<strong>🎯 Notre conseil pour toi</strong> — ${x.pitch}<br>`:""}
+       <div style="margin-top:6px"><span class="small-note">Qu\u2019est-ce que je change ?</span><br>${c.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(shortPieceName(ch.from.name))} → <strong>${escapeHtml(shortPieceName(ch.to.name))}</strong>`).join("<br>")}</div>
+       <div style="margin-top:6px"><span class="small-note">Combien ça coûte ?</span><br><strong>${money(c.cost)}</strong>${x.over?` <span style="color:#f0b45c">⚠ dépasse ton budget de ${money(x.over)}</span>`:""}</div>
+       <div style="margin-top:6px"><span class="small-note">Qu\u2019est-ce que ça améliore dans mes jeux ?</span><br>${games}</div>
+       <div style="margin-top:6px"><span class="small-note">Quelque chose à vérifier ?</span><br>${verify}</div>
+       <details class="small-note" style="margin-top:6px"><summary style="cursor:pointer">Voir les chiffres</summary>Avant : ${R.before} FPS → Après : ${c.after} FPS (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • ${(c.cost/c.delta).toFixed(1)} €/FPS gagné • Estimation Compat\u2019PC, valeur indicative.</details>
+       <button class="btn" data-applyplan="${i}" style="margin-top:8px">${main?"Appliquer ce conseil":"Appliquer ce plan"}</button></div>`;
+   };
+   const main=R.plans[mainIdx];
+   const alts=R.plans.map((x,i)=>({x,i})).filter(o=>o.i!==mainIdx);
+   zone.innerHTML=card(main,mainIdx,true)+alts.map(o=>`<details style="margin-top:8px"><summary class="small-note" style="cursor:pointer">${o.x.title.includes("malin")?"💡 La même idée, en moins cher":"🛡️ Plus costaud (plus cher)"} — ${money(o.x.c.cost)}</summary>${card(o.x,o.i,false)}</details>`).join("");
  }else{
    zone.innerHTML=R.plans.map((x,i)=>{const c=x.c;return `<div class="duel-box" style="margin-top:10px"><strong>${x.title}</strong> — ${x.pitch}<br>${c.changes.map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong> (${money(ch.to.price)})`).join("<br>")}<div class="small-note" style="margin-top:6px">Avant : <strong>${R.before} FPS</strong> → Après : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • Coût ${money(c.cost)} • <strong>${(c.cost/c.delta).toFixed(1)} €/FPS gagné</strong> <em>— estimation Compat’PC, valeur indicative</em></div>${x.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(x.over)}.</div>`:""}${c.warns&&c.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${c.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${c.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`}).join("");
  }
@@ -2905,6 +2976,7 @@ function applyUpgradePlan(i){
  const plan=R.plans[i];
  const apply=R.goal==="stockage"?plan.apply:plan.c.apply;
  window.__justChanged=new Set(Object.keys(apply));
+ if(getAppMode()==="copilote"&&R.res)plan._gameLines=planGameLines(apply,R.res==="4k"?"4k":R.res);
  Object.assign(state.cart.selection,apply);
  if(state.cart.decodeMeta)Object.keys(apply).forEach(k=>delete state.cart.decodeMeta[k]);
  renderCart();
@@ -2917,7 +2989,7 @@ function renderAppliedRecap(plan,R){
  const c=isStock?plan:plan.c;
  const changes=(c.changes||[]).map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>");
  const perf=isStock?`${plan.before} → <strong>${plan.after}</strong>`:`Avant : <strong>${R.before} FPS</strong> → maintenant : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res})`;
- zone.innerHTML=`<div class="duel-box" style="margin-top:10px;border-color:#3f7d4f"><strong>✅ Plan appliqué ! Voici ce qui a changé :</strong><br>${changes}<div class="small-note" style="margin-top:6px">${perf} • Coût ${money(c.cost)}</div><div class="small-note" style="margin-top:4px">Les pièces mises à jour portent le badge 🆕 dans la liste ci-dessus.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="recapSeeParts">⬆ Voir mes pièces mises à jour</button><button class="btn secondary" id="recapMorePlans">🔁 Chercher un autre upgrade</button><button class="btn ghost" id="recapUndo">↩ Annuler ce plan</button></div></div>`;
+ zone.innerHTML=`<div class="duel-box" style="margin-top:10px;border-color:#3f7d4f"><strong>✅ Plan appliqué ! Voici ce qui a changé :</strong><br>${changes}${plan._gameLines?`<div style="margin-top:6px">${plan._gameLines}</div>`:""}<div class="small-note" style="margin-top:6px">${perf} • Coût ${money(c.cost)}</div><div class="small-note" style="margin-top:4px">Les pièces mises à jour portent le badge 🆕 dans la liste ci-dessus.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="recapSeeParts">⬆ Voir mes pièces mises à jour</button><button class="btn secondary" id="recapMorePlans">🔁 Chercher un autre upgrade</button><button class="btn ghost" id="recapUndo">↩ Annuler ce plan</button></div></div>`;
  const g=id=>document.getElementById(id);
  g("recapSeeParts").onclick=()=>{const cl=document.getElementById("cartList");if(cl)cl.scrollIntoView({behavior:"smooth",block:"start"})};
  g("recapMorePlans").onclick=()=>renderUpgradePlans();
@@ -3090,6 +3162,35 @@ function renderCopiloteBar(cat){
  if(!adv){bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<span class="small-note">Pas de conseil évident ici pour ton PC actuel — ta configuration est déjà solide sur ce poste. 👍</span></div>`;return}
  if(adv.need){bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<span>🎯 Enregistre <strong>Mon PC</strong> pour recevoir un conseil personnalisé dans chaque rayon.</span> <button class="btn secondary" style="font-size:11px" onclick="openMyPc()">Enregistrer mon PC →</button></div>`;return}
  bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<div>🎯 <strong>Notre conseil pour toi : ${escapeHtml(shortPieceName(adv.p.name))}</strong> (${money(adv.p.price)})<br><span class="small-note">${adv.why}</span></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn secondary" style="font-size:11px" onclick="openSheet('${cat}','${adv.p.id}')">Voir la fiche</button><button class="btn" style="font-size:11px" onclick="copiloteUse('${cat}','${adv.p.id}')">Mettre dans mon projet</button></div></div>`;
+}
+function guidedLink(){
+ const u=document.getElementById("productUrl");
+ if(u){u.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>u.focus(),300)}
+ showToast("Colle le lien de la page, puis « Analyser automatiquement ». Si le site bloque, je te guide !");
+}
+function guidedPaste(){
+ const t=document.getElementById("decodeText");
+ if(t){t.scrollIntoView({behavior:"smooth",block:"center"});setTimeout(()=>t.focus(),300)}
+ showToast("Colle TOUT le texte de la page (Ctrl+V), puis « Décoder la configuration ».");
+}
+function decKeepProject(){createDecodedCart();setTimeout(()=>{try{saveCurrent()}catch(e){}},200)}
+function decToBuy(){createDecodedCart();setTimeout(()=>{const b=document.getElementById("startPurchase");if(b)b.click()},250)}
+function compareDecodedToMyPc(){
+ const D=window.__decode;if(!D)return;
+ const box=document.getElementById("decodeCompareBox");
+ const prof=getMyPc();
+ if(!prof||!prof.selection||!prof.selection.cpu){showToast("Enregistre d’abord Mon PC pour comparer !");openMyPc();return}
+ const cpuA=get("cpu",prof.selection.cpu),gpuA=get("gpu",prof.selection.gpu);
+ const o=D.out,cpuB=o.cpu&&o.cpu.p,gpuB=o.gpu&&o.gpu.p;
+ if(!cpuA||!gpuA||!cpuB||!gpuB){showToast("Il manque des pièces pour comparer.");return}
+ const G=["Warzone","Elden Ring","Cyberpunk 2077"];
+ const fA=avgFpsOf(gpuA,cpuA,G,"1080p"),fB=avgFpsOf(gpuB,cpuB,G,"1080p");
+ let total=0;["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"].forEach(c=>{if(o[c]&&o[c].p)total+=o[c].p.price||0});
+ let verdict;
+ if(fB>fA*1.2)verdict=`Ce PC est <strong>nettement plus rapide</strong> que le tien : environ <strong>+${Math.round(fB-fA)} FPS</strong> sur les gros jeux. La question : est-ce que ça vaut ${money(total)} ? Le Lab peut te dire si un upgrade de TON PC ferait aussi bien pour moins cher. 😉`;
+ else if(fB>fA*1.05)verdict=`Ce PC est <strong>un peu plus rapide</strong> que le tien (+${Math.round(fB-fA)} FPS environ). Pas un gouffre — un bon upgrade de ton PC pourrait combler l’écart.`;
+ else verdict=`Bonne nouvelle : <strong>ton PC tient tête</strong> à celui-là sur les gros jeux ! Pas besoin de craquer ${money(total)}. 💪`;
+ if(box)box.innerHTML=`<div class="duel-box" style="margin-top:10px"><strong>⚖️ Ton PC vs ce PC</strong><div class="small-note" style="margin-top:6px">Ton PC (${escapeHtml(shortPieceName(gpuA.name))}) : <strong>${fA} FPS</strong> • Ce PC (${escapeHtml(shortPieceName(gpuB.name))}) : <strong>${fB} FPS</strong> — moyenne des gros jeux en 1080p, estimation Compat’PC.</div><div style="margin-top:6px">${verdict}</div></div>`;
 }
 document.getElementById("modeToggle").onclick=()=>{
  const to=getAppMode()==="copilote"?"expert":"copilote";
