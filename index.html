@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.5 — Shopping Gaming</title>
+<title>Compat'PC V8.4.6 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -352,6 +352,8 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
  .rail .side-actions{flex-direction:row;overflow-x:auto;padding-bottom:4px}
  .rail-btn{min-width:74px}
 body:not(.copilote) #guidedImport{display:none}
+body.copilote:not(.show-adv) .import-advanced{display:none!important}
+body:not(.copilote) #labKeeps>summary{display:none}
  .rail-sep{display:none}
 }
 
@@ -435,7 +437,7 @@ html,body{max-width:100%;overflow-x:hidden}
             </div>
             <div class="door" id="shopStart">
               <h3>🎮 Parcours guidé</h3>
-              <p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à commander.</p>
+              <p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à construire.</p>
               <span class="door-cta">Commencer →</span>
             </div>
             <div class="door" id="quickExpert">
@@ -458,7 +460,7 @@ html,body{max-width:100%;overflow-x:hidden}
             </div>
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
-          <div class="shop-section"><div class="shop-head"><div><h3>Shop par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
+          <div class="shop-section"><div class="shop-head"><div><h3>Explorer par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
           <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div class="shop-section"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
         </div>
       </section>
@@ -532,9 +534,10 @@ html,body{max-width:100%;overflow-x:hidden}
                   <select id="upGoal"><option value="fps1080">Plus de FPS (1080p)</option><option value="fps1440">Passer en 1440p</option><option value="fps4k">Passer en 4K</option><option value="stockage">Ajouter du stockage</option></select></label>
                 <label style="display:flex;flex-direction:column;gap:4px;font-size:12px">Budget
                   <select id="upBudget"><option>100</option><option>250</option><option selected>500</option><option>800</option><option>1200</option></select></label>
+                <details id="labKeeps" style="font-size:12px"><summary style="cursor:pointer" class="small-note">Je veux garder certaines pièces ▾</summary><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
                 <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepGpu">Je garde la carte graphique</label>
                 <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepCase">Je garde le boîtier</label>
-                <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepMobo">Je ne change pas carte mère/CPU</label>
+                <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepMobo">Je ne change pas carte mère/CPU</label></div></details>
                 <button class="btn" id="upGo">Proposer 3 plans</button>
               </div>
               <div id="upPlans"></div>
@@ -631,14 +634,15 @@ html,body{max-width:100%;overflow-x:hidden}
             <div style="display:flex;gap:10px;flex-wrap:wrap">
               <button class="btn" onclick="guidedLink()">🔗 J’ai le lien de la page</button>
               <button class="btn secondary" onclick="guidedPaste()">📋 J’ai copié la description</button>
+              <button class="btn ghost" style="font-size:11px" onclick="document.body.classList.toggle('show-adv')">⚙️ Options techniques</button>
             </div>
           </div>
           <div class="import-box">
             <div class="form-grid">
               <div class="field"><label>Lien du produit</label><input id="productUrl" placeholder="Colle simplement l’URL du produit"></div>
-              <div class="field"><label>Type de pièce</label><select id="productCategory"><option value="auto">Détection automatique</option><option value="case">Boîtier</option><option value="cooler">Watercooling / ventirad</option><option value="gpu">Carte graphique</option><option value="motherboard">Carte mère</option><option value="ram">Mémoire</option><option value="ssd">SSD</option><option value="psu">Alimentation</option><option value="fans">Ventilateurs</option><option value="cpu">Processeur</option></select></div>
+              <div class="field import-advanced"><label>Type de pièce</label><select id="productCategory"><option value="auto">Détection automatique</option><option value="case">Boîtier</option><option value="cooler">Watercooling / ventirad</option><option value="gpu">Carte graphique</option><option value="motherboard">Carte mère</option><option value="ram">Mémoire</option><option value="ssd">SSD</option><option value="psu">Alimentation</option><option value="fans">Ventilateurs</option><option value="cpu">Processeur</option></select></div>
             </div>
-            <div class="field" style="margin-top:12px"><label>Où conserver cette pièce ?</label>
+            <div class="field import-advanced" style="margin-top:12px"><label>Où conserver cette pièce ?</label>
               <select id="importDestination">
                 <option value="both">Ajouter au projet et à ma bibliothèque</option>
                 <option value="library">Ajouter seulement à ma bibliothèque</option>
@@ -647,7 +651,7 @@ html,body{max-width:100%;overflow-x:hidden}
             </div>
             <div class="nav-row"><span id="importProgress" class="small-note"></span><button class="btn" id="analyzeProduct">Analyser automatiquement</button></div>
             <div id="linkFailGuide"></div>
-            <details style="margin-top:12px">
+            <details class="import-advanced" style="margin-top:12px">
               <summary class="small-note" style="cursor:pointer">Le site bloque l’analyse ? Utiliser le mode de secours</summary>
               <div class="field" style="margin-top:10px"><label>Texte du produit</label><textarea id="productText" placeholder="Colle le titre ou les caractéristiques seulement en cas d’échec"></textarea></div>
               <button class="btn ghost" id="analyzeFallback" style="margin-top:8px">Analyser le texte</button>
@@ -740,7 +744,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.5 « Noah d'abord » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.6 « Copilote natif » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1195,7 +1199,8 @@ function renderSteps(){
 function go(i){
  state.step=i;document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".panel[data-step]").forEach(p=>p.classList.toggle("active",Number(p.dataset.step)===i));
  document.getElementById("importPanel").classList.remove("active");document.getElementById("savedPanel").classList.remove("active");document.getElementById("personalLibraryPanel").classList.remove("active");
- renderSteps();window.scrollTo({top:0,behavior:"smooth"})
+ renderSteps();window.scrollTo({top:0,behavior:"smooth"});
+ if(typeof __cartAutosave==="function")__cartAutosave();
 }
 function renderMoods(){
  const g=document.getElementById("moodGrid");g.innerHTML="";
@@ -2590,7 +2595,7 @@ document.getElementById("expertMode").onclick=()=>{
 };
 
 function currentUser(){return (localStorage.getItem("compatpc_user")||"").trim()}
-function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";showToast("Salut "+n+" ! Bon shopping.")}
+function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";if(!localStorage.getItem("compatpc-mode"))setAppMode(/noah/i.test(n)?"copilote":"expert");showToast("Salut "+n+" ! Bon projet 🚀")}
 function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?");const g=document.getElementById("homeGreeting");if(g)g.textContent=currentUser()?("Salut "+currentUser()+" ! 👋"):"Salut ! 👋"}
 function showWelcome(){document.getElementById("welcomeOther").value="";document.getElementById("welcomeOverlay").style.display="flex"}
 document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
@@ -3067,12 +3072,13 @@ function openMyPc(){
 }
 document.getElementById("doorMyPc").onclick=openMyPc;
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
-function getAppMode(){return localStorage.getItem("compatpc-mode")||"expert"}
+function getAppMode(){const s=localStorage.getItem("compatpc-mode");if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
 function setAppMode(m){localStorage.setItem("compatpc-mode",m);document.body.classList.toggle("copilote",m==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}}
 function renderModeToggle(){
  const b=document.getElementById("modeToggle");if(!b)return;
  const on=getAppMode()==="copilote";
- b.innerHTML=`<span class="rail-ico">${on?"🎯":"🔧"}</span>${on?"Copilote":"Expert"}`;
+ b.innerHTML=`<span class="rail-ico">${on?"🎯":"🔧"}</span>${on?"Guidé":"Complet"}`;
+ const lk=document.getElementById("labKeeps");if(lk)lk.toggleAttribute("open",!on);
  b.classList.toggle("active",false);
  b.style.borderColor=on?"#5b4794":"transparent";
 }
@@ -3101,7 +3107,7 @@ function copiloteAdvice(cat){
      if(d>=5){const v=x.price/d;if(!best||v<best.v)best={p:x,d,v}}
    });
    if(best){p=best.p;why=`environ +${Math.round(best.d)} FPS sur les gros jeux par rapport à ta ${shortPieceName(gpu.name)}, pour ${money(p.price)} — le meilleur rapport dans un budget de 500 €.`}
-   else why="";
+   else return {none:`Ta ${shortPieceName(gpu.name)} est déjà excellente pour un budget raisonnable — inutile de changer. 💪`};
  }
  if(cat==="cpu"){
    let best=null;
@@ -3109,17 +3115,22 @@ function copiloteAdvice(cat){
      const v=x.price/(cpuIndex(x)-cpuIndex(cpu));if(!best||v<best.v)best={p:x,v};
    });
    if(best){p=best.p;why=`se monte directement à la place de ton ${shortPieceName(cpu.name)} (même socket ${cpu.socket}), sans changer de carte mère.`}
+   else return {none:`Ton ${shortPieceName(cpu.name)} suffit largement à ta carte graphique — le jour venu, c’est plutôt elle qu’on améliore.`};
  }
  if(cat==="ram"&&ram){
+   if((ram.capacity||0)>=32)return {none:`Ta mémoire (${ram.capacity} Go ${ram.type}) est déjà parfaite pour les jeux d’aujourd’hui — garde ton argent 💰`};
    const pool=parts.ram.filter(x=>x.type===ram.type&&(x.capacity||0)>=32&&(x.price||0)>0);
    p=pool.length?decCheapest(pool):null;
-   if(p)why=`le bon type (${ram.type}) pour ta carte mère, et 32 Go = le vrai confort pour les jeux d’aujourd’hui.`;
+   if(p)why=`tu as ${ram.capacity||16} Go : passer à 32 Go (${ram.type}, le bon type pour ta carte) est le confort moderne.`;
  }
  if(cat==="psu"){
    const need=recommendedPsuWatts(cpu,gpu);
+   const myPsu=prof.selection.psu?get("psu",prof.selection.psu):null;
+   if(!myPsu||String(myPsu.id).startsWith("mypc-")||(myPsu._assumed&&myPsu._assumed.watts))return {none:`Ton alimentation est inconnue : regarde l’étiquette sur son côté (les watts) — c’est important à savoir AVANT de changer de carte graphique. Ton PC a besoin d’environ ${need} W.`};
+   if((myPsu.watts||0)>=need)return {none:`Ton alimentation (${myPsu.watts} W) couvre déjà les besoins de ton PC (~${need} W) — rien à changer ici. 👍`};
    const pool=parts.psu.filter(x=>(x.watts||0)>=need&&(x.price||0)>0);
    p=pool.length?decCheapest(pool):null;
-   if(p)why=`ton PC a besoin d’environ ${need} W : celle-ci les fournit avec de la marge pour tes futurs upgrades.`;
+   if(p)why=`la tienne (${myPsu.watts} W) est un peu juste : ton PC a besoin d’environ ${need} W — celle-ci les fournit avec de la marge.`;
  }
  if(cat==="ssd"){
    const pool=parts.ssd.filter(x=>(x.capacity||0)>=2&&(x.price||0)>0);
@@ -3127,26 +3138,10 @@ function copiloteAdvice(cat){
    p=byTo[0]||null;
    if(p)why=`${p.capacity} To au meilleur prix du To — les jeux modernes prennent 100 Go chacun, tu seras tranquille.`;
  }
- if(cat==="cooler"){
-   const pool=parts.cooler.filter(x=>(x.sockets||[]).includes(cpu.socket)&&(x.price||0)>0);
-   p=pool.length?decCheapest(pool):null;
-   if(p)why=`compatible avec ton processeur (socket ${cpu.socket}) — installation sans surprise.`;
- }
- if(cat==="case"){
-   const pool=parts.case.filter(x=>(x.maxGpu||0)>=(gpu.length||300)&&(x.price||0)>0);
-   p=pool.length?decCheapest(pool):null;
-   if(p)why=`ta carte graphique (${gpu.length||300} mm) y rentre, c’est vérifié — après, le style, c’est ton choix.`;
- }
- if(cat==="motherboard"&&ram){
-   const pool=parts.motherboard.filter(x=>x.socket===cpu.socket&&x.ram===ram.type&&(x.price||0)>0);
-   p=pool.length?decCheapest(pool):null;
-   if(p)why=`socket ${cpu.socket} + ${ram.type} : exactement ce que ton processeur et ta mémoire demandent.`;
- }
- if(cat==="fans"){
-   const pool=parts.fans.filter(x=>(x.price||0)>0);
-   p=pool.length?decCheapest(pool):null;
-   if(p)why=`simple et efficace pour faire circuler l’air — le confort de tout le PC.`;
- }
+ if(cat==="cooler")return {none:`Ton refroidissement fait le travail tant que le PC ne surchauffe pas. On n’en change que pour le silence ou un gros processeur — ton argent sera mieux investi dans la carte graphique. 💪`};
+ if(cat==="case")return {none:`Un boîtier ne donne aucun FPS 😄 On n’en change que par envie de style — si tu changes de carte graphique un jour, je vérifierai qu’elle rentre.`};
+ if(cat==="motherboard")return {none:`On ne change la carte mère que pour changer de génération de processeur — ce n’est pas un achat qui donne des FPS. Garde ton argent pour la carte graphique.`};
+ if(cat==="fans")return {none:`Tes ventilateurs font le travail. Sauf bruit gênant, ce n’est pas une priorité — pense carte graphique d’abord. 😉`};
  return p?{p,why}:null;
 }
 function copiloteUse(cat,id){
@@ -3159,6 +3154,7 @@ function renderCopiloteBar(cat){
  if(getAppMode()!=="copilote"||FAMILY_VIEW||!cat||cat==="all"){bar.innerHTML="";return}
  const adv=copiloteAdvice(cat);
  const what=`<div class="small-note" style="margin-bottom:6px">${catWhatIs(cat)}</div>`;
+ if(adv&&adv.none){bar.innerHTML=`<div class="verdict-warn" style="background:#121a14;border-color:#3f7d4f;color:#dff0e2;margin-bottom:12px">${what}<span>💚 <strong>Notre conseil : rien à acheter ici.</strong><br><span class="small-note">${adv.none}</span></span></div>`;return}
  if(!adv){bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<span class="small-note">Pas de conseil évident ici pour ton PC actuel — ta configuration est déjà solide sur ce poste. 👍</span></div>`;return}
  if(adv.need){bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<span>🎯 Enregistre <strong>Mon PC</strong> pour recevoir un conseil personnalisé dans chaque rayon.</span> <button class="btn secondary" style="font-size:11px" onclick="openMyPc()">Enregistrer mon PC →</button></div>`;return}
  bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<div>🎯 <strong>Notre conseil pour toi : ${escapeHtml(shortPieceName(adv.p.name))}</strong> (${money(adv.p.price)})<br><span class="small-note">${adv.why}</span></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn secondary" style="font-size:11px" onclick="openSheet('${cat}','${adv.p.id}')">Voir la fiche</button><button class="btn" style="font-size:11px" onclick="copiloteUse('${cat}','${adv.p.id}')">Mettre dans mon projet</button></div></div>`;
@@ -3195,7 +3191,7 @@ function compareDecodedToMyPc(){
 document.getElementById("modeToggle").onclick=()=>{
  const to=getAppMode()==="copilote"?"expert":"copilote";
  setAppMode(to);
- showToast(to==="copilote"?"🎯 Mode Copilote : un conseil personnalisé t’attend dans chaque rayon de la bibliothèque.":"🔧 Mode Expert : toutes les données, aucun filtre — le cockpit complet.");
+ showToast(to==="copilote"?"🎯 Mode Guidé : je te conseille à chaque étape, en langage de jeux.":"🔧 Mode Complet : toutes les données, aucun filtre — le cockpit intégral.");
 };
 document.body.classList.toggle("copilote",getAppMode()==="copilote");
 renderModeToggle();
@@ -3222,7 +3218,9 @@ renderMyPcDoor();
 /* ===== V8.4 chantier 1 : anti-perte ===== */
 function __cartAutosave(){
  try{
-   const snap=JSON.stringify({cart:state.cart,mood:state.mood});
+   const v=id=>{const e=document.getElementById(id);return e?e.value:null};
+   const draft={step:state.step||0,usages:state.usages||[],budget:v("customBudget"),screen:v("screen"),gpuPref:v("gpuPreference")};
+   const snap=JSON.stringify({cart:state.cart,mood:state.mood,draft});
    if(window.__lastSnap!==snap){
      if(window.__lastSnap){(window.__cartHistory=window.__cartHistory||[]).push(window.__lastSnap);if(window.__cartHistory.length>12)window.__cartHistory.shift()}
      window.__lastSnap=snap;
@@ -3244,14 +3242,31 @@ function renderUndoBar(){
 }
 function renderResumeChip(){
  const el=document.getElementById("resumeChip");if(!el)return;
- el.innerHTML=state.cart&&state.cart.selection?`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 <strong>${escapeHtml(state.cart.label||"Ton setup")}</strong> est en cours — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="renderCart();go(4)">Reprendre là où tu en étais →</button></div>`:"";
+ if(state.cart&&state.cart.selection){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 <strong>${escapeHtml(state.cart.label||"Ton setup")}</strong> est en cours — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="renderCart();go(4)">Reprendre là où tu en étais →</button></div>`;return}
+ const d=window.__draft;
+ if(d&&d.step>0){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 Ton parcours est en cours (étape ${d.step+1}) — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="resumeDraft()">Reprendre mon parcours →</button></div>`;return}
+ el.innerHTML="";
+}
+function resumeDraft(){
+ const d=window.__draft;if(!d)return;
+ if(Array.isArray(d.usages)&&d.usages.length)state.usages=d.usages;
+ if(d.step>=3){try{generate()}catch(e){}}
+ go(d.step);
+ showToast("On reprend exactement où tu t’étais arrêté !");
 }
 function restoreSession(){
  try{
    const snap=localStorage.getItem("compatpc-session-v1");
    if(!snap)return;
    const s=JSON.parse(snap);
+   if(s&&s.draft){
+     window.__draft=s.draft;
+     if(Array.isArray(s.draft.usages)&&s.draft.usages.length&&(!state.usages||!state.usages.length))state.usages=s.draft.usages;
+     const set=(id,val)=>{const e=document.getElementById(id);if(e&&val!=null)e.value=val};
+     set("customBudget",s.draft.budget);set("screen",s.draft.screen);set("gpuPreference",s.draft.gpuPref);
+   }
    if(s&&s.cart&&s.cart.selection){state.cart=s.cart;if(s.mood!==undefined&&state.mood==null)state.mood=s.mood;window.__lastSnap=snap;renderResumeChip()}
+   else if(s&&s.draft&&s.draft.step>0){window.__lastSnap=snap;renderResumeChip()}
  }catch(e){}
 }
 function confirmReplaceCart(){
