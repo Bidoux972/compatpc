@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.0 — Shopping Gaming</title>
+<title>Compat'PC V8.4.1 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -400,7 +400,7 @@ html,body{max-width:100%;overflow-x:hidden}
   </div>
 
   <div id="expertBanner" class="status warn expert-only" style="margin-bottom:14px">
-    <strong>Mode expert actif :</strong>&nbsp; les dimensions, puissances et détails techniques apparaissent dans le panier.
+    <strong>Mode expert actif :</strong>&nbsp; les dimensions, puissances et détails techniques apparaissent dans ton projet.
   </div>
   <div class="shell">
     <aside class="sidebar rail">
@@ -410,7 +410,7 @@ html,body{max-width:100%;overflow-x:hidden}
         <button class="btn rail-btn" id="navCreer"><span class="rail-ico">🎮</span>Créer</button>
         <button class="btn rail-btn" id="openExpertWorkshop"><span class="rail-ico">🔧</span>Atelier</button>
         <button class="btn rail-btn" id="openSimpleLibrary"><span class="rail-ico">📚</span>Bibliothèque</button>
-        <button class="btn rail-btn" id="navPanier"><span class="rail-ico">🛒</span>Panier</button>
+        <button class="btn rail-btn" id="navPanier"><span class="rail-ico">🧩</span>Projet</button>
         <button class="btn rail-btn" id="openSaved"><span class="rail-ico">👨‍👩‍👦</span>Famille</button>
         <div class="rail-sep"></div>
         <button class="btn rail-btn ghost" id="restart" title="Tout recommencer"><span class="rail-ico">⟳</span>Reset</button>
@@ -452,7 +452,7 @@ html,body{max-width:100%;overflow-x:hidden}
               <div class="mini" id="shopBrowse">🔍 Explorer tout</div>
               <div class="mini" id="quickImport">🔗 Ajouter un lien</div>
               <div class="mini" id="quickPersonal">📦 Ma bibliothèque</div>
-              <div class="mini" id="shopResume">🛒 Reprendre mon panier</div>
+              <div class="mini" id="shopResume">🧩 Reprendre mon projet</div>
             </div>
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
@@ -500,7 +500,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </section>
 
       <section class="card panel" data-step="3">
-        <div class="card-head"><h2>4. Trois paniers adaptés</h2><span class="badge">Choisis une base</span></div>
+        <div class="card-head"><h2>4. Trois propositions adaptées</h2><span class="badge">Choisis une base</span></div>
         <div class="card-body">
           <div id="buildGrid" class="build-grid"></div>
           <div class="nav-row"><button class="btn ghost" data-prev>Retour</button><span></span></div>
@@ -508,7 +508,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </section>
 
       <section class="card panel" data-step="4">
-        <div class="card-head"><h2>5. Personnalise ton panier</h2><div><button class="btn secondary" id="addLinkFromCart">Ajouter une pièce par lien</button></div></div>
+        <div class="card-head"><h2>5. Personnalise ton projet</h2><div><button class="btn secondary" id="addLinkFromCart">Ajouter une pièce par lien</button></div></div>
         <div class="card-body">
           <div class="summary-grid">
             <div class="metric"><div class="value" id="cartPrice">—</div><div class="label">Total estimé</div></div>
@@ -544,7 +544,7 @@ html,body{max-width:100%;overflow-x:hidden}
               <div class="card-body" id="expertDetails"></div>
             </div>
           </div>
-          <div class="share-box" style="margin-top:16px"><strong>Partager cette configuration</strong><div class="small-note" style="margin:5px 0 10px">Publie-la en ligne : toute la famille la verra dans « Configurations », depuis n'importe quel appareil.</div><div class="shop-actions"><button class="btn" id="publishConfig">Publier en ligne (famille)</button><button class="btn warn" id="startPurchase">🧾 Passer à l'achat</button><button class="btn secondary" id="generateShareCode">Générer un code</button><button class="btn ghost" id="importShareCode">Importer un code</button></div><div id="shareCodeBox" class="share-code" style="display:none;margin-top:10px"></div></div><div class="nav-row"><button class="btn ghost" data-prev>Retour</button><button class="btn" id="saveCurrent">Sauvegarder cette configuration</button></div>
+          <div class="share-box" style="margin-top:16px"><strong>Partager cette configuration</strong><div class="small-note" style="margin:5px 0 10px">Publie-la en ligne : toute la famille la verra dans « Configurations », depuis n'importe quel appareil.</div><div class="shop-actions"><button class="btn" id="publishConfig">Publier en ligne (famille)</button><button class="btn warn" id="startPurchase">🛒 Ajouter à ma liste d'achat</button><button class="btn secondary" id="generateShareCode">Générer un code</button><button class="btn ghost" id="importShareCode">Importer un code</button></div><div id="shareCodeBox" class="share-code" style="display:none;margin-top:10px"></div></div><div class="nav-row"><button class="btn ghost" data-prev>Retour</button><button class="btn" id="saveCurrent">Sauvegarder cette configuration</button></div>
         </div>
       </section>
 
@@ -583,14 +583,14 @@ html,body{max-width:100%;overflow-x:hidden}
             <div style="color:var(--muted);font-size:12px;margin-top:4px">Choisis librement toutes les pièces, comme dans les versions V2.</div>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn secondary" id="loadCartIntoExpert">Charger le panier actuel</button>
+            <button class="btn secondary" id="loadCartIntoExpert">Charger le projet actuel</button>
             <button class="btn ghost" id="closeExpertWorkshop">Fermer</button>
           </div>
         </div>
         <div class="card-body">
           <div class="expert-grid">
             <div>
-              <div class="small-note" style="margin-bottom:10px"><strong>Légende :</strong> 🛡️ Futureproof (évoluera) • ⏳ Encore solide • 🧱 Fin de parcours (cul-de-sac assumé) — détails au glossaire 📖.<br>💡 <strong>Recréer un PC existant</strong> (celui de Noah, par exemple) : choisis chaque pièce ci-dessous — le groupe « Mes imports / famille » contient tout ce que vous avez ajouté via Importer — puis « Appliquer au panier ». Une pièce introuvable ? Importe-la depuis sa page marchand ou en collant le texte de sa fiche.</div>
+              <div class="small-note" style="margin-bottom:10px"><strong>Légende :</strong> 🛡️ Futureproof (évoluera) • ⏳ Encore solide • 🧱 Fin de parcours (cul-de-sac assumé) — détails au glossaire 📖.<br>💡 <strong>Recréer un PC existant</strong> (celui de Noah, par exemple) : choisis chaque pièce ci-dessous — le groupe « Mes imports / famille » contient tout ce que vous avez ajouté via Importer — puis « Appliquer au projet ». Une pièce introuvable ? Importe-la depuis sa page marchand ou en collant le texte de sa fiche.</div>
 <div class="toolbox" id="expertToolbox"></div>
               <div class="field" style="margin-top:12px">
                 <label>Emplacement du radiateur AIO</label>
@@ -603,7 +603,7 @@ html,body{max-width:100%;overflow-x:hidden}
               </div>
               <div class="nav-row">
                 <button class="btn ghost" id="resetExpert">Réinitialiser</button>
-                <button class="btn" id="applyExpertToCart">Utiliser comme panier</button>
+                <button class="btn" id="applyExpertToCart">Utiliser comme projet</button>
               </div>
             </div>
             <div>
@@ -629,9 +629,9 @@ html,body{max-width:100%;overflow-x:hidden}
             </div>
             <div class="field" style="margin-top:12px"><label>Où conserver cette pièce ?</label>
               <select id="importDestination">
-                <option value="both">Ajouter au panier et à ma bibliothèque</option>
+                <option value="both">Ajouter au projet et à ma bibliothèque</option>
                 <option value="library">Ajouter seulement à ma bibliothèque</option>
-                <option value="cart">Ajouter seulement à ce panier</option>
+                <option value="cart">Ajouter seulement à ce projet</option>
               </select>
             </div>
             <div class="nav-row"><span id="importProgress" class="small-note"></span><button class="btn" id="analyzeProduct">Analyser automatiquement</button></div>
@@ -696,8 +696,8 @@ html,body{max-width:100%;overflow-x:hidden}
           <div class="small-note" style="margin:0 0 10px">Publiées depuis n'importe quel appareil avec « Publier en ligne ». Clique sur ⚔️ sur deux configs pour lancer un duel.</div>
           <div id="duelBox"></div>
           <div id="cloudList" class="saved-list" style="margin-bottom:22px"></div>
-          <h3 style="margin:0 0 10px">Projets d'achat (famille)</h3>
-          <div class="small-note" style="margin:0 0 10px">Créés depuis le panier avec « Passer à l'achat ». Cochez les pièces au fur et à mesure avec le prix réellement payé — la progression est partagée en direct.</div>
+          <h3 style="margin:0 0 10px">Listes d'achat (famille)</h3>
+          <div class="small-note" style="margin:0 0 10px">Créées depuis ton projet avec « 🛒 Ajouter à ma liste d'achat ». Cochez les pièces au fur et à mesure avec le prix réellement payé — la progression est partagée en direct.</div>
           <div id="achatsBox"></div>
           <div id="achatsList" class="saved-list" style="margin-bottom:22px"></div>
           <h3 style="margin:0 0 10px">Sauvegardes locales (cet appareil)</h3>
@@ -728,7 +728,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.0 « Noah d'abord — anti-perte » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.1 « Mon PC · Projet · Liste d'achat » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -811,7 +811,7 @@ function getUserName(){
 }
 async function publishConfig(){
  if(!CLOUD_ON){showToast("Partage en ligne non configuré (clé Supabase manquante).");return}
- if(!state.cart){showToast("Aucun panier à publier.");return}
+ if(!state.cart){showToast("Aucun projet à publier.");return}
  const auteur=getUserName();if(!auteur)return;
  const nom=prompt("Nom de la configuration :","Setup de "+auteur);if(!nom)return;
  try{
@@ -999,16 +999,16 @@ function purchaseStats(p){
 }
 async function createPurchaseProject(){
  if(!CLOUD_ON){showToast("Partage en ligne non configuré.");return}
- if(!state.cart){showToast("Aucun panier à transformer en projet d'achat.");return}
+ if(!state.cart){showToast("Aucun projet à transformer en liste d'achat.");return}
  const auteur=getUserName();if(!auteur)return;
- const nom=prompt("Nom du projet d'achat :",(state.cart.label||"PC")+" — achat");if(!nom)return;
+ const nom=prompt("Nom du liste d'achat :",(state.cart.label||"PC")+" — achat");if(!nom)return;
  const items=Object.entries(state.cart.selection).map(([cat,id])=>{
    const p=get(cat,id);return {cat,name:p?.name||"?",prevu:p?.price||0,achete:false,paye:null};
  });
  try{
    const r=await supaFetch("compatpc_achats",{method:"POST",body:JSON.stringify({nom,auteur,budget:cartTotal(),items})});
    if(!r.ok)throw new Error("HTTP "+r.status);
-   showToast("Projet d'achat créé — toute la famille peut cocher !");
+   showToast("Liste d'achat créée — toute la famille peut cocher !");
    openSaved();
  }catch(e){showToast("Création impossible ("+e.message+"). As-tu exécuté achats.sql dans Supabase ?")}
 }
@@ -1021,7 +1021,7 @@ async function renderPurchaseList(){
    if(!r.ok)throw new Error("HTTP "+r.status);
    const arr=await r.json();
    state.achats=arr;
-   if(!arr.length){w.innerHTML='<p style="color:var(--muted)">Aucun projet pour le moment. Depuis le panier : « Passer à l\'achat ».</p>';return}
+   if(!arr.length){w.innerHTML='<p style="color:var(--muted)">Aucune liste d\'achat pour le moment. Depuis ton projet : « 🛒 Ajouter à ma liste d\'achat ».</p>';return}
    w.innerHTML="";
    arr.forEach(p=>{
      const st=purchaseStats(p);
@@ -1034,7 +1034,7 @@ async function renderPurchaseList(){
      if(p)renderPurchase(p);
    });
    w.querySelectorAll("[data-achat-del]").forEach(b=>b.onclick=async()=>{
-     if(!confirm("Supprimer ce projet d'achat pour toute la famille ?"))return;
+     if(!confirm("Supprimer ce liste d'achat pour toute la famille ?"))return;
      try{
        const r=await supaFetch("compatpc_achats?id=eq."+b.dataset.achatDel,{method:"DELETE"});
        if(!r.ok)throw new Error("HTTP "+r.status);
@@ -1090,7 +1090,7 @@ function renderPurchase(p){
 
 let state={step:0,mood:null,budget:1600,usages:[],screen:"1080p",gpuPreference:"any",builds:[],cart:null,expert:false,expertSelection:{},expertAioMount:"auto"};
 const FAVORITES_KEY="compatpc_v4_favorites";let compareItems=[];
-const stepLabels=["Style","Budget","Usages","Propositions","Panier"];
+const stepLabels=["Style","Budget","Usages","Propositions","Projet"];
 
 function money(n){return Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0})}
 function googleUrl(query){return "https://www.google.com/search?q="+encodeURIComponent(query)}
@@ -1474,7 +1474,7 @@ function generate(){
  state.builds=[
   buildFrom("price","Le meilleur prix","On protège le budget tout en gardant une vraie carte graphique."),
   buildFrom("balanced","Le meilleur équilibre","Le compromis le plus logique entre look, montage vidéo et durée de vie."),
-  buildFrom("beauty","Le plus beau","Le panier qui privilégie l’effet waouh et l’écran GIF.")
+  buildFrom("beauty","Le plus beau","La config qui privilégie l’effet waouh et l’écran GIF.")
  ];
  const res=state.screen||"1080p";
  state.builds.forEach(b=>{
@@ -1500,7 +1500,7 @@ function renderBuilds(){
  if(!vb){vb=document.createElement("div");vb.id="buildVerdict";g.parentElement.insertBefore(vb,g)}
  if(state.recommendedIdx===-1&&state.builds.length){
    const resLbl=(state.screen==="4k"?"4K":state.screen||"1080p");
-   vb.innerHTML=`<div class="verdict-warn"><strong>⚠️ Honnêteté du moteur :</strong> en ${resLbl} avec ${money(state.budget)}, aucune configuration n’atteint le seuil jouable (45 FPS de moyenne sur les gros jeux, 60 en e-sport) en respectant tes exigences. Les paniers ci-dessous sont montrés pour comparaison — <strong>aucun n’est recommandé</strong>. Options : baisse la résolution cible, assouplis une exigence, ou augmente le budget.</div>`;
+   vb.innerHTML=`<div class="verdict-warn"><strong>⚠️ Honnêteté du moteur :</strong> en ${resLbl} avec ${money(state.budget)}, aucune configuration n’atteint le seuil jouable (45 FPS de moyenne sur les gros jeux, 60 en e-sport) en respectant tes exigences. Les propositions ci-dessous sont montrées pour comparaison — <strong>aucun n’est recommandé</strong>. Options : baisse la résolution cible, assouplis une exigence, ou augmente le budget.</div>`;
  }else vb.innerHTML="";
  state.builds.forEach((b,i)=>{
   const mood=moods.find(m=>m.id===state.mood)||moods[0];
@@ -1517,7 +1517,7 @@ function renderBuilds(){
   <div class="fps-strip">${fpsStripHtml(b.selection,state.screen||"1080p")}</div>
   ${pertinenceHtml(b)}
   <div style="margin:4px 0 8px">${rankHtml(b.selection)}</div>
-  <div class="parts">${lines}</div><button class="btn" data-pick="${i}">Choisir ce panier</button></div>`;
+  <div class="parts">${lines}</div><button class="btn" data-pick="${i}">En faire mon projet</button></div>`;
   g.appendChild(d)
  });
  g.querySelectorAll("[data-pick]").forEach(btn=>btn.onclick=()=>{if(!confirmReplaceCart())return;state.cart=JSON.parse(JSON.stringify(state.builds[Number(btn.dataset.pick)]));renderCart();go(4)})
@@ -1607,14 +1607,14 @@ function analyzeExpert(){
  document.getElementById("expertResults").innerHTML=checks.map(c=>`<div class="expert-result ${c.kind}"><strong>${c.title}</strong><div style="color:var(--muted);font-size:12px;margin-top:4px">${c.text}</div></div>`).join("");
 }
 function loadCartIntoExpert(){
- if(!state.cart){showToast("Aucun panier à charger.");return}
- state.expertSelection={...state.cart.selection};renderExpertToolbox();showToast("Panier chargé dans l’atelier expert.");
+ if(!state.cart){showToast("Aucun projet à charger.");return}
+ state.expertSelection={...state.cart.selection};renderExpertToolbox();showToast("Projet chargé dans l’atelier expert.");
 }
 function applyExpertToCart(){
  const missing=expertCategories.filter(k=>!state.expertSelection[k]);
- if(missing.length){showToast("Choisis encore "+missing.length+" catégorie(s) avant de créer le panier.");return}
+ if(missing.length){showToast("Choisis encore "+missing.length+" catégorie(s) avant de créer le projet.");return}
  state.cart={profile:"expert",label:"Configuration expert",desc:"Configuration créée librement dans l’atelier.",selection:{...state.expertSelection},total:0};
- renderCart();go(4);showToast("Configuration expert appliquée au panier.");
+ renderCart();go(4);showToast("Configuration expert appliquée au projet.");
 }
 
 let simpleLibraryTarget=null;
@@ -1688,7 +1688,7 @@ function renderSimpleLibrary(){
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
-   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.familyId}">${p.familySize-1} variante(s) ▸</button>`:""}${window.decodeReplaceTarget===cat?`<button class="btn" data-decpick="${cat}|${p.id}">Utiliser pour le décodage</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans le panier</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
+   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.familyId}">${p.familySize-1} variante(s) ▸</button>`:""}${window.decodeReplaceTarget===cat?`<button class="btn" data-decpick="${cat}|${p.id}">Utiliser pour le décodage</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans mon projet</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
  if(rows.length>LIB_LIMIT){
@@ -1712,7 +1712,7 @@ function renderSimpleLibrary(){
  });
  g.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  g.querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
-   const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();go(4);showToast("Pièce ajoutée au panier.");
+   const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();go(4);showToast("Pièce ajoutée à ton projet.");
  });
  g.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.fav.split("|");toggleFavorite(c,i)});
  g.querySelectorAll("[data-compare]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.compare.split("|");addCompare(c,i)});
@@ -1978,7 +1978,7 @@ function addParsed(){
  if(destination==="library"||destination==="both")addToPersonalLibrary(cat,obj);
  else parts[cat].push(obj);
  if(destination==="cart"||destination==="both"){
-   if(!state.cart){showToast("Pièce conservée. Choisis un panier pour l’y utiliser.");}
+   if(!state.cart){showToast("Pièce conservée. Choisis un projet pour l’y utiliser.");}
    else {state.cart.selection[cat]=id;renderCart();}
  }
  computeFamilies();
@@ -1987,7 +1987,7 @@ function addParsed(){
  closeImport();
  if(state.cart&&(destination==="cart"||destination==="both"))go(4);
  else openPersonalLibrary();
- showToast(destination==="both"?"Ajoutée au panier et à ta bibliothèque.":destination==="library"?"Ajoutée définitivement à ta bibliothèque.":"Ajoutée à ce panier seulement.");
+ showToast(destination==="both"?"Ajoutée au projet et à ta bibliothèque.":destination==="library"?"Ajoutée définitivement à ta bibliothèque.":"Ajoutée à ce projet seulement.");
 }
 function resetImportForm(){
  const set=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v};
@@ -2033,7 +2033,7 @@ function openSheet(cat,id){
   <div id="sheetPriceForm" style="display:none;margin:6px 0 10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="sheetPriceInput" type="number" min="1" step="0.01" placeholder="Prix constaté en €" style="width:160px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:8px 10px"><button class="btn" id="sheetPriceSave">Enregistrer pour la famille</button></div><div class="small-note" style="margin-top:6px">Le nouveau prix s'applique partout : bibliothèque, propositions, budgets, duels.</div></div>${p.description?`<p class="small-note">${escapeHtml(p.description.slice(0,260))}${p.description.length>260?"…":""}</p>`:""}</div></div>
   <div class="sheet-specs">${rows}</div>
   <div class="shop-actions" style="margin-top:14px;flex-wrap:wrap">
-   <button class="btn" id="sheetUse">Mettre dans le panier</button>
+   <button class="btn" id="sheetUse">Mettre dans mon projet</button>
    <button class="btn ghost fav-btn ${isFavorite(cat,id)?"active":""}" id="sheetFav">★ Favori</button>
    <button class="btn ghost" id="sheetCompare">Comparer</button>
    <button class="btn secondary" id="sheetPhoto">🖼 ${p.image?"Changer la photo":"Ajouter la vraie photo"}</button>
@@ -2083,7 +2083,7 @@ function openSheet(cat,id){
  };
  document.getElementById("sheetCompare").onclick=()=>{addCompare(cat,id);showToast("Ajouté au comparateur (3 max).")};
  document.getElementById("sheetUse").onclick=()=>{
-   if(state.cart){state.cart.selection[cat]=id;renderCart();o.style.display="none";go(4);showToast(p.name+" est dans ton panier.")}
+   if(state.cart){state.cart.selection[cat]=id;renderCart();o.style.display="none";go(4);showToast(p.name+" est dans ton projet.")}
    else{o.style.display="none";showToast("Crée d'abord un setup : parcours guidé ou atelier expert.")}
  };
 }
@@ -2094,7 +2094,7 @@ function impactChips(cat,p){
  if(!state.cart||!state.cart.selection)return "";
  const curId=state.cart.selection[cat];
  if(!curId)return "";
- if(curId===p.id)return '<div class="impact-row"><span class="impact gv-good">✓ Dans ton panier</span></div>';
+ if(curId===p.id)return '<div class="impact-row"><span class="impact gv-good">✓ Dans ton projet</span></div>';
  const cur=get(cat,curId);if(!cur)return "";
  const chips=[];
  const dp=Math.round((p.price||0)-(cur.price||0));
@@ -2391,12 +2391,12 @@ function renderPersonalLibrary(){
  rows.sort((a,b)=>a.cat.localeCompare(b.cat)||a.p.name.localeCompare(b.p.name));
  for(const {cat,p} of rows){
    const d=document.createElement("div");d.className="saved origin-personal";
-   d.innerHTML=`<div><strong>${productNameHtml(p)}</strong><div class="small-note">${labelCat(cat)} • ${money(p.price)} • ${p.color||"neutral"}</div>${p.url?`<a class="search-link" href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="margin-top:7px">Ouvrir le lien d’origine</a>`:""}</div><div class="personal-actions"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><button class="btn secondary" data-personal-use="${cat}|${p.id}">Mettre dans le panier</button><button class="btn ghost" data-personal-edit="${cat}|${p.id}">Modifier</button><button class="btn danger" data-personal-delete="${cat}|${p.id}">Supprimer</button></div>`;
+   d.innerHTML=`<div><strong>${productNameHtml(p)}</strong><div class="small-note">${labelCat(cat)} • ${money(p.price)} • ${p.color||"neutral"}</div>${p.url?`<a class="search-link" href="${escapeHtml(p.url)}" target="_blank" rel="noopener" style="margin-top:7px">Ouvrir le lien d’origine</a>`:""}</div><div class="personal-actions"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><button class="btn secondary" data-personal-use="${cat}|${p.id}">Mettre dans mon projet</button><button class="btn ghost" data-personal-edit="${cat}|${p.id}">Modifier</button><button class="btn danger" data-personal-delete="${cat}|${p.id}">Supprimer</button></div>`;
    list.appendChild(d);
  }
  list.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  list.querySelectorAll("[data-personal-use]").forEach(b=>b.onclick=()=>{
-   if(!state.cart){showToast("Choisis d’abord un panier.");return}
+   if(!state.cart){showToast("Choisis d’abord un projet.");return}
    const [cat,id]=b.dataset.personalUse.split("|");state.cart.selection[cat]=id;renderCart();go(4);
  });
  list.querySelectorAll("[data-personal-delete]").forEach(b=>b.onclick=()=>{
@@ -2482,7 +2482,7 @@ document.getElementById("quickPersonal").onclick=openPersonalLibrary;
 document.getElementById("openCompare").onclick=()=>{renderCompare();showPanel("comparePanel")};
 document.getElementById("closeCompare").onclick=()=>showPanel("shopHome");
 document.getElementById("clearCompare").onclick=()=>{compareItems=[];renderCompareTray()};
-document.getElementById("generateShareCode").onclick=()=>{const c=encodeShareCode();if(!c){showToast("Aucun panier.");return}const b=document.getElementById("shareCodeBox");b.style.display="block";b.textContent=c;navigator.clipboard?.writeText(c);showToast("Code généré et copié.")};
+document.getElementById("generateShareCode").onclick=()=>{const c=encodeShareCode();if(!c){showToast("Aucun projet.");return}const b=document.getElementById("shareCodeBox");b.style.display="block";b.textContent=c;navigator.clipboard?.writeText(c);showToast("Code généré et copié.")};
 document.getElementById("importShareCode").onclick=()=>{const c=prompt("Colle le code :");if(!c)return;const d=decodeShareCode(c);if(!d||!d.cart){alert("Code invalide.");return}state.cart=d.cart;state.mood=d.mood;state.budget=d.budget||1500;renderCart();go(4)};
 
 document.getElementById("openPersonalLibrary").onclick=openPersonalLibrary;
@@ -2556,7 +2556,7 @@ updateUserChip();
 if(!currentUser())showWelcome();
 /* ===== Où suis-je + états actifs du menu ===== */
 const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats"};
-const STEP_NAMES=["Parcours — Style","Parcours — Budget","Parcours — Usages","Parcours — Propositions","Panier"];
+const STEP_NAMES=["Parcours — Style","Parcours — Budget","Parcours — Usages","Parcours — Propositions","Projet"];
 const SIDE_MAP={shopHome:"goHome",simpleLibrary:"openSimpleLibrary",expertWorkshop:"openExpertWorkshop",importPanel:"openImport",personalLibraryPanel:"openPersonalLibrary",savedPanel:"openSaved"};
 let whereBusy=false;
 function updateWhere(){
@@ -2753,7 +2753,7 @@ function renderDecodeReport(){
  }).join("");
  const colorLine=out.__color?`<div class="small-note" style="margin:2px 0 8px">🎨 <strong>Style détecté : setup ${out.__color==="white"?"blanc":"noir"}</strong> — le coloris est respecté partout où la bibliothèque le permet ; chaque exception est signalée sur sa ligne.</div>`:"";
  const addAll=missing?`<button class="btn secondary" id="decodeAddAll" style="font-size:11px">＋ Ajouter toutes les références manquantes (${missing})</button>`:"";
- box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><span style="display:flex;gap:8px;flex-wrap:wrap">${addAll}<button class="btn secondary" id="decodeUpLab">Créer + 🔼 Upgrader</button><button class="btn" id="decodeCreate">Créer ce panier</button></span></div></div>`;
+ box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span><span style="display:flex;gap:8px;flex-wrap:wrap">${addAll}<button class="btn secondary" id="decodeUpLab">🔼 Voir comment l’améliorer</button><button class="btn" id="decodeCreate">En faire mon projet</button></span></div></div>`;
  document.getElementById("decodeCreate").onclick=()=>{createDecodedCart()};
  document.getElementById("decodeUpLab").onclick=()=>{createDecodedCart();openUpLab()};
  const aa=document.getElementById("decodeAddAll");if(aa)aa.onclick=()=>{CATS.forEach(cat=>{const r=out[cat];if(r&&r.src&&(r.how==="famille"||r.how==="approx"||r.how==="auto"||r.how==="unknown"))addOriginalRef(cat,true)});renderDecodeReport();showToast("Références originales ajoutées — pense à compléter les prix !")};
@@ -2767,7 +2767,7 @@ function createDecodedCart(){
  for(const cat of ["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"]){
    if(out[cat]&&out[cat].p){selection[cat]=out[cat].p.id;decodeMeta[cat]={how:out[cat].how,note:out[cat].note}}
  }
- state.cart={label:"Config décodée",desc:"Reconstruite depuis un descriptif",selection,decodeMeta};
+ state.cart={label:"PC trouvé sur Internet",desc:"Reconstruit depuis une page ou une description",selection,decodeMeta};
  if(out.__color)state.cart.targetColor=out.__color;
  if(window.__decodeToMyPc){
    window.__decodeToMyPc=false;
@@ -2775,7 +2775,7 @@ function createDecodedCart(){
    state.cart.label="Mon PC";state.cart.desc="Mon PC réel — reconnu depuis ta description";
    renderCart();renderMyPcDoor();openUpLab();showToast("PC enregistré comme « Mon PC » ! La prochaine fois : un seul appui.");return;
  }
- renderCart();go(4);showToast("Config décodée et chargée dans le panier !");
+ renderCart();go(4);showToast("PC reconnu — ouvert comme projet ! Tu peux le comparer, l’améliorer ou le garder.");
 }
 function makeOriginalStub(cat,label,color){
  const obj={id:"personal-"+Date.now()+"-"+Math.floor(Math.random()*999),name:label+" (import à compléter)",price:0,color:color||"black",custom:true,origin:"session",url:"",image:"",_assumed:{}};
@@ -2886,7 +2886,7 @@ function computeUpgradePlans(){
 function renderUpgradePlans(){
  const zone=document.getElementById("upPlans");
  const R=computeUpgradePlans();window.__upResult=R;
- if(!R){zone.innerHTML='<p class="small-note">Charge d’abord un panier.</p>';return}
+ if(!R){zone.innerHTML='<p class="small-note">Charge d’abord un projet.</p>';return}
  if(!R.plans.length){zone.innerHTML='<p class="small-note">'+(R.hadCands?("Des pistes existent, mais <strong>aucune ne tient dans ton budget de "+money(R.budget)+"</strong> — augmente le budget ou libère une contrainte."):"Aucun plan trouvé avec ces contraintes — essaie un budget plus large ou libère une pièce.")+'</p>';return}
  if(R.goal==="stockage"){
    zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${pl.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${pl.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
@@ -2901,7 +2901,7 @@ function applyUpgradePlan(i){
  Object.assign(state.cart.selection,apply);
  if(state.cart.decodeMeta)Object.keys(apply).forEach(k=>delete state.cart.decodeMeta[k]);
  renderCart();renderUpgradePlans();
- showToast("Plan appliqué — panier mis à jour !");
+ showToast("Plan appliqué — projet mis à jour !");
 }
 function openUpLab(){
  go(4);
