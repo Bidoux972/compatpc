@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.6 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.4.7 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -744,7 +744,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.6 « Copilote natif » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.7 « Fiches techniques » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1265,7 +1265,7 @@ const CPU_PERF=[
  [/7950X/i,116],[/7900X/i,114],[/7900(?!X)/i,112],
  [/7700X/i,112],[/7700(?!X)/i,110],[/7600X/i,105],[/7600(?!X)/i,102],[/7500F/i,100],
  [/8700G/i,92],[/8600G/i,88],
- [/5900X/i,84],[/5700X/i,82],[/5600X/i,80],[/5600(?!X)/i,78],[/5500/i,68],[/3600/i,62]
+ [/5900X/i,84],[/5700X/i,82],[/5600X/i,80],[/5700G/i,76],[/5600G/i,70],[/4600G/i,58],[/5600(?!X|G)/i,78],[/5500/i,68],[/3600/i,62]
 ];
 function perfIndex(table,name,fallback){
  for(const [re,v] of table)if(re.test(name||""))return v;
@@ -2664,8 +2664,34 @@ function decodeFieldsIn(zone,det){
  if(!det.chipset){const c=zone.match(/\b(X870E?|B850|B650E?|X670E?|A620)/i);if(c)det.chipset=c[1].toUpperCase()}
  return det;
 }
+function decodeSpecSheet(text,det){
+ const grab=(label)=>{const m=text.match(new RegExp(label+"\\s*[:\\n\\r]+\\s*([^\\n\\r]+)","i"));return m?m[1].trim():null};
+ const cpuType=grab("Type d[eu] processeur"),cpuModel=grab("Mod[èe]le d[eu] processeur");
+ if(cpuModel)decodeFieldsIn((cpuType||"")+" "+cpuModel,det);
+ const gpuModel=grab("Mod[èe]le (?:de la )?carte graphique");
+ if(gpuModel&&!det.gpu)decodeFieldsIn(gpuModel,det);
+ if(!det.ram){
+   const ramGo=grab("RAM\\s*\\(Go\\)")||grab("M[ée]moire RAM");
+   const ramType=grab("Type de RAM");
+   const cap=ramGo?parseInt(ramGo,10):null;
+   const t=ramType&&/DDR([345])/i.test(ramType)?("DDR"+ramType.match(/DDR([345])/i)[1]):null;
+   if(cap||t)det.ram={type:t,cap:cap||null};
+ }
+ if(!det.ssd){
+   const disk=grab("Capacit[ée] (?:du )?disque(?: dur)?");
+   if(disk){const g=disk.match(/(\d+)\s*(To|Go|TB|GB)/i);
+     if(g){const n=parseInt(g[1],10);
+       det.ssd=/To|TB/i.test(g[2])?{cap:n,label:n+" To"}:{cap:Math.max(0.5,n/1000),label:n+" Go"};
+     }}
+ }
+ if(!det.gpu&&!det.gpuRaw){
+   const ig=text.match(/Vega\s*\d+|Radeon Graphics|Iris Xe|UHD Graphics|graphiques? int[ée]gr[ée]e?s?/i);
+   if(ig)det.gpuIntegrated=ig[0];
+ }
+}
 function decodeConfigBlob(text){
  const det={};
+ decodeSpecSheet(text,det);
  // zones par ordre de fiabilité : titre, résumé de configuration, bloc composants, texte entier
  const zones=[text.slice(0,350)];
  const mSum=text.match(/(?:Informations sur le produit|Konfiguration\b|^Configuration\b)[\s\S]{0,2600}/im);if(mSum)zones.push(mSum[0]);
@@ -2714,6 +2740,8 @@ function matchDecoded(det){
    }
  }else if(det.gpuRaw){
    out.gpu={p:decCheapest(parts.gpu.filter(p=>!/occasion/i.test(p.name))),how:"unknown",note:"« "+det.gpuRaw+" » non reconnu par la bibliothèque — complété par défaut, à vérifier"};
+ }else if(det.gpuIntegrated){
+   out.gpu={p:decCheapest(parts.gpu.filter(p=>!/occasion/i.test(p.name))),how:"auto",note:"⚠ ce PC n’a PAS de vraie carte graphique — il joue avec la puce intégrée au processeur ("+det.gpuIntegrated+"). J’ai complété avec une vraie carte : c’est LA pièce qui change tout pour jouer."};
  }
  // CPU
  if(det.cpu){
@@ -2753,7 +2781,7 @@ function matchDecoded(det){
  }
  // SSD
  out.ssd=det.ssd
-   ?{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=det.ssd.cap))||decCheapest(parts.ssd),how:"specs",note:det.ssd.cap+" To"}
+   ?{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=det.ssd.cap))||decCheapest(parts.ssd),how:"specs",note:(det.ssd.label||det.ssd.cap+" To")+((det.ssd.cap<1)?" détectés — remplacé par du 1 To (le minimum utile aujourd’hui)":"")}
    :{p:decCheapest(parts.ssd.filter(p=>(p.capacity||0)>=1)),how:"auto",note:"non détecté — complété"};
  // Refroidissement
  {const pool=parts.cooler.filter(p=>(p.sockets||[]).includes(sock));
@@ -2785,7 +2813,7 @@ function runDecode(){
  const box=document.getElementById("decodeResult");
  if(text.length<15){box.innerHTML='<p class="small-note">Colle d\'abord le descriptif complet du PC (au moins la carte graphique et le processeur).</p>';return}
  const det=decodeConfigBlob(text);
- if(!det.gpu&&!det.cpu){box.innerHTML='<p class="small-note">Je n\'ai reconnu ni carte graphique ni processeur dans ce texte. Vérifie que le descriptif technique est bien inclus (modèles précis : « RTX 4060 », « Ryzen 5 7500F »…).</p>';return}
+ if(!det.gpu&&!det.gpuRaw&&!det.gpuIntegrated&&!det.cpu){box.innerHTML='<p class="small-note">Je n\'ai reconnu ni carte graphique ni processeur dans ce texte. Vérifie que le descriptif technique est bien inclus (modèles précis : « RTX 4060 », « Ryzen 5 7500F »…).</p>';return}
  window.__decode={out:matchDecoded(det),det};
  renderDecodeReport();
 }
