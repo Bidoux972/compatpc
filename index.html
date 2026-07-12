@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.3.3 — Shopping Gaming</title>
+<title>Compat'PC V8.4.0 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -425,6 +425,7 @@ html,body{max-width:100%;overflow-x:hidden}
             <h2 id="homeGreeting">Salut ! 👋</h2>
             <p>Qu'est-ce qu'on fait aujourd'hui ?</p>
           </div>
+          <div id="resumeChip"></div>
           <div class="door-grid">
             <div class="door" id="doorMyPc" style="grid-column:1/-1;border:1px solid #5b4794;background:linear-gradient(135deg,#171026,#12121a)">
               <h3>🔼 Upgrader mon PC</h3>
@@ -519,6 +520,7 @@ html,body{max-width:100%;overflow-x:hidden}
           <div id="buildSense"></div>
           <div id="cartList" class="cart-list"></div>
           <div id="fpsPanel" class="fps-panel"></div>
+          <div id="cartUndoBar"></div>
           <div id="cartStatus"></div>
           <div class="card" id="upLabCard" style="margin-top:16px;box-shadow:none">
             <div class="card-head"><h2>🔼 Upgrade Lab</h2><button class="btn ghost" id="mypcEdit" style="font-size:11px">Mon PC ✎</button><span class="small-note">Estimation Compat’PC — valeur indicative</span></div>
@@ -726,7 +728,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.3.3 « Mon PC » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.0 « Noah d'abord — anti-perte » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1518,7 +1520,7 @@ function renderBuilds(){
   <div class="parts">${lines}</div><button class="btn" data-pick="${i}">Choisir ce panier</button></div>`;
   g.appendChild(d)
  });
- g.querySelectorAll("[data-pick]").forEach(btn=>btn.onclick=()=>{state.cart=JSON.parse(JSON.stringify(state.builds[Number(btn.dataset.pick)]));renderCart();go(4)})
+ g.querySelectorAll("[data-pick]").forEach(btn=>btn.onclick=()=>{if(!confirmReplaceCart())return;state.cart=JSON.parse(JSON.stringify(state.builds[Number(btn.dataset.pick)]));renderCart();go(4)})
 }
 function labelCat(k){return ({cpu:"Processeur",motherboard:"Carte mère",ram:"Mémoire",gpu:"Carte graphique",case:"Boîtier",cooler:"Refroidissement",fans:"Ventilateurs",ssd:"SSD",psu:"Alimentation"})[k]||k}
 function tierLabel(tier){return tier==="haut"?"Haut de gamme":tier==="moyen"?"Milieu de gamme":"Entrée de gamme"}
@@ -1793,6 +1795,7 @@ function styleScore(){
  return Math.max(0,score)
 }
 function renderCart(){
+ __cartAutosave();
  if(!state.cart)return;
  const list=document.getElementById("cartList");list.innerHTML="";
  Object.entries(state.cart.selection).forEach(([cat,id])=>{
@@ -2450,7 +2453,7 @@ function renderSaved(){
  const arr=JSON.parse(localStorage.getItem("compatpc_v3_builds")||"[]"),w=document.getElementById("savedList");w.innerHTML="";
  if(!arr.length){w.innerHTML='<p style="color:var(--muted)">Aucune configuration sauvegardée.</p>';return}
  arr.forEach((b,i)=>{const d=document.createElement("div");d.className="saved";d.innerHTML=`<div><strong>${escapeHtml(b.name)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • ${escapeHtml(b.mood||"")}</div></div><div><button class="btn secondary" data-load="${i}">Charger</button><button class="btn ghost" data-uplab="${i}">🔼 Upgrader</button></div>`;w.appendChild(d)});
- w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)});
+ w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{if(!confirmReplaceCart())return;const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)});
  w.querySelectorAll("[data-uplab]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.uplab)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");openUpLab()})
 }
 function openSaved(){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs();renderPurchaseList()}
@@ -2758,6 +2761,7 @@ function renderDecodeReport(){
  box.querySelectorAll("[data-choose]").forEach(b=>b.onclick=()=>{window.__keepDecodeTarget=true;window.decodeReplaceTarget=b.dataset.choose;openSimpleLibrary(b.dataset.choose);showToast("Choisis la pièce qui remplacera cette ligne du décodage")});
 }
 function createDecodedCart(){
+ if(!confirmReplaceCart())return;
  const {out}=window.__decode;
  const selection={},decodeMeta={};
  for(const cat of ["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"]){
@@ -2988,6 +2992,47 @@ function renderMyPcDoor(){
  }
 }
 renderMyPcDoor();
+
+/* ===== V8.4 chantier 1 : anti-perte ===== */
+function __cartAutosave(){
+ try{
+   const snap=JSON.stringify({cart:state.cart,mood:state.mood});
+   if(window.__lastSnap!==snap){
+     if(window.__lastSnap){(window.__cartHistory=window.__cartHistory||[]).push(window.__lastSnap);if(window.__cartHistory.length>12)window.__cartHistory.shift()}
+     window.__lastSnap=snap;
+     localStorage.setItem("compatpc-session-v1",snap);
+   }
+ }catch(e){}
+ renderUndoBar();renderResumeChip();
+}
+function cartUndo(){
+ const h=window.__cartHistory||[];if(!h.length)return;
+ const snap=h.pop();window.__lastSnap=snap;
+ try{const s=JSON.parse(snap);state.cart=s.cart;if(s.mood!==undefined)state.mood=s.mood;localStorage.setItem("compatpc-session-v1",snap)}catch(e){}
+ renderCart();showToast("Modification annulée — rien n’est jamais perdu !");
+}
+function renderUndoBar(){
+ const el=document.getElementById("cartUndoBar");if(!el)return;
+ const n=(window.__cartHistory||[]).length;
+ el.innerHTML=state.cart?`<div class="small-note" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px"><span>💾 Ton travail est enregistré automatiquement.</span>${n?`<button class="btn ghost" onclick="cartUndo()" style="font-size:11px">↩ Annuler la dernière modification</button>`:""}</div>`:"";
+}
+function renderResumeChip(){
+ const el=document.getElementById("resumeChip");if(!el)return;
+ el.innerHTML=state.cart&&state.cart.selection?`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 <strong>${escapeHtml(state.cart.label||"Ton setup")}</strong> est en cours — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="renderCart();go(4)">Reprendre là où tu en étais →</button></div>`:"";
+}
+function restoreSession(){
+ try{
+   const snap=localStorage.getItem("compatpc-session-v1");
+   if(!snap)return;
+   const s=JSON.parse(snap);
+   if(s&&s.cart&&s.cart.selection){state.cart=s.cart;if(s.mood!==undefined&&state.mood==null)state.mood=s.mood;window.__lastSnap=snap;renderResumeChip()}
+ }catch(e){}
+}
+function confirmReplaceCart(){
+ if(!state.cart||!state.cart.selection)return true;
+ return confirm("Tu as déjà un setup en cours (« "+(state.cart.label||"sans nom")+" »). Le remplacer ? Tu pourras toujours revenir en arrière avec ↩ Annuler.");
+}
+restoreSession();
 
 
 /* ===== Familles du Top 10 ===== */
