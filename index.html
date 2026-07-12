@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.7 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.4.8 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -744,7 +744,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.7 « Fiches techniques » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.8 « Aujourd'hui / Demain » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1333,7 +1333,11 @@ function fpsPanelHtml(sel,res){
    return `<div class="fps-row"><span>${g.name}${vd?` <span style="font-size:10.5px;opacity:.9">${vd[0]} ${vd[1]}</span>`:""}</span><div class="fps-track"><div class="fps-fill ${fpsBadgeClass(f)}" style="width:${w}%"></div></div><strong data-count="${f}" data-key="fps-${g.name}" data-suffix=" FPS" data-tilde="~">~${f} FPS</strong></div>`;
  }).join("");
  const tabs=["1080p","1440p","4k"].map(r=>`<button class="fps-tab ${r===res?"active":""}" data-fps-res="${r}">${r==="4k"?"4K":r}</button>`).join("");
- return `<div class="fps-head"><h4>🎮 Performances estimées ${rankHtml(sel)}</h4><div class="fps-tabs">${tabs}</div></div>${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
+ const fv=futureVerdict(sel);
+ const fvChip=fv?`<span class="${fv.cls}" style="font-size:10px;font-weight:900;margin-left:8px;white-space:nowrap">${fv.icon} ${fv.label}</span>`:"";
+ const copMode=(typeof getAppMode==="function"&&getAppMode()==="copilote");
+ const fvLine=fv&&(copMode||fv.icon==="🧱")?`<p class="fps-note" style="${fv.icon==="🧱"?"color:#f0b45c;":""}margin:4px 0 8px"><strong>${fv.icon} ${fv.text}.</strong>${fv.icon==="🧱"?" Ça peut rester un bon achat — SEULEMENT si le prix est vraiment bas. Pas un euro de plus.":""}</p>`:"";
+ return `<div class="fps-head"><h4>🎮 Performances estimées ${rankHtml(sel)}${fvChip}</h4><div class="fps-tabs">${tabs}</div></div>${fvLine}${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
 }
 function renderFpsPanel(){
  const box=document.getElementById("fpsPanel");
@@ -2301,6 +2305,15 @@ function setupRank(sel){
  const f=avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],state.screen||"1080p");
  return f>=145?["LÉGENDE","rank-legende"]:f>=110?["DIAMANT","rank-diamant"]:f>=85?["OR","rank-or"]:f>=60?["ARGENT","rank-argent"]:["BRONZE","rank-bronze"];
 }
+function futureVerdict(sel){
+ const cats=["cpu","motherboard","ram","gpu","psu"];
+ let walls=0,n=0;
+ cats.forEach(c=>{const p=get(c,sel[c]);if(!p)return;n++;const f=futureproof(c,p);if(f&&f[0]===0)walls++});
+ if(!n)return null;
+ if(walls>=3)return {icon:"🧱",cls:"gv-bad",label:"AVENIR BOUCHÉ",text:"il joue bien aujourd’hui, mais pour progresser plus tard il faudra presque tout changer"};
+ if(walls>=1)return {icon:"⏳",cls:"gv-mid",label:"AVENIR LIMITÉ",text:"certaines pièces ne suivront pas ton PC dans le futur"};
+ return {icon:"🛡️",cls:"gv-good",label:"AVENIR OUVERT",text:"ce PC pourra évoluer sans tout remplacer"};
+}
 function rankHtml(sel){
  const r=setupRank(sel);
  const res=state.fpsRes||state.screen||"1080p";
@@ -2595,7 +2608,7 @@ document.getElementById("expertMode").onclick=()=>{
 };
 
 function currentUser(){return (localStorage.getItem("compatpc_user")||"").trim()}
-function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";if(!localStorage.getItem("compatpc-mode"))setAppMode(/noah/i.test(n)?"copilote":"expert");showToast("Salut "+n+" ! Bon projet 🚀")}
+function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";document.body.classList.toggle("copilote",getAppMode()==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}showToast("Salut "+n+" ! Bon projet 🚀"+(getAppMode()==="copilote"?" — mode Guidé 🎯":""))}
 function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?");const g=document.getElementById("homeGreeting");if(g)g.textContent=currentUser()?("Salut "+currentUser()+" ! 👋"):"Salut ! 👋"}
 function showWelcome(){document.getElementById("welcomeOther").value="";document.getElementById("welcomeOverlay").style.display="flex"}
 document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
@@ -3100,8 +3113,9 @@ function openMyPc(){
 }
 document.getElementById("doorMyPc").onclick=openMyPc;
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
-function getAppMode(){const s=localStorage.getItem("compatpc-mode");if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
-function setAppMode(m){localStorage.setItem("compatpc-mode",m);document.body.classList.toggle("copilote",m==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}}
+function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase())}
+function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
+function setAppMode(m){localStorage.setItem(modeKey(),m);document.body.classList.toggle("copilote",m==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}}
 function renderModeToggle(){
  const b=document.getElementById("modeToggle");if(!b)return;
  const on=getAppMode()==="copilote";
@@ -3221,6 +3235,7 @@ document.getElementById("modeToggle").onclick=()=>{
  setAppMode(to);
  showToast(to==="copilote"?"🎯 Mode Guidé : je te conseille à chaque étape, en langage de jeux.":"🔧 Mode Complet : toutes les données, aucun filtre — le cockpit intégral.");
 };
+try{const l=localStorage.getItem("compatpc-mode");if(l){if(!localStorage.getItem(modeKey()))localStorage.setItem(modeKey(),l);localStorage.removeItem("compatpc-mode")}}catch(e){}
 document.body.classList.toggle("copilote",getAppMode()==="copilote");
 renderModeToggle();
 
