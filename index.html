@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.2 — Shopping Gaming</title>
+<title>Compat'PC V8.4.3 — Shopping Gaming</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -412,6 +412,7 @@ html,body{max-width:100%;overflow-x:hidden}
         <button class="btn rail-btn" id="openSimpleLibrary"><span class="rail-ico">📚</span>Bibliothèque</button>
         <button class="btn rail-btn" id="navPanier"><span class="rail-ico">🧩</span>Projet</button>
         <button class="btn rail-btn" id="openSaved"><span class="rail-ico">👨‍👩‍👦</span>Famille</button>
+        <button class="btn rail-btn" id="modeToggle" title="Basculer entre le mode guidé et le mode expert"><span class="rail-ico">🎯</span>Copilote</button>
         <div class="rail-sep"></div>
         <button class="btn rail-btn ghost" id="restart" title="Tout recommencer"><span class="rail-ico">⟳</span>Reset</button>
       </div>
@@ -572,6 +573,7 @@ html,body{max-width:100%;overflow-x:hidden}
 <div class="field"><label>Gamme</label><select id="simpleTier"><option value="all">Toutes les gammes</option><option value="haut">Haut de gamme</option><option value="moyen">Milieu de gamme</option><option value="entrée">Entrée de gamme</option></select></div>
           </div>
           <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div id="simpleLibraryCount" style="margin:14px 0;color:var(--muted)"></div>
+          <div id="copiloteBar"></div>
           <div id="simpleLibraryGrid" class="option-grid"></div>
         </div>
       </section>
@@ -728,7 +730,7 @@ html,body{max-width:100%;overflow-x:hidden}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.2 « Repères » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.3 « Copilote » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1638,6 +1640,7 @@ function renderSimpleLibrary(){
  const top=document.getElementById("simpleTop").value;
  updateLibraryFilters();
  renderFamilyBar();
+ renderCopiloteBar(cat);
  const tier=document.getElementById("simpleTier").value;
  const brand=document.getElementById("simpleBrand")?.value||"all";
  let rows=[];
@@ -2991,6 +2994,111 @@ function openMyPc(){
  else{renderMyPcForm();openPanel("mypcPanel")}
 }
 document.getElementById("doorMyPc").onclick=openMyPc;
+/* ===== V8.4.3 Copilote : le conseil d'abord ===== */
+function getAppMode(){return localStorage.getItem("compatpc-mode")||"expert"}
+function setAppMode(m){localStorage.setItem("compatpc-mode",m);document.body.classList.toggle("copilote",m==="copilote");renderModeToggle();try{renderSimpleLibrary()}catch(e){}}
+function renderModeToggle(){
+ const b=document.getElementById("modeToggle");if(!b)return;
+ const on=getAppMode()==="copilote";
+ b.innerHTML=`<span class="rail-ico">${on?"🎯":"🔧"}</span>${on?"Copilote":"Expert"}`;
+ b.classList.toggle("active",false);
+ b.style.borderColor=on?"#5b4794":"transparent";
+}
+function shortPieceName(n){return (n||"").replace(/\s*—\s*profil générique\s*/i,"").replace(/\([^)]*\)/g,"").trim()}
+function catWhatIs(cat){return({
+ cpu:"🧠 Le processeur, c’est le cerveau : il calcule tout. Important pour les gros jeux et le montage vidéo.",
+ gpu:"💪 La carte graphique, c’est le muscle des jeux : c’est elle qui fabrique tes FPS.",
+ ram:"⚡ La mémoire vive garde tes jeux « sous la main ». 32 Go = très confortable aujourd’hui.",
+ ssd:"📦 Le SSD stocke tes jeux et démarre Windows. Plus il est grand, moins tu désinstalles.",
+ psu:"🔌 L’alimentation nourrit tout le PC. Trop faible = plantages ; de la marge = tranquillité.",
+ motherboard:"🕸️ La carte mère relie toutes les pièces. Elle doit parler la même langue que ton processeur.",
+ case:"🏠 Le boîtier, c’est la maison : la carte graphique doit y rentrer, et le style, c’est toi.",
+ cooler:"❄️ Le refroidissement garde le processeur au frais pour qu’il donne tout, sans bruit.",
+ fans:"🌀 Les ventilateurs font circuler l’air frais dans le boîtier."
+})[cat]||""}
+function copiloteAdvice(cat){
+ const prof=getMyPc();if(!prof||!prof.selection||!prof.selection.cpu)return {need:true};
+ const cpu=get("cpu",prof.selection.cpu),gpu=get("gpu",prof.selection.gpu),ram=get("ram",prof.selection.ram);
+ if(!cpu||!gpu)return {need:true};
+ const GAMES=["Warzone","Elden Ring","Cyberpunk 2077"];
+ let p=null,why="";
+ if(cat==="gpu"){
+   const before=avgFpsOf(gpu,cpu,GAMES,"1080p");let best=null;
+   parts.gpu.filter(x=>!/occasion/i.test(x.name)&&(x.price||0)>0&&x.price<=500&&gpuIndex(x)>gpuIndex(gpu)+5).forEach(x=>{
+     const d=avgFpsOf(x,cpu,GAMES,"1080p")-before;
+     if(d>=5){const v=x.price/d;if(!best||v<best.v)best={p:x,d,v}}
+   });
+   if(best){p=best.p;why=`environ +${Math.round(best.d)} FPS sur les gros jeux par rapport à ta ${shortPieceName(gpu.name)}, pour ${money(p.price)} — le meilleur rapport dans un budget de 500 €.`}
+   else why="";
+ }
+ if(cat==="cpu"){
+   let best=null;
+   parts.cpu.filter(x=>(x.price||0)>0&&x.price<=500&&x.socket===cpu.socket&&cpuIndex(x)>cpuIndex(cpu)+5).forEach(x=>{
+     const v=x.price/(cpuIndex(x)-cpuIndex(cpu));if(!best||v<best.v)best={p:x,v};
+   });
+   if(best){p=best.p;why=`se monte directement à la place de ton ${shortPieceName(cpu.name)} (même socket ${cpu.socket}), sans changer de carte mère.`}
+ }
+ if(cat==="ram"&&ram){
+   const pool=parts.ram.filter(x=>x.type===ram.type&&(x.capacity||0)>=32&&(x.price||0)>0);
+   p=pool.length?decCheapest(pool):null;
+   if(p)why=`le bon type (${ram.type}) pour ta carte mère, et 32 Go = le vrai confort pour les jeux d’aujourd’hui.`;
+ }
+ if(cat==="psu"){
+   const need=recommendedPsuWatts(cpu,gpu);
+   const pool=parts.psu.filter(x=>(x.watts||0)>=need&&(x.price||0)>0);
+   p=pool.length?decCheapest(pool):null;
+   if(p)why=`ton PC a besoin d’environ ${need} W : celle-ci les fournit avec de la marge pour tes futurs upgrades.`;
+ }
+ if(cat==="ssd"){
+   const pool=parts.ssd.filter(x=>(x.capacity||0)>=2&&(x.price||0)>0);
+   const byTo=[...pool].sort((a,b)=>(a.price/a.capacity)-(b.price/b.capacity));
+   p=byTo[0]||null;
+   if(p)why=`${p.capacity} To au meilleur prix du To — les jeux modernes prennent 100 Go chacun, tu seras tranquille.`;
+ }
+ if(cat==="cooler"){
+   const pool=parts.cooler.filter(x=>(x.sockets||[]).includes(cpu.socket)&&(x.price||0)>0);
+   p=pool.length?decCheapest(pool):null;
+   if(p)why=`compatible avec ton processeur (socket ${cpu.socket}) — installation sans surprise.`;
+ }
+ if(cat==="case"){
+   const pool=parts.case.filter(x=>(x.maxGpu||0)>=(gpu.length||300)&&(x.price||0)>0);
+   p=pool.length?decCheapest(pool):null;
+   if(p)why=`ta carte graphique (${gpu.length||300} mm) y rentre, c’est vérifié — après, le style, c’est ton choix.`;
+ }
+ if(cat==="motherboard"&&ram){
+   const pool=parts.motherboard.filter(x=>x.socket===cpu.socket&&x.ram===ram.type&&(x.price||0)>0);
+   p=pool.length?decCheapest(pool):null;
+   if(p)why=`socket ${cpu.socket} + ${ram.type} : exactement ce que ton processeur et ta mémoire demandent.`;
+ }
+ if(cat==="fans"){
+   const pool=parts.fans.filter(x=>(x.price||0)>0);
+   p=pool.length?decCheapest(pool):null;
+   if(p)why=`simple et efficace pour faire circuler l’air — le confort de tout le PC.`;
+ }
+ return p?{p,why}:null;
+}
+function copiloteUse(cat,id){
+ if(!state.cart&&getMyPc())loadMyPcIntoCart();
+ if(!state.cart){showToast("Choisis d’abord un projet (ou enregistre Mon PC).");return}
+ state.cart.selection[cat]=id;renderCart();go(4);showToast("Conseil appliqué à ton projet !");
+}
+function renderCopiloteBar(cat){
+ const bar=document.getElementById("copiloteBar");if(!bar)return;
+ if(getAppMode()!=="copilote"||FAMILY_VIEW||!cat||cat==="all"){bar.innerHTML="";return}
+ const adv=copiloteAdvice(cat);
+ const what=`<div class="small-note" style="margin-bottom:6px">${catWhatIs(cat)}</div>`;
+ if(!adv){bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<span class="small-note">Pas de conseil évident ici pour ton PC actuel — ta configuration est déjà solide sur ce poste. 👍</span></div>`;return}
+ if(adv.need){bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<span>🎯 Enregistre <strong>Mon PC</strong> pour recevoir un conseil personnalisé dans chaque rayon.</span> <button class="btn secondary" style="font-size:11px" onclick="openMyPc()">Enregistrer mon PC →</button></div>`;return}
+ bar.innerHTML=`<div class="verdict-warn" style="background:#171026;border-color:#5b4794;color:#e6e0ff;margin-bottom:12px">${what}<div>🎯 <strong>Notre conseil pour toi : ${escapeHtml(shortPieceName(adv.p.name))}</strong> (${money(adv.p.price)})<br><span class="small-note">${adv.why}</span></div><div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><button class="btn secondary" style="font-size:11px" onclick="openSheet('${cat}','${adv.p.id}')">Voir la fiche</button><button class="btn" style="font-size:11px" onclick="copiloteUse('${cat}','${adv.p.id}')">Mettre dans mon projet</button></div></div>`;
+}
+document.getElementById("modeToggle").onclick=()=>{
+ const to=getAppMode()==="copilote"?"expert":"copilote";
+ setAppMode(to);
+ showToast(to==="copilote"?"🎯 Mode Copilote : un conseil personnalisé t’attend dans chaque rayon de la bibliothèque.":"🔧 Mode Expert : toutes les données, aucun filtre — le cockpit complet.");
+};
+document.body.classList.toggle("copilote",getAppMode()==="copilote");
+renderModeToggle();
+
 document.getElementById("closeMyPc").onclick=()=>{document.getElementById("mypcPanel").classList.remove("active");go(0)};
 document.getElementById("mypcEdit").onclick=()=>{renderMyPcForm();openPanel("mypcPanel")};
 document.getElementById("mypcSave").onclick=()=>{const prof=saveMyPcFromForm();if(prof&&loadMyPcIntoCart(prof)){document.getElementById("mypcPanel").classList.remove("active");openUpLab();renderMyPcDoor();showToast("PC enregistré ! La prochaine fois : un seul appui.")}};
