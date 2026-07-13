@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.11 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.4.12 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -662,7 +662,8 @@ body.copilote .expert-only{display:none!important}
           <div class="preview" id="productPreview"></div>
           <div class="shop-section" style="margin-top:20px"><div class="shop-head"><div><h3>🧩 Décoder une config complète</h3><p>Colle la fiche entière d'un PC (Amazon, LDLC, une annonce d'occasion…) — l'app retrouve chaque pièce : exacte si elle existe, équivalente en puissance sinon, complétée intelligemment pour le reste.</p></div></div>
             <textarea id="decodeText" rows="5" placeholder="Colle ici tout le descriptif — exemple : « PC Gamer Ryzen 5 7500F, GeForce RTX 4060 8 Go, 16 Go DDR5, SSD 1 To NVMe, alimentation 650W »" style="width:100%;background:#121217;border:1px solid #35353f;border-radius:10px;color:var(--text);padding:10px;resize:vertical"></textarea>
-            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;align-items:center"><button class="btn" id="decodeBtn">Décoder la config</button><span class="small-note">Un lien Amazon ? Ouvre la page, Cmd+A puis copie-colle tout ici — Amazon bloque la lecture automatique, le texte est infaillible.</span></div>
+            <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;align-items:center"><div class="field" style="max-width:260px;margin:10px 0"><label>💶 Il est vendu combien ? (optionnel)</label><input id="soldPrice" type="number" min="0" placeholder="ex : 899"></div>
+            <button class="btn" id="decodeBtn">Décoder la config</button><span class="small-note">Un lien Amazon ? Ouvre la page, Cmd+A puis copie-colle tout ici — Amazon bloque la lecture automatique, le texte est infaillible.</span></div>
             <div id="decodeResult" style="margin-top:12px"></div>
           </div>
           <div class="status ok" style="margin-top:14px">
@@ -746,7 +747,7 @@ body.copilote .expert-only{display:none!important}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.11 « Le blanc est un choix » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.12 « Vendu vs Reconstruit » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1338,8 +1339,11 @@ function fpsPanelHtml(sel,res){
  const fv=futureVerdict(sel);
  const fvChip=fv?`<span class="${fv.cls}" style="font-size:10px;font-weight:900;margin-left:8px;white-space:nowrap">${fv.icon} ${fv.label}</span>`:"";
  const copMode=(typeof getAppMode==="function"&&getAppMode()==="copilote");
+ const rb=(state.cart&&state.cart.rebuilt&&sel===state.cart.selection)?state.cart.rebuilt:null;
+ const rbChip=rb?`<span class="gv-mid" style="font-size:10px;font-weight:900;margin-left:8px;white-space:nowrap">🔧 VERSION CORRIGÉE</span>`:"";
+ const rbLine=rb?`<p class="fps-note" style="color:#f0b45c;margin:4px 0 2px">🔧 <strong>Ce rang note la version corrigée par Compat’PC</strong>${rb.cost?` (+${money(rb.cost)} : ${rb.why})`:` (${rb.why})`} — <strong>PAS le PC tel qu’il est vendu.</strong></p>`:"";
  const fvLine=fv&&(copMode||fv.icon==="🧱")?`<p class="fps-note" style="${fv.icon==="🧱"?"color:#f0b45c;":""}margin:4px 0 8px"><strong>${fv.icon} ${fv.text}.</strong>${fv.icon==="🧱"?" Ça peut rester un bon achat — SEULEMENT si le prix est vraiment bas. Pas un euro de plus.":""}</p>`:"";
- return `<div class="fps-head"><h4>🎮 Performances estimées ${rankHtml(sel)}${fvChip}</h4><div class="fps-tabs">${tabs}</div></div>${fvLine}${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
+ return `<div class="fps-head"><h4>🎮 Performances estimées ${rankHtml(sel)}${fvChip}${rbChip}</h4><div class="fps-tabs">${tabs}</div></div>${rbLine}${fvLine}${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
 }
 function renderFpsPanel(){
  const box=document.getElementById("fpsPanel");
@@ -2852,21 +2856,41 @@ function renderDecodeReport(){
  const CLS={exact:"gv-good",specs:"gv-good",famille:"gv-good",approx:"gv-mid",auto:"gv-bad",unknown:"gv-bad",original:"gv-mid",manual:"gv-good"};
  const CATS=["cpu","motherboard","ram","gpu","case","cooler","fans","ssd","psu"];
  let total=0,missing=0;
+ CATS.forEach(cat=>{const r=out[cat];if(r&&r.p)total+=r.p.price||0});
  const rows=CATS.map(cat=>{
    const r=out[cat];if(!r||!r.p)return "";
-   total+=r.p.price||0;
    const fixable=(r.how==="famille"||r.how==="approx"||r.how==="auto"||r.how==="unknown");
    if(fixable&&r.src)missing++;
    const btns=fixable?`<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${r.src?`<button class="btn ghost" data-addorig="${cat}" style="font-size:10.5px;padding:4px 9px">＋ Ajouter l\u2019original</button>`:""}<button class="btn ghost" data-choose="${cat}" style="font-size:10.5px;padding:4px 9px">Choisir autrement</button></div>`:"";
    return `<div class="duel-row"><div>${labelCat(cat)}<small>${escapeHtml(r.note)}</small>${btns}</div><span class="${CLS[r.how]}" style="font-size:10.5px;font-weight:900">${decodeHowLabel(r.how)}</span><div style="text-align:right">${escapeHtml(r.p.name)}<small>${money(r.p.price)} ${fpIcon(cat,r.p)}</small></div></div>`;
  }).join("");
  const colorLine=out.__color?`<div class="small-note" style="margin:2px 0 8px">🎨 <strong>Style détecté : setup ${out.__color==="white"?"blanc":"noir"}</strong> — le coloris est respecté partout où la bibliothèque le permet ; chaque exception est signalée sur sa ligne.</div>`:"";
+ // ===== Vendu vs Reconstruit =====
+ let recog=[],compl=[],complCost=0,addCost=0;
+ CATS.forEach(cat=>{const r=out[cat];if(!r||!r.p)return;
+   if(["exact","specs","famille","manual"].includes(r.how))recog.push(labelCat(cat));
+   else{compl.push(labelCat(cat));complCost+=r.p.price||0}
+ });
+ const integrated=det&&det.gpuIntegrated;
+ if(integrated&&out.gpu&&out.gpu.p)addCost=out.gpu.p.price||0;
+ const sold=Number((document.getElementById("soldPrice")||{}).value)||0;
+ let priceVerdict="";
+ if(sold){
+   const realCost=sold+addCost;
+   if(integrated&&realCost>=total*0.95)priceVerdict=`<div style="margin-top:6px;color:#f07f7f"><strong>⚠ Mauvaise affaire :</strong> vendu ${money(sold)} + ${money(addCost)} de carte graphique indispensable = <strong>${money(realCost)}</strong>. Pour ce prix, Compat’PC te construit la version corrigée en neuf (${money(total)}), pièces récentes et garanties.</div>`;
+   else if(integrated)priceVerdict=`<div style="margin-top:6px;color:#f0b45c">Coût réel pour VRAIMENT jouer : ${money(sold)} + ${money(addCost)} de carte graphique = <strong>${money(realCost)}</strong>. À comparer aux ${money(total)} de la version corrigée complète.</div>`;
+   else priceVerdict=`<div style="margin-top:6px" class="small-note">Vendu ${money(sold)} — la reconstruction Compat’PC des mêmes pièces revient à ${money(total)} : ${sold<=total?"prix cohérent, si les pièces annoncées sont exactes.":"tu paies "+money(sold-total)+" de plus que les pièces — vérifie ce qui justifie l’écart (montage, garantie, Windows…)."}</div>`;
+ }
+ const twoTruths=`<div class="duel-box" style="margin:8px 0;border-color:#5b4794">
+   <div><strong>🏷️ Le PC tel qu’il est vendu</strong><br><span class="small-note">Pièces reconnues dans l’annonce : ${recog.length?recog.join(", "):"aucune avec certitude"}.</span>${integrated?`<br><span style="color:#f07f7f">🔴 <strong>Pas de vraie carte graphique</strong> — la puce intégrée (${escapeHtml(det.gpuIntegrated)}) n’est pas faite pour les gros jeux. Aucun chiffre inventé : ce PC, tel quel, n’est pas un PC gamer.</span>`:""}</div>
+   <div style="margin-top:8px"><strong>🔧 La version corrigée par Compat’PC</strong><br><span class="small-note">${compl.length?`Complétés par l’app : ${compl.join(", ")} (valeur ${money(complCost)}) — présents ou non chez le vendeur : vérifie l’annonce.`:"Rien à compléter."}${integrated?` <strong>Dont un AJOUT indispensable : la carte graphique (+${money(addCost)}), absente du PC vendu.</strong>`:""}<br><strong>Le total et les performances affichés ci-dessous sont ceux de CETTE version corrigée${integrated?", PAS du PC d’origine":""}.</strong></span>${priceVerdict}</div>
+ </div>`;
  const addAll=missing?`<button class="btn secondary" id="decodeAddAll" style="font-size:11px">＋ Ajouter toutes les références manquantes (${missing})</button>`:"";
  const cop=getAppMode()==="copilote";
  const actions=cop
    ?`<div style="width:100%"><strong>Que veux-tu faire avec ce PC ?</strong><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn secondary" id="decKeep">🗂 Le garder dans mes projets</button><button class="btn secondary" id="decCompare">⚖️ Le comparer à Mon PC</button><button class="btn secondary" id="decodeUpLab">🔼 Voir si je peux l’améliorer</button><button class="btn" id="decToBuy">🛒 Transformer en liste d’achat</button></div><div style="margin-top:8px">${addAll}</div></div>`
    :`<span style="display:flex;gap:8px;flex-wrap:wrap">${addAll}<button class="btn secondary" id="decodeUpLab">🔼 Voir comment l’améliorer</button><button class="btn" id="decodeCreate">En faire mon projet</button></span>`;
- box.innerHTML=`<div class="duel-box">${colorLine}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span>${actions}</div><div id="decodeCompareBox"></div></div>`;
+ box.innerHTML=`<div class="duel-box">${colorLine}${twoTruths}${rows}<div class="small-note" style="margin-top:8px">Pérennité : 🛡️ évoluera • ⏳ encore solide • 🧱 fin de parcours.</div><div class="duel-verdict" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><span>Total reconstruit : <strong>${money(total)}</strong></span>${actions}</div><div id="decodeCompareBox"></div></div>`;
  const dc=document.getElementById("decodeCreate");if(dc)dc.onclick=()=>{createDecodedCart()};
  document.getElementById("decodeUpLab").onclick=()=>{createDecodedCart();openUpLab()};
  const dk=document.getElementById("decKeep");if(dk)dk.onclick=decKeepProject;
@@ -2886,6 +2910,9 @@ function createDecodedCart(){
  }
  state.cart={label:"PC trouvé sur Internet",desc:"Reconstruit depuis une page ou une description",selection,decodeMeta};
  if(out.__color)state.cart.targetColor=out.__color;
+ const D2=window.__decode;
+ if(D2&&D2.det&&D2.det.gpuIntegrated)state.cart.rebuilt={cost:(out.gpu&&out.gpu.p&&out.gpu.p.price)||0,why:"carte graphique ajoutée ("+D2.det.gpuIntegrated+" intégrée seulement)"};
+ else if(Object.values(decodeMeta).some(m=>m.how==="unknown"))state.cart.rebuilt={cost:0,why:"pièces non reconnues remplacées"};
  if(window.__decodeToMyPc){
    window.__decodeToMyPc=false;
    saveMyPcProfile({label:"Mon PC",selection:{...selection},unknown:{},updatedAt:Date.now()});
@@ -2911,6 +2938,7 @@ function addOriginalRef(cat,silent){
  if(!silent){renderDecodeReport();showToast("Référence ajoutée à ta bibliothèque — pense à compléter le prix !")}
 }
 document.getElementById("decodeBtn").onclick=runDecode;
+const __sp=document.getElementById("soldPrice");if(__sp)__sp.onchange=()=>{if(window.__decode)renderDecodeReport()};
 /* ===== V8.3 Upgrade Lab (idée de Noah) ===== */
 function upFps(sel,res){const g=get("gpu",sel.gpu),c=get("cpu",sel.cpu);if(!g||!c)return 0;return avgFpsOf(g,c,["Warzone","Elden Ring","Cyberpunk 2077"],res)}
 function finalizeUpgradeCandidate(sel,cur,changes,apply,cost){
