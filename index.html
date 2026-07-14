@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.5.0 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.5.1 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -390,6 +390,8 @@ body.copilote .expert-only{display:none!important}
 body:not(.copilote) .door-guided{display:none}
 body.copilote #openExpertWorkshop,body.copilote #restart{display:none}
 body.copilote:not(.show-more) .home-extra{display:none}
+body.copilote #quickSaved{grid-column:1/-1;padding:10px 16px;background:transparent;border-style:dashed}
+@media(max-width:860px){body.copilote #openExpertWorkshop,body.copilote #navCreer,body.copilote #openSimpleLibrary{display:none}}
 </style>
 </head>
 <body>
@@ -472,7 +474,7 @@ body.copilote:not(.show-more) .home-extra{display:none}
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
           <div class="shop-section home-extra"><div class="shop-head"><div><h3>Explorer par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
-          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div class="shop-section home-extra"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
+          <div class="legend-box home-extra"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div class="shop-section home-extra"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
         </div>
       </section>
 
@@ -769,7 +771,7 @@ body.copilote:not(.show-more) .home-extra{display:none}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.0 « L'accueil de Noah » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.1 « Édition visuelle » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2649,7 +2651,7 @@ document.getElementById("expertMode").onclick=()=>{
 };
 
 function currentUser(){return (localStorage.getItem("compatpc_user")||"").trim()}
-function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";applyAppMode();showToast("Salut "+n+" ! Bon projet 🚀"+(getAppMode()==="copilote"?" — mode Guidé 🎯":""))}
+function setUser(n){localStorage.setItem("compatpc_user",n);updateUserChip();document.getElementById("welcomeOverlay").style.display="none";applyAppMode();if(getAppMode()!=="copilote")showToast("Salut "+n+" ! Bon projet 🚀")}
 function updateUserChip(){document.getElementById("userChip").textContent="👤 "+(currentUser()||"Qui es-tu ?");const g=document.getElementById("homeGreeting");if(g)g.textContent=currentUser()?("Salut "+currentUser()+" ! 👋"):"Salut ! 👋"}
 function showWelcome(){document.getElementById("welcomeOther").value="";document.getElementById("welcomeOverlay").style.display="flex"}
 document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
@@ -3201,6 +3203,14 @@ function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&c
 function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
 function renderHomeDoors(){
  const cop=getAppMode()==="copilote";
+ const fam=document.getElementById("quickSaved");
+ if(fam)fam.innerHTML=cop
+   ?`<h3 style="font-size:14px;margin:0">👨‍👩‍👦 Mes projets et ceux de la famille →</h3>`
+   :`<h3>👨‍👩‍👦 Configs de la famille</h3><p>Les setups publiés par Bidou et Noah, visibles depuis n’importe quel appareil. Charge, compare, améliore.</p><span class="door-cta">Voir les configs →</span>`;
+ const bp=document.querySelector(".brand p");
+ if(bp)bp.textContent=cop
+   ?"Je t’aide à comprendre, créer et améliorer ton PC — sans acheter n’importe quoi."
+   :"Construis ton PC avec une bibliothèque de 449 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.";
  const s=document.getElementById("shopStart");
  if(s)s.innerHTML=cop
    ?`<h3>🎮 Créer mon futur PC</h3><p>Choisis son style, ton budget et tes jeux — je construis une configuration complète et compatible.</p><span class="door-cta">Créer →</span>`
