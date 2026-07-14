@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.5.1 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.5.2 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -390,8 +390,23 @@ body.copilote .expert-only{display:none!important}
 body:not(.copilote) .door-guided{display:none}
 body.copilote #openExpertWorkshop,body.copilote #restart{display:none}
 body.copilote:not(.show-more) .home-extra{display:none}
-body.copilote #quickSaved{grid-column:1/-1;padding:10px 16px;background:transparent;border-style:dashed}
 @media(max-width:860px){body.copilote #openExpertWorkshop,body.copilote #navCreer,body.copilote #openSimpleLibrary{display:none}}
+/* ===== V8.5.2 — L'accueil dessiné (Guidé, desktop) ===== */
+body.copilote.home-view .sidebar.rail{display:none}
+body.copilote.home-view .shell{grid-template-columns:1fr;min-height:calc(100vh - 150px)}
+body.copilote #shopHome{background:transparent;border:none;box-shadow:none}
+body.copilote #shopHome .card-body{padding:10px 2px}
+body.copilote .home-hero h2{font-size:30px}
+body.copilote .door-grid{grid-template-columns:1fr 1fr;gap:18px}
+body.copilote #doorMyPc{grid-column:1/-1;display:grid;grid-template-columns:3fr 2fr;gap:22px;align-items:center;padding:28px;min-height:170px}
+body.copilote .door{padding:24px;min-height:200px;display:flex;flex-direction:column}
+body.copilote .door .door-art{height:56px;display:flex;align-items:center;margin-bottom:12px}
+body.copilote .door .door-cta{margin-top:auto;padding-top:14px}
+body.copilote .hv-chip{background:#191226;border:1px solid #5b4794;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;margin:5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.copilote #quickSaved{grid-column:1/-1;padding:4px 0;background:transparent;border:none;text-align:center;min-height:0}
+body.copilote #quickSaved h3{color:var(--muted);font-weight:700;font-size:13.5px}
+body.copilote #homeMoreBtn{display:block;margin:2px auto 14px}
+@media(max-width:860px){body.copilote #doorMyPc{grid-template-columns:1fr}body.copilote .door-grid{grid-template-columns:1fr}body.copilote .door{min-height:0}}
 </style>
 </head>
 <body>
@@ -442,11 +457,7 @@ body.copilote #quickSaved{grid-column:1/-1;padding:10px 16px;background:transpar
               <h3>🔼 Upgrader mon PC</h3>
               <p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p>
             </div>
-            <div class="door door-guided" id="doorVerify">
-              <h3>🔍 Vérifier un PC trouvé sur Internet</h3>
-              <p>Colle le lien ou la description : je te dirai ce qu’il contient vraiment et s’il vaut son prix.</p>
-              <span class="door-cta">Vérifier →</span>
-            </div>
+            <div class="door door-guided" id="doorVerify"></div>
             <div class="door" id="shopStart">
               <h3>🎮 Parcours guidé</h3>
               <p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à construire.</p>
@@ -771,7 +782,7 @@ body.copilote #quickSaved{grid-column:1/-1;padding:10px 16px;background:transpar
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.1 « Édition visuelle » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.2 « L'accueil dessiné » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -1137,7 +1148,7 @@ const stepLabels=["Style","Budget","Usages","Propositions","Projet"];
 
 function money(n){return Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0})}
 function googleUrl(query){return "https://www.google.com/search?q="+encodeURIComponent(query)}
-function showPanel(id){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
+function showPanel(id){document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
 function readFavorites(){try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||"[]")}catch(e){return []}}
 function saveFavorites(a){localStorage.setItem(FAVORITES_KEY,JSON.stringify(a))}
 function keyOf(c,i){return c+"|"+i}function isFavorite(c,i){return readFavorites().includes(keyOf(c,i))}
@@ -1224,9 +1235,10 @@ function renderSteps(){
  })
 }
 function go(i){
- state.step=i;document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".panel[data-step]").forEach(p=>p.classList.toggle("active",Number(p.dataset.step)===i));
+ state.step=i;document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".panel[data-step]").forEach(p=>p.classList.toggle("active",Number(p.dataset.step)===i));
  document.getElementById("importPanel").classList.remove("active");document.getElementById("savedPanel").classList.remove("active");document.getElementById("personalLibraryPanel").classList.remove("active");
  renderSteps();window.scrollTo({top:0,behavior:"smooth"});
+ document.body.classList.toggle("home-view",i===0);
  if(typeof __cartAutosave==="function")__cartAutosave();
 }
 function renderMoods(){
@@ -1710,7 +1722,7 @@ let simpleLibraryTarget=null;
 function openSimpleLibrary(category){
  if(!window.__keepDecodeTarget)window.decodeReplaceTarget=null;window.__keepDecodeTarget=false;
  simpleLibraryTarget=category||null;
- document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+ document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("simpleLibrary").classList.add("active");
  const catSel=document.getElementById("simpleCategory");
  if(!catSel.options.length){
@@ -1818,7 +1830,7 @@ function renderSimpleLibrary(){
 }
 
 function openExpertWorkshop(){
- document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+ document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("expertWorkshop").classList.add("active");
  if(state.cart && !Object.keys(state.expertSelection).length)state.expertSelection={...state.cart.selection};
  renderExpertToolbox();
@@ -2483,7 +2495,7 @@ function renderArt(cat,p,hero=false){
  return `<svg class="pc-svg" viewBox="0 0 240 140" xmlns="http://www.w3.org/2000/svg"><rect x="50" y="30" width="140" height="80" rx="12" fill="${color}" stroke="${frame}" stroke-width="3"/></svg>`;
 }
 
-function openImport(){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("importPanel").classList.add("active")}
+function openImport(){document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("importPanel").classList.add("active")}
 function closeImport(){document.getElementById("importPanel").classList.remove("active");go(state.cart?4:state.step)}
 
 function renderPersonalLibrary(){
@@ -2525,7 +2537,7 @@ function editPersonalItem(cat,id){
  renderPersonalLibrary();renderSimpleLibrary();renderExpertToolbox();showToast("Référence modifiée.");
 }
 function openPersonalLibrary(){
- document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
+ document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("personalLibraryPanel").classList.add("active");
  renderPersonalLibrary();
 }
@@ -2564,7 +2576,7 @@ function renderSaved(){
  w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{if(!confirmReplaceCart())return;const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)});
  w.querySelectorAll("[data-uplab]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.uplab)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");openUpLab()})
 }
-function openSaved(){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs();renderPurchaseList()}
+function openSaved(){document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs();renderPurchaseList()}
 function saveCurrent(){
  if(!state.cart)return;const name=prompt("Nom de la configuration :","Setup de Noah");if(!name)return;
  const arr=JSON.parse(localStorage.getItem("compatpc_v3_builds")||"[]");arr.push({name,cart:state.cart,mood:state.mood,budget:state.budget,total:cartTotal(),savedAt:new Date().toISOString()});localStorage.setItem("compatpc_v3_builds",JSON.stringify(arr));showToast("Configuration sauvegardée dans ce navigateur.");renderSaved()
@@ -3118,7 +3130,8 @@ document.getElementById("upGo").onclick=renderUpgradePlans;
 const MYPC_KEY="compatpc-mypc-v1";
 function getMyPc(){try{return JSON.parse(localStorage.getItem(MYPC_KEY)||"null")}catch(e){return null}}
 function saveMyPcProfile(p){try{localStorage.setItem(MYPC_KEY,JSON.stringify(p))}catch(e){}}
-function openPanel(id){document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active")}
+function openPanel(id){
+ document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active")}
 function makeMyPcStub(cat,cpu,ram){
  const names={motherboard:"Carte mère de mon PC (à préciser)","case":"Boîtier de mon PC (à préciser)",cooler:"Refroidissement de mon PC (à préciser)",ssd:"SSD de mon PC (à préciser)",psu:"Alimentation de mon PC (à préciser)",fans:"Ventilateurs de mon PC"};
  const obj={id:"mypc-"+cat,name:names[cat],price:0,color:"neutral",custom:true,origin:"mypc",_assumed:{}};
@@ -3201,11 +3214,16 @@ const __he=document.getElementById("hubEdit");if(__he)__he.onclick=()=>{document
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
 function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase())}
 function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
+const HOME_ICONS={
+ improve:`<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M12 13V8M9 10.5 12 8l3 2.5"/></svg>`,
+ verify:`<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m21 21-5.5-5.5"/><path d="M8 10.5h5M10.5 8v5"/></svg>`,
+ create:`<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#86efac" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="8" r="2.2"/><path d="M9.5 14h5M9.5 17h5"/></svg>`,
+ tower:`<svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#5b4794" stroke-width="1.1" stroke-linecap="round"><rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="8" r="2.4"/><path d="M9.5 13.5h5M9.5 16h5M9.5 18.5h5"/></svg>`};
 function renderHomeDoors(){
  const cop=getAppMode()==="copilote";
  const fam=document.getElementById("quickSaved");
  if(fam)fam.innerHTML=cop
-   ?`<h3 style="font-size:14px;margin:0">👨‍👩‍👦 Mes projets et ceux de la famille →</h3>`
+   ?`<h3>Mes projets et ceux de la famille →</h3>`
    :`<h3>👨‍👩‍👦 Configs de la famille</h3><p>Les setups publiés par Bidou et Noah, visibles depuis n’importe quel appareil. Charge, compare, améliore.</p><span class="door-cta">Voir les configs →</span>`;
  const bp=document.querySelector(".brand p");
  if(bp)bp.textContent=cop
@@ -3213,8 +3231,10 @@ function renderHomeDoors(){
    :"Construis ton PC avec une bibliothèque de 449 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.";
  const s=document.getElementById("shopStart");
  if(s)s.innerHTML=cop
-   ?`<h3>🎮 Créer mon futur PC</h3><p>Choisis son style, ton budget et tes jeux — je construis une configuration complète et compatible.</p><span class="door-cta">Créer →</span>`
+   ?`<div class="door-art">${HOME_ICONS.create}</div><h3>Créer mon futur PC</h3><p>Choisis son style, ton budget et tes jeux — je construis une configuration complète et compatible.</p><span class="door-cta">Créer →</span>`
    :`<h3>🎮 Parcours guidé</h3><p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à construire.</p><span class="door-cta">Commencer →</span>`;
+ const dv=document.getElementById("doorVerify");
+ if(dv)dv.innerHTML=`<div class="door-art">${HOME_ICONS.verify}</div><h3>Vérifier un PC trouvé sur Internet</h3><p>Colle le lien ou la description : je te dirai ce qu’il contient vraiment et s’il vaut son prix.</p><span class="door-cta">Vérifier →</span>`;
  const ih=document.querySelector("#importPanel .card-head h2");
  if(ih)ih.textContent=cop?"🔍 Vérifier un PC trouvé sur Internet":"Ajouter une pièce depuis un lien";
  if(typeof renderMyPcDoor==="function")renderMyPcDoor();
@@ -3350,6 +3370,7 @@ document.getElementById("modeToggle").onclick=()=>{
  showToast(to==="copilote"?"🎯 Mode Guidé : je te conseille à chaque étape, en langage de jeux.":"🔧 Mode Complet : toutes les données, aucun filtre — le cockpit intégral.");
 };
 try{const l=localStorage.getItem("compatpc-mode");if(l)localStorage.removeItem("compatpc-mode")}catch(e){}
+document.body.classList.add("home-view");
 try{if(!localStorage.getItem("compatpc-repair-8410")){
   Object.keys(localStorage).filter(k=>k.startsWith("compatpc-mode:")).forEach(k=>{if(!localStorage.getItem("compatpc-chosen:"+k.slice(14)))localStorage.removeItem(k)});
   localStorage.setItem("compatpc-repair-8410","1");
@@ -3369,11 +3390,13 @@ function renderMyPcDoor(){
    const cpu=get("cpu",prof.selection.cpu),gpu=get("gpu",prof.selection.gpu),ram=get("ram",prof.selection.ram);
    const dt=prof.updatedAt?new Date(prof.updatedAt).toLocaleDateString("fr-FR"):"";
    const cop=getAppMode()==="copilote";
-   d.innerHTML=`<h3>${cop?"🖥️ Améliorer mon PC":"🖥️ "+escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">${cop?"Voir ce que je peux améliorer →":"Analyser un upgrade →"}</p>`;
+   d.innerHTML=cop
+     ?`<div><div class="door-art">${HOME_ICONS.improve}</div><h3>Améliorer mon PC</h3><p>Découvre ce qui vaut vraiment le coup — dans tes jeux, à ton budget.</p><span class="btn" style="margin-top:14px;display:inline-block">Analyser mon PC</span></div><div class="hero-visual"><div class="hv-chip">🧠 ${escapeHtml(short(cpu&&cpu.name))}</div><div class="hv-chip">🎮 ${escapeHtml(short(gpu&&gpu.name))}</div><div class="hv-chip">💾 ${ram&&ram.capacity?ram.capacity+" Go de mémoire":"RAM à préciser"}</div>${dt?`<div class="small-note" style="margin-top:6px">Mis à jour : ${dt}</div>`:""}</div>`
+     :`<h3>🖥️ ${escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">Analyser un upgrade →</p>`;
  }else{
    const cop=getAppMode()==="copilote";
    d.innerHTML=cop
-     ?`<h3>🖥️ Améliorer mon PC</h3><p>Dis-moi ce que tu veux mieux faire : jouer plus facilement, avoir plus de place, ou préparer les prochains jeux.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`
+     ?`<div><div class="door-art">${HOME_ICONS.improve}</div><h3>Améliorer mon PC</h3><p>Dis-moi ce que tu veux mieux faire : jouer plus facilement, avoir plus de place, ou préparer les prochains jeux.</p><span class="btn" style="margin-top:14px;display:inline-block">Enregistrer mon PC</span></div><div class="hero-visual" style="text-align:center">${HOME_ICONS.tower}</div>`
      :`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
  }
 }
