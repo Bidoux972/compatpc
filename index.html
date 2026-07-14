@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.4.12 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.5.0 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -387,6 +387,9 @@ body:not(.copilote) #guidedImport{display:none}
 body.copilote:not(.show-adv) .import-advanced{display:none!important}
 body:not(.copilote) #labKeeps>summary{display:none}
 body.copilote .expert-only{display:none!important}
+body:not(.copilote) .door-guided{display:none}
+body.copilote #openExpertWorkshop,body.copilote #restart{display:none}
+body.copilote:not(.show-more) .home-extra{display:none}
 </style>
 </head>
 <body>
@@ -437,12 +440,17 @@ body.copilote .expert-only{display:none!important}
               <h3>🔼 Upgrader mon PC</h3>
               <p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p>
             </div>
+            <div class="door door-guided" id="doorVerify">
+              <h3>🔍 Vérifier un PC trouvé sur Internet</h3>
+              <p>Colle le lien ou la description : je te dirai ce qu’il contient vraiment et s’il vaut son prix.</p>
+              <span class="door-cta">Vérifier →</span>
+            </div>
             <div class="door" id="shopStart">
               <h3>🎮 Parcours guidé</h3>
               <p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à construire.</p>
               <span class="door-cta">Commencer →</span>
             </div>
-            <div class="door" id="quickExpert">
+            <div class="door expert-only" id="quickExpert">
               <h3>🔧 Atelier expert</h3>
               <p>Choisis chaque pièce librement, avec les dimensions, les puissances et le diagnostic de compatibilité complet.</p>
               <span class="door-cta">Ouvrir l'atelier →</span>
@@ -453,7 +461,8 @@ body.copilote .expert-only{display:none!important}
               <span class="door-cta">Voir les configs →</span>
             </div>
           </div>
-          <div class="shop-section"><div class="shop-head"><div><h3>La bibliothèque</h3><p><span class="refcount">447</span> composants, plus vos imports partagés en famille.</p></div></div>
+          <button class="btn ghost door-guided" id="homeMoreBtn" style="margin:0 0 14px">Explorer davantage ▾</button>
+          <div class="shop-section home-extra"><div class="shop-head"><div><h3>La bibliothèque</h3><p><span class="refcount">447</span> composants, plus vos imports partagés en famille.</p></div></div>
             <div class="mini-grid">
               <div class="mini" id="shopBrowse">🔍 Explorer tout</div>
               <div class="mini" id="quickImport">🔗 Ajouter un lien</div>
@@ -462,8 +471,8 @@ body.copilote .expert-only{display:none!important}
             </div>
             <div class="shop-nav"><button data-shop-cat="case">Boîtiers</button><button data-shop-cat="gpu">Cartes graphiques</button><button data-shop-cat="cooler">AIO LCD/GIF</button><button data-shop-cat="fans">Ventilateurs RGB</button><button data-shop-cat="motherboard">Cartes mères</button></div>
           </div>
-          <div class="shop-section"><div class="shop-head"><div><h3>Explorer par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
-          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div class="shop-section"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
+          <div class="shop-section home-extra"><div class="shop-head"><div><h3>Explorer par style</h3><p>Des collections visuelles, sans masquer le reste de la bibliothèque.</p></div></div><div class="collection-grid" id="collectionGrid"></div></div>
+          <div class="legend-box"><span class="top-badge">★ TOP 10</span><span class="tier-badge tier-haut">Haut de gamme</span><span class="tier-badge tier-moyen">Milieu de gamme</span><span class="tier-badge tier-entree">Entrée de gamme</span><span class="fp-badge fp-2">🛡️ FUTUREPROOF = évoluera</span><span class="fp-badge fp-1">⏳ ENCORE SOLIDE</span><span class="fp-badge fp-0">🧱 FIN DE PARCOURS = cul-de-sac assumé</span></div><div class="shop-section home-extra"><div class="shop-head"><div><h3>En vitrine</h3><p>Le n°1 de chaque catégorie à tour de rôle — et les imports de la famille avec leur vraie photo. Tes favoris : l'étoile ★ sur une fiche, puis « Mes favoris ».</p></div><button class="btn ghost" id="openFavorites">Mes favoris</button></div><div class="product-strip" id="featuredProducts"></div></div>
         </div>
       </section>
 
@@ -698,6 +707,19 @@ body.copilote .expert-only{display:none!important}
         </div>
       </section>
 
+      <section class="card panel" id="mypcHub">
+        <div class="card-head"><h2>🖥️ Mon PC</h2><button class="btn ghost" id="closeMyPcHub">Fermer</button></div>
+        <div class="card-body">
+          <p class="small-note" style="margin:0 0 10px">Voici ce que tu possèdes actuellement.</p>
+          <div id="mypcHubSummary"></div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px">
+            <button class="btn" id="hubImprove">🔼 Trouver une amélioration</button>
+            <button class="btn secondary" id="hubCompare">🔍 Comparer un PC trouvé</button>
+            <button class="btn ghost" id="hubEdit">✎ Corriger les infos de mon PC</button>
+          </div>
+        </div>
+      </section>
+
       <section class="card panel" id="mypcPanel">
         <div class="card-head"><h2>🖥️ Mon PC</h2><button class="btn ghost" id="closeMyPc">Fermer</button></div>
         <div class="card-body">
@@ -736,10 +758,10 @@ body.copilote .expert-only{display:none!important}
   <div id="welcomeOverlay" class="welcome-overlay" style="display:none">
     <div class="welcome-card">
       <h2>Bienvenue sur Compat'PC !</h2>
-      <p>Dis-moi qui tu es : ton prénom s'affichera sur les configurations que tu publies pour la famille.</p>
-      <div class="welcome-buttons">
-        <button class="btn" data-who="Bidou">👨 Bidou</button>
-        <button class="btn" data-who="Noah">🎮 Noah</button>
+      <p>Dis-moi qui tu es — ça choisit aussi ton expérience :</p>
+      <div class="welcome-buttons" style="flex-direction:column;align-items:stretch;gap:10px">
+        <button class="btn" data-who="Noah" style="text-align:left">🎮 <strong>Noah</strong><br><span style="font-size:11.5px;opacity:.85;font-weight:600">Je te guide et je simplifie les explications</span></button>
+        <button class="btn secondary" data-who="Bidou" style="text-align:left">🔧 <strong>Bidou</strong><br><span style="font-size:11.5px;opacity:.85;font-weight:600">Accès complet à tous les réglages</span></button>
       </div>
       <div class="welcome-other">
         <input id="welcomeOther" placeholder="Autre prénom…">
@@ -747,7 +769,7 @@ body.copilote .expert-only{display:none!important}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.4.12 « Vendu vs Reconstruit » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.0 « L'accueil de Noah » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -2639,7 +2661,7 @@ document.getElementById("brandHome").onclick=()=>showPanel("shopHome");
 updateUserChip();
 if(!currentUser())showWelcome();
 /* ===== Où suis-je + états actifs du menu ===== */
-const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats",mypcPanel:"Mon PC"};
+const PANEL_NAMES={shopHome:"Accueil",simpleLibrary:"Bibliothèque",expertWorkshop:"Atelier expert",importPanel:"Ajouter un lien",comparePanel:"Comparateur",personalLibraryPanel:"Ma bibliothèque",savedPanel:"Configurations & achats",mypcPanel:"Mon PC",mypcHub:"Mon PC"};
 const STEP_NAMES=["Parcours — Style","Parcours — Budget","Parcours — Usages","Parcours — Propositions","Projet"];
 const SIDE_MAP={shopHome:"goHome",simpleLibrary:"openSimpleLibrary",expertWorkshop:"openExpertWorkshop",importPanel:"openImport",personalLibraryPanel:"openPersonalLibrary",savedPanel:"openSaved"};
 let whereBusy=false;
@@ -3149,21 +3171,51 @@ function loadMyPcIntoCart(prof){
  renderCart();
  return true;
 }
+function renderMyPcHub(){
+ const box=document.getElementById("mypcHubSummary");if(!box)return;
+ const prof=getMyPc();if(!prof){box.innerHTML="";return}
+ const CATS=["cpu","gpu","ram","motherboard","case","cooler","ssd","psu"];
+ box.innerHTML=`<div class="duel-box">${CATS.map(cat=>{
+   const id=prof.selection[cat];const unknown=(prof.unknown&&prof.unknown[cat])||!id;
+   const p=id?get(cat,id):null;
+   return `<div class="duel-row"><div>${labelCat(cat)}</div><span></span><div style="text-align:right">${unknown||!p?'<span class="small-note">à préciser</span>':escapeHtml(shortPieceName(p.name))}</div></div>`;
+ }).join("")}</div>`;
+}
 function openMyPc(){
  const prof=getMyPc();
- if(prof&&loadMyPcIntoCart(prof)){openUpLab();showToast("Ton PC est chargé — objectif, budget, et je te sors 3 plans !")}
+ if(prof&&loadMyPcIntoCart(prof)){
+   if(getAppMode()==="copilote"){renderMyPcHub();openPanel("mypcHub")}
+   else{openUpLab();showToast("Ton PC est chargé — objectif, budget, et je te sors 3 plans !")}
+ }
  else{renderMyPcForm();openPanel("mypcPanel")}
 }
 document.getElementById("doorMyPc").onclick=openMyPc;
+const __dv=document.getElementById("doorVerify");if(__dv)__dv.onclick=()=>document.getElementById("openImport").click();
+const __hm=document.getElementById("homeMoreBtn");if(__hm)__hm.onclick=()=>{const on=document.body.classList.toggle("show-more");__hm.textContent=on?"Réduire ▴":"Explorer davantage ▾"};
+const __ch=document.getElementById("closeMyPcHub");if(__ch)__ch.onclick=()=>{document.getElementById("mypcHub").classList.remove("active");go(0)};
+const __hi=document.getElementById("hubImprove");if(__hi)__hi.onclick=()=>{document.getElementById("mypcHub").classList.remove("active");openUpLab()};
+const __hc=document.getElementById("hubCompare");if(__hc)__hc.onclick=()=>{document.getElementById("mypcHub").classList.remove("active");document.getElementById("openImport").click();showToast("Colle le PC à comparer — le bouton ⚖️ t’attendra dans le rapport !")};
+const __he=document.getElementById("hubEdit");if(__he)__he.onclick=()=>{document.getElementById("mypcHub").classList.remove("active");renderMyPcForm();openPanel("mypcPanel")};
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
 function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase())}
 function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
+function renderHomeDoors(){
+ const cop=getAppMode()==="copilote";
+ const s=document.getElementById("shopStart");
+ if(s)s.innerHTML=cop
+   ?`<h3>🎮 Créer mon futur PC</h3><p>Choisis son style, ton budget et tes jeux — je construis une configuration complète et compatible.</p><span class="door-cta">Créer →</span>`
+   :`<h3>🎮 Parcours guidé</h3><p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à construire.</p><span class="door-cta">Commencer →</span>`;
+ const ih=document.querySelector("#importPanel .card-head h2");
+ if(ih)ih.textContent=cop?"🔍 Vérifier un PC trouvé sur Internet":"Ajouter une pièce depuis un lien";
+ if(typeof renderMyPcDoor==="function")renderMyPcDoor();
+}
 function applyAppMode(){
  const cop=getAppMode()==="copilote";
  document.body.classList.toggle("copilote",cop);
  state.expert=!cop;
  const app=document.getElementById("app");if(app)app.classList.toggle("expert",!cop);
  renderModeToggle();
+ renderHomeDoors();
  try{renderSimpleLibrary()}catch(e){}
  try{if(state.cart)renderCart()}catch(e){}
 }
@@ -3306,9 +3358,13 @@ function renderMyPcDoor(){
  if(prof&&prof.selection&&prof.selection.cpu&&get("cpu",prof.selection.cpu)){
    const cpu=get("cpu",prof.selection.cpu),gpu=get("gpu",prof.selection.gpu),ram=get("ram",prof.selection.ram);
    const dt=prof.updatedAt?new Date(prof.updatedAt).toLocaleDateString("fr-FR"):"";
-   d.innerHTML=`<h3>🖥️ ${escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">Analyser un upgrade →</p>`;
+   const cop=getAppMode()==="copilote";
+   d.innerHTML=`<h3>${cop?"🖥️ Améliorer mon PC":"🖥️ "+escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">${cop?"Voir ce que je peux améliorer →":"Analyser un upgrade →"}</p>`;
  }else{
-   d.innerHTML=`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
+   const cop=getAppMode()==="copilote";
+   d.innerHTML=cop
+     ?`<h3>🖥️ Améliorer mon PC</h3><p>Dis-moi ce que tu veux mieux faire : jouer plus facilement, avoir plus de place, ou préparer les prochains jeux.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`
+     :`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
  }
 }
 renderMyPcDoor();
@@ -3340,6 +3396,8 @@ function renderUndoBar(){
 }
 function renderResumeChip(){
  const el=document.getElementById("resumeChip");if(!el)return;
+ const sr=document.getElementById("shopResume");
+ if(sr)sr.style.display=((state.cart&&state.cart.selection)||(window.__draft&&window.__draft.step>0))?"":"none";
  if(state.cart&&state.cart.selection){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 <strong>${escapeHtml(state.cart.label||"Ton setup")}</strong> est en cours — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="renderCart();go(4)">Reprendre là où tu en étais →</button></div>`;return}
  const d=window.__draft;
  if(d&&d.step>0){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 Ton parcours est en cours (étape ${d.step+1}) — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="resumeDraft()">Reprendre mon parcours →</button></div>`;return}
