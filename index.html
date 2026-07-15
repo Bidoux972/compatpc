@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.5.2 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.5.3 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -391,25 +391,48 @@ body:not(.copilote) .door-guided{display:none}
 body.copilote #openExpertWorkshop,body.copilote #restart{display:none}
 body.copilote:not(.show-more) .home-extra{display:none}
 @media(max-width:860px){body.copilote #openExpertWorkshop,body.copilote #navCreer,body.copilote #openSimpleLibrary{display:none}}
-/* ===== V8.5.2 — L'accueil dessiné (Guidé, desktop) ===== */
+/* ===== V8.5.3 — Carbone & Volt (Guidé) ===== */
+#voltCircuit{display:none}
+body.copilote{background:#07080A}
+body.copilote #voltCircuit{display:block;position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:.5;z-index:0}
+body.copilote .shell,body.copilote .topbar{position:relative;z-index:1}
 body.copilote.home-view .sidebar.rail{display:none}
 body.copilote.home-view .shell{grid-template-columns:1fr;min-height:calc(100vh - 150px)}
+body.copilote .topbar{border-bottom:1px solid #1f232e;background:transparent}
+body.copilote .brand h1{font-size:19px;letter-spacing:2.5px}
+body.copilote .brand h1 .volt{text-shadow:0 0 18px rgba(157,107,255,.65)}
+body.copilote .brand p{font-size:12px;color:#858B99;letter-spacing:.5px}
+body.copilote #simpleMode,body.copilote #expertMode{display:none}
+#voltMode{display:none}
+body.copilote #voltMode{display:inline-block;font-size:12px;color:#9D6BFF;font-weight:800;cursor:pointer;margin-left:10px;white-space:nowrap}
+body.copilote #voltMode::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#9D6BFF;box-shadow:0 0 10px #9D6BFF;margin-right:7px;vertical-align:1px}
 body.copilote #shopHome{background:transparent;border:none;box-shadow:none}
 body.copilote #shopHome .card-body{padding:10px 2px}
-body.copilote .home-hero h2{font-size:30px}
-body.copilote .door-grid{grid-template-columns:1fr 1fr;gap:18px}
-body.copilote #doorMyPc{grid-column:1/-1;display:grid;grid-template-columns:3fr 2fr;gap:22px;align-items:center;padding:28px;min-height:170px}
-body.copilote .door{padding:24px;min-height:200px;display:flex;flex-direction:column}
-body.copilote .door .door-art{height:56px;display:flex;align-items:center;margin-bottom:12px}
-body.copilote .door .door-cta{margin-top:auto;padding-top:14px}
-body.copilote .hv-chip{background:#191226;border:1px solid #5b4794;border-radius:10px;padding:8px 12px;font-size:12px;font-weight:800;margin:5px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-body.copilote #quickSaved{grid-column:1/-1;padding:4px 0;background:transparent;border:none;text-align:center;min-height:0}
-body.copilote #quickSaved h3{color:var(--muted);font-weight:700;font-size:13.5px}
+body.copilote .home-hero h2{font-size:34px;letter-spacing:-.5px}
+body.copilote .door-grid{grid-template-columns:1fr 1fr;gap:22px}
+body.copilote .door{background:#0F1116;border:1px solid #1f232e;border-radius:0;padding:26px 30px;min-height:290px;display:flex;flex-direction:column;position:relative;clip-path:polygon(0 0,calc(100% - 20px) 0,100% 20px,100% 100%,20px 100%,0 calc(100% - 20px))}
+body.copilote .door:hover{border-color:#39304f;background:#151821}
+body.copilote .door h3{font-size:20px}
+body.copilote .door p{color:#858B99}
+body.copilote .volt-pin{position:absolute;top:0;left:30px;width:38px;height:3px;background:#9D6BFF;box-shadow:0 0 12px #9D6BFF}
+body.copilote #doorMyPc{grid-column:1/-1;display:grid;grid-template-columns:1.15fr 1fr;gap:20px;align-items:center;padding:34px 40px;min-height:210px}
+body.copilote #doorMyPc::after{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:linear-gradient(180deg,#9D6BFF,transparent 80%)}
+body.copilote .volt-tag{font-size:11px;font-weight:800;letter-spacing:2.4px;color:#9D6BFF;text-transform:uppercase}
+body.copilote .volt-punch{font-size:15.5px;font-weight:700;margin:6px 0 2px}
+body.copilote .volt-sub{font-size:13.5px;color:#858B99}
+body.copilote .volt-state{margin:14px 0 4px;font-size:13px;color:#858B99}
+body.copilote .volt-btn{display:inline-block;background:linear-gradient(120deg,#9D6BFF,#7a4de0);color:#0b0316;font-weight:800;font-size:14px;padding:13px 28px;box-shadow:0 0 26px rgba(157,107,255,.4);margin-top:18px;border-radius:0}
+body.copilote .volt-ghost{display:inline-block;background:transparent;color:#B78CFF;border:1px solid #3b2f5e;font-weight:800;font-size:13.5px;padding:11px 24px;margin-top:auto;align-self:flex-start;border-radius:0}
+body.copilote .door:hover .volt-ghost{border-color:#9D6BFF;box-shadow:0 0 16px rgba(157,107,255,.25)}
+body.copilote .door .scene{height:122px;margin:14px 0 8px;display:flex;align-items:center;justify-content:center}
+body.copilote #quickSaved{grid-column:1/-1;padding:4px 0;background:transparent;border:none;text-align:center;min-height:0;clip-path:none}
+body.copilote #quickSaved h3{color:#858B99;font-weight:700;font-size:13.5px}
 body.copilote #homeMoreBtn{display:block;margin:2px auto 14px}
 @media(max-width:860px){body.copilote #doorMyPc{grid-template-columns:1fr}body.copilote .door-grid{grid-template-columns:1fr}body.copilote .door{min-height:0}}
 </style>
 </head>
 <body>
+<svg id="voltCircuit" preserveAspectRatio="none"><path d="M0 90 H220 l24 24 V300" fill="none" stroke="#14161f" stroke-width="1.4"/><path d="M0 96 H210 l24 24 V300" fill="none" stroke="#9D6BFF" stroke-width="1" opacity=".18"/><circle cx="244" cy="300" r="3.5" fill="#9D6BFF" opacity=".4"/></svg>
 <div class="app" id="app">
   <div class="topbar">
     <div class="brand">
@@ -421,6 +444,7 @@ body.copilote #homeMoreBtn{display:block;margin:2px auto 14px}
       <button id="expertMode">Mode expert</button>
       <button id="openGlossary" title="Le glossaire : tous les mots compliqués expliqués simplement">📖 C'est quoi ?</button>
       <button id="userChip" title="Changer de joueur">👤 …</button>
+        <span id="voltMode" title="Changer de mode">Mode guidé</span>
     </div>
   </div>
 
@@ -782,7 +806,7 @@ body.copilote #homeMoreBtn{display:block;margin:2px auto 14px}
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.2 « L'accueil dessiné » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.5.3 « Carbone & Volt » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -3206,6 +3230,7 @@ function openMyPc(){
 }
 document.getElementById("doorMyPc").onclick=openMyPc;
 const __dv=document.getElementById("doorVerify");if(__dv)__dv.onclick=()=>document.getElementById("openImport").click();
+const __vm=document.getElementById("voltMode");if(__vm)__vm.onclick=(e)=>{e.stopPropagation();const b=document.getElementById("modeToggle");if(b)b.click();__vm.textContent=getAppMode()==="copilote"?"Mode guidé":"Mode complet"};
 const __hm=document.getElementById("homeMoreBtn");if(__hm)__hm.onclick=()=>{const on=document.body.classList.toggle("show-more");__hm.textContent=on?"Réduire ▴":"Explorer davantage ▾"};
 const __ch=document.getElementById("closeMyPcHub");if(__ch)__ch.onclick=()=>{document.getElementById("mypcHub").classList.remove("active");go(0)};
 const __hi=document.getElementById("hubImprove");if(__hi)__hi.onclick=()=>{document.getElementById("mypcHub").classList.remove("active");openUpLab()};
@@ -3214,6 +3239,12 @@ const __he=document.getElementById("hubEdit");if(__he)__he.onclick=()=>{document
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
 function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase())}
 function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
+const VOLT_SCENES={
+ verify:`<svg width="235" height="110" viewBox="0 0 235 110"><path d="M10 12 h150 l6 6 v72 l-6 6 h-150 l-6-6 v-72 z" fill="#0d0f15" stroke="#1f232e"/><rect x="20" y="24" width="84" height="8" fill="#1f232e"/><rect x="20" y="40" width="118" height="5" fill="#171a22"/><rect x="20" y="51" width="118" height="5" fill="#171a22"/><text x="20" y="80" font-size="10" fill="#f87171" font-weight="700" font-family="Inter,sans-serif">✕ GPU absent</text><text x="94" y="80" font-size="10" fill="#fb923c" font-weight="700" font-family="Inter,sans-serif">▲ 899 €</text><line x1="6" y1="50" x2="164" y2="50" stroke="#9D6BFF" stroke-width="2"><animate attributeName="y1" values="16;88;16" dur="3.6s" repeatCount="indefinite"/><animate attributeName="y2" values="16;88;16" dur="3.6s" repeatCount="indefinite"/></line><circle cx="190" cy="46" r="21" fill="none" stroke="#9D6BFF" stroke-width="2.6"/><line x1="205" y1="61" x2="224" y2="80" stroke="#9D6BFF" stroke-width="3"/><circle cx="190" cy="46" r="27" fill="none" stroke="#9D6BFF" stroke-width="1" opacity=".35"><animate attributeName="r" values="23;32" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0" dur="2s" repeatCount="indefinite"/></circle></svg>`,
+ create:`<svg width="235" height="110" viewBox="0 0 235 110"><path d="M96 8 h46 l6 6 v80 l-6 6 h-46 l-6-6 v-80 z" fill="#0d0f15" stroke="#2b2542" stroke-width="1.4"/><g font-family="Inter,sans-serif" font-weight="800" font-size="9.5"><rect x="12" y="14" width="56" height="19" fill="#12141c" stroke="#9D6BFF"/><text x="24" y="27" fill="#EEF0F6">STYLE</text><rect x="12" y="45" width="56" height="19" fill="#12141c" stroke="#9D6BFF"/><text x="20" y="58" fill="#EEF0F6">BUDGET</text><rect x="12" y="76" width="56" height="19" fill="#12141c" stroke="#9D6BFF"/><text x="27" y="89" fill="#EEF0F6">JEUX</text></g><path d="M68 23 h22 M68 54 h22 M68 85 h22" stroke="#9D6BFF" stroke-width="1.6"><animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/></path><circle cx="119" cy="30" r="9" fill="none" stroke="#9D6BFF" stroke-width="1.6"/><line x1="104" y1="54" x2="134" y2="54" stroke="#9D6BFF" stroke-width="1.6"/><line x1="104" y1="66" x2="134" y2="66" stroke="#2b2542" stroke-width="1.3"/><path d="M119 76 l-5 8 h4 l-3 8 9 -10 h-4 l4 -6 z" fill="#9D6BFF"/><text x="158" y="58" font-size="10" fill="#858B99" font-family="Inter,sans-serif">→ PC complet,</text><text x="158" y="72" font-size="10" fill="#34d399" font-weight="700" font-family="Inter,sans-serif">✓ compatible</text></svg>`};
+function voltHeroSvg(l1,l2,l3){
+ return `<svg width="290" height="205" viewBox="0 0 290 215" style="max-width:100%"><defs><radialGradient id="vg" cx=".5" cy=".55" r=".6"><stop offset="0" stop-color="#9D6BFF" stop-opacity=".5"/><stop offset="1" stop-color="#9D6BFF" stop-opacity="0"/></radialGradient><linearGradient id="vc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B78CFF"/><stop offset="1" stop-color="#5b3aa8"/></linearGradient></defs><ellipse cx="150" cy="118" rx="120" ry="86" fill="url(#vg)"/><path d="M112 22 h68 l9 9 v140 l-9 9 h-68 l-9 -9 v-140 z" fill="#0d0f15" stroke="#2b2542" stroke-width="1.6"/><path d="M112 22 h68 l9 9" fill="none" stroke="#9D6BFF" stroke-width="1.6"/><rect x="117" y="34" width="58" height="44" fill="none" stroke="#241f38" stroke-width="1.2"/><circle cx="146" cy="56" r="15" fill="none" stroke="url(#vc)" stroke-width="2.2"/><circle cx="146" cy="56" r="5.5" fill="#9D6BFF"><animate attributeName="opacity" values="1;.45;1" dur="2.6s" repeatCount="indefinite"/></circle><line x1="117" y1="94" x2="175" y2="94" stroke="#9D6BFF" stroke-width="1.8"/><line x1="117" y1="106" x2="175" y2="106" stroke="#2b2542" stroke-width="1.4"/><line x1="117" y1="118" x2="175" y2="118" stroke="#2b2542" stroke-width="1.4"/><rect x="117" y="132" width="58" height="30" fill="none" stroke="#241f38" stroke-width="1.2"/><path d="M146 140 l-6 10 h5 l-4 9 11 -12 h-5 l5 -7 z" fill="#9D6BFF"/><path d="M103 56 H56 l-14 14" fill="none" stroke="#2b2542" stroke-width="1.3"/><circle cx="42" cy="70" r="3" fill="#9D6BFF"/><text x="8" y="92" font-size="10.5" fill="#c9b8f5" font-family="Inter,sans-serif" font-weight="700">${l1}</text><path d="M189 94 h48 l14 -14" fill="none" stroke="#2b2542" stroke-width="1.3"/><circle cx="251" cy="80" r="3" fill="#9D6BFF"/><text x="206" y="66" font-size="10.5" fill="#c9b8f5" font-family="Inter,sans-serif" font-weight="700">${l2}</text><path d="M189 146 h40 l12 12" fill="none" stroke="#2b2542" stroke-width="1.3"/><circle cx="241" cy="158" r="3" fill="#9D6BFF"/><text x="206" y="180" font-size="10.5" fill="#c9b8f5" font-family="Inter,sans-serif" font-weight="700">${l3}</text></svg>`;
+}
 const HOME_ICONS={
  improve:`<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="13" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M12 13V8M9 10.5 12 8l3 2.5"/></svg>`,
  verify:`<svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#7dd3fc" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m21 21-5.5-5.5"/><path d="M8 10.5h5M10.5 8v5"/></svg>`,
@@ -3221,20 +3252,22 @@ const HOME_ICONS={
  tower:`<svg width="120" height="120" viewBox="0 0 24 24" fill="none" stroke="#5b4794" stroke-width="1.1" stroke-linecap="round"><rect x="6" y="2.5" width="12" height="19" rx="2"/><circle cx="12" cy="8" r="2.4"/><path d="M9.5 13.5h5M9.5 16h5M9.5 18.5h5"/></svg>`};
 function renderHomeDoors(){
  const cop=getAppMode()==="copilote";
+ const hh=document.querySelector("#shopHome .home-hero p");
+ if(hh)hh.textContent=cop?"Ta machine t’attend à l’atelier. Qu’est-ce qu’on fait aujourd’hui ?":"Qu’est-ce qu’on fait aujourd’hui ?";
  const fam=document.getElementById("quickSaved");
  if(fam)fam.innerHTML=cop
    ?`<h3>Mes projets et ceux de la famille →</h3>`
    :`<h3>👨‍👩‍👦 Configs de la famille</h3><p>Les setups publiés par Bidou et Noah, visibles depuis n’importe quel appareil. Charge, compare, améliore.</p><span class="door-cta">Voir les configs →</span>`;
  const bp=document.querySelector(".brand p");
  if(bp)bp.textContent=cop
-   ?"Je t’aide à comprendre, créer et améliorer ton PC — sans acheter n’importe quoi."
+   ?"Comprendre. Construire. Améliorer."
    :"Construis ton PC avec une bibliothèque de 449 composants : parcours guidé pour Noah, atelier expert, et configurations partagées en ligne avec la famille.";
  const s=document.getElementById("shopStart");
  if(s)s.innerHTML=cop
-   ?`<div class="door-art">${HOME_ICONS.create}</div><h3>Créer mon futur PC</h3><p>Choisis son style, ton budget et tes jeux — je construis une configuration complète et compatible.</p><span class="door-cta">Créer →</span>`
+   ?`<span class="volt-pin"></span><h3>Créer mon futur PC</h3><p>Style, budget, jeux — les modules s’assemblent, tout est compatible.</p><div class="scene">${VOLT_SCENES.create}</div><span class="volt-ghost">Créer</span>`
    :`<h3>🎮 Parcours guidé</h3><p>Réponds à 3 questions — style, budget, usages — et reçois 3 propositions de PC complètes, compatibles et prêtes à construire.</p><span class="door-cta">Commencer →</span>`;
  const dv=document.getElementById("doorVerify");
- if(dv)dv.innerHTML=`<div class="door-art">${HOME_ICONS.verify}</div><h3>Vérifier un PC trouvé sur Internet</h3><p>Colle le lien ou la description : je te dirai ce qu’il contient vraiment et s’il vaut son prix.</p><span class="door-cta">Vérifier →</span>`;
+ if(dv)dv.innerHTML=`<span class="volt-pin"></span><h3>Vérifier un PC trouvé sur Internet</h3><p>Colle l’annonce. Le scan révèle ce qu’elle cache — et si le prix est honnête.</p><div class="scene">${VOLT_SCENES.verify}</div><span class="volt-ghost">Vérifier</span>`;
  const ih=document.querySelector("#importPanel .card-head h2");
  if(ih)ih.textContent=cop?"🔍 Vérifier un PC trouvé sur Internet":"Ajouter une pièce depuis un lien";
  if(typeof renderMyPcDoor==="function")renderMyPcDoor();
@@ -3390,13 +3423,17 @@ function renderMyPcDoor(){
    const cpu=get("cpu",prof.selection.cpu),gpu=get("gpu",prof.selection.gpu),ram=get("ram",prof.selection.ram);
    const dt=prof.updatedAt?new Date(prof.updatedAt).toLocaleDateString("fr-FR"):"";
    const cop=getAppMode()==="copilote";
-   d.innerHTML=cop
-     ?`<div><div class="door-art">${HOME_ICONS.improve}</div><h3>Améliorer mon PC</h3><p>Découvre ce qui vaut vraiment le coup — dans tes jeux, à ton budget.</p><span class="btn" style="margin-top:14px;display:inline-block">Analyser mon PC</span></div><div class="hero-visual"><div class="hv-chip">🧠 ${escapeHtml(short(cpu&&cpu.name))}</div><div class="hv-chip">🎮 ${escapeHtml(short(gpu&&gpu.name))}</div><div class="hv-chip">💾 ${ram&&ram.capacity?ram.capacity+" Go de mémoire":"RAM à préciser"}</div>${dt?`<div class="small-note" style="margin-top:6px">Mis à jour : ${dt}</div>`:""}</div>`
-     :`<h3>🖥️ ${escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">Analyser un upgrade →</p>`;
+   if(cop){
+     const fv=(typeof futureVerdict==="function")?futureVerdict(prof.selection):null;
+     const st=fv?(fv.icon==="🛡️"?["solide","#34d399"]:fv.icon==="⏳"?["encore solide","#fb923c"]:["en bout de course","#f87171"]):null;
+     d.innerHTML=`<div><span class="volt-tag">⚡ Mon PC</span><h3 style="font-size:28px;margin:8px 0 2px">Fais évoluer ton setup.</h3><p class="volt-punch">Plus de FPS. Plus de place. Plus longtemps.</p><p class="volt-sub">Découvre l’amélioration qui vaut réellement son prix.</p>${st?`<p class="volt-state">État : <b style="color:${st[1]}">${st[0]}</b>${dt?` · mis à jour : ${dt}`:""}</p>`:""}<span class="volt-btn">Analyser mon PC</span></div><div style="text-align:center">${voltHeroSvg(escapeHtml(short(cpu&&cpu.name)).toUpperCase(),escapeHtml(short(gpu&&gpu.name)).toUpperCase(),(ram&&ram.capacity?ram.capacity+" GO":"RAM ?"))}</div>`;
+   }else{
+     d.innerHTML=`<h3>🖥️ ${escapeHtml(prof.label||"Mon PC")}</h3><p>${escapeHtml(short(cpu&&cpu.name))} · ${escapeHtml(short(gpu&&gpu.name))} · ${ram&&ram.capacity?ram.capacity+" Go":"RAM ?"}${dt?`<br><span class="small-note">Dernière mise à jour : ${dt}</span>`:""}</p><p style="font-weight:800;color:#a78bfa">Analyser un upgrade →</p>`;
+   }
  }else{
    const cop=getAppMode()==="copilote";
    d.innerHTML=cop
-     ?`<div><div class="door-art">${HOME_ICONS.improve}</div><h3>Améliorer mon PC</h3><p>Dis-moi ce que tu veux mieux faire : jouer plus facilement, avoir plus de place, ou préparer les prochains jeux.</p><span class="btn" style="margin-top:14px;display:inline-block">Enregistrer mon PC</span></div><div class="hero-visual" style="text-align:center">${HOME_ICONS.tower}</div>`
+     ?`<div><span class="volt-tag">⚡ Mon PC</span><h3 style="font-size:28px;margin:8px 0 2px">Fais évoluer ton setup.</h3><p class="volt-punch">Plus de FPS. Plus de place. Plus longtemps.</p><p class="volt-sub">Décris ta machine une seule fois — je te dirai ce qui vaut vraiment son prix.</p><span class="volt-btn">Enregistrer mon PC</span></div><div style="text-align:center">${voltHeroSvg("CPU ?","GPU ?","RAM ?")}</div>`
      :`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
  }
 }
