@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.0 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.1 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -823,7 +823,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.6.0 « Noah de bout en bout » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.6.1 « Retour partout » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script>
@@ -908,7 +908,7 @@ async function publishConfig(){
  if(!CLOUD_ON){showToast("Partage en ligne non configuré (clé Supabase manquante).");return}
  if(!state.cart){showToast("Aucun projet à publier.");return}
  const auteur=getUserName();if(!auteur)return;
- const nom=prompt("Nom de la configuration :","Setup de "+auteur);if(!nom)return;
+ const nom=await voltAskP("Nom de la configuration","Setup de "+auteur);if(!nom)return;
  try{
    const r=await supaFetch("compatpc_configs",{method:"POST",body:JSON.stringify({auteur,nom,total:cartTotal(),mood:state.mood,budget:state.budget,cart:state.cart})});
    if(!r.ok)throw new Error("HTTP "+r.status);
@@ -1096,7 +1096,7 @@ async function createPurchaseProject(){
  if(!CLOUD_ON){showToast("Partage en ligne non configuré.");return}
  if(!state.cart){showToast("Aucun projet à transformer en liste d'achat.");return}
  const auteur=getUserName();if(!auteur)return;
- const nom=prompt("Nom du liste d'achat :",(state.cart.label||"PC")+" — achat");if(!nom)return;
+ const nom=await voltAskP("Nom de la liste d’achat",(state.cart.label||"PC")+" — achat");if(!nom)return;
  const items=Object.entries(state.cart.selection).map(([cat,id])=>{
    const p=get(cat,id);return {cat,name:p?.name||"?",prevu:p?.price||0,achete:false,paye:null};
  });
@@ -1129,7 +1129,7 @@ async function renderPurchaseList(){
      if(p)renderPurchase(p);
    });
    w.querySelectorAll("[data-achat-del]").forEach(b=>b.onclick=async()=>{
-     if(!confirm("Supprimer ce liste d'achat pour toute la famille ?"))return;
+     if(!confirm("Supprimer cette liste d'achat pour toute la famille ?"))return;
      try{
        const r=await supaFetch("compatpc_achats?id=eq."+b.dataset.achatDel,{method:"DELETE"});
        if(!r.ok)throw new Error("HTTP "+r.status);
@@ -1189,7 +1189,7 @@ const stepLabels=["Style","Budget","Usages","Propositions","Projet"];
 
 function money(n){return Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0})}
 function googleUrl(query){return "https://www.google.com/search?q="+encodeURIComponent(query)}
-function showPanel(id){document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
+function showPanel(id){if(!window.__navGuard)try{history.pushState({app:id},"","#"+id)}catch(e){};document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
 function readFavorites(){try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||"[]")}catch(e){return []}}
 function saveFavorites(a){localStorage.setItem(FAVORITES_KEY,JSON.stringify(a))}
 function keyOf(c,i){return c+"|"+i}function isFavorite(c,i){return readFavorites().includes(keyOf(c,i))}
@@ -1428,11 +1428,19 @@ function fpsPanelHtml(sel,res){
    const g=get("gpu",sel.gpu),c=get("cpu",sel.cpu);
    if(g&&c){
      const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
-     const f1=avgFpsOf(g,c,GG,"1080p"),f4=avgFpsOf(g,c,GG,"4k");
-     const word=f1>=110?"excellent":f1>=75?"très bon":f1>=50?"bon":"un peu juste";
+     const goal=state.screen||"1080p";
+     const gl=goal==="4k"?"4K":goal;
+     const fg=avgFpsOf(g,c,GG,goal),f1=avgFpsOf(g,c,GG,"1080p");
+     const wd=f=>f>=110?"excellent":f>=75?"très bon":f>=50?"bon":"trop juste";
+     const line1=goal==="1080p"
+       ?`<strong>Ton PC est ${wd(f1)} pour jouer en 1080p.</strong>`
+       :`<strong>Ton PC est ${wd(f1)} en 1080p, ${fg>=60?`et il tient ton objectif ${gl}.`:`mais trop juste pour ton objectif ${gl}.`}</strong>`;
      const ramP=get("ram",sel.ram);
-     const adv=f1<60?"la carte graphique":((ramP&&(ramP.capacity||0)<32)?"la mémoire (passer à 32 Go)":null);
-     speak=`<div class="duel-box" style="margin-bottom:12px"><strong>Ton PC est ${word} pour jouer en 1080p.</strong> ${f4>=60?"Même en 4K, il se défend.":"En 4K, les gros jeux seront difficiles."}<br>${adv?`L’amélioration la plus utile : <strong>${adv}</strong> — le Lab te dira laquelle choisir.`:"Aucun achat nécessaire aujourd’hui — garde ton argent. 💚"}</div>`;
+     const adv=fg<60?"la carte graphique":((ramP&&(ramP.capacity||0)<32)?"la mémoire (passer à 32 Go)":null);
+     const line2=adv
+       ?`L’amélioration prioritaire pour ton objectif ${gl} : <strong>${adv}</strong>.<div style="margin-top:10px"><button class="btn" onclick="openUpLab()">Voir cette amélioration →</button></div>`
+       :`Aucun achat nécessaire pour ton objectif ${gl} — garde ton argent. 💚`;
+     speak=`<div class="duel-box" style="margin-bottom:12px">${line1}<br>${line2}</div>`;
    }
  }
  const inner=`<div class="fps-head"><h4>🎮 Performances estimées ${rankHtml(sel)}${fvChip}${rbChip}</h4><div class="fps-tabs">${tabs}</div></div>${rbLine}${fvLine}${rows}<p class="fps-note">Estimation indicative, réglages élevés — d'après les performances publiques du couple carte graphique + processeur. La résolution de ton écran fait toute la différence.</p>`;
@@ -1779,6 +1787,7 @@ let simpleLibraryTarget=null;
 function openSimpleLibrary(category){
  if(!window.__keepDecodeTarget)window.decodeReplaceTarget=null;window.__keepDecodeTarget=false;
  simpleLibraryTarget=category||null;
+ if(!window.__navGuard)try{history.pushState({app:"simpleLibrary"},"","#simpleLibrary")}catch(e){};
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("simpleLibrary").classList.add("active");
  const catSel=document.getElementById("simpleCategory");
@@ -1887,6 +1896,7 @@ function renderSimpleLibrary(){
 }
 
 function openExpertWorkshop(){
+ if(!window.__navGuard)try{history.pushState({app:"expertWorkshop"},"","#expertWorkshop")}catch(e){};
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("expertWorkshop").classList.add("active");
  if(state.cart && !Object.keys(state.expertSelection).length)state.expertSelection={...state.cart.selection};
@@ -1998,17 +2008,24 @@ function changePart(cat){
  const pool=parts[cat].filter(p=>p.id!==current&&(p.price||0)>0&&analyzeBuild({...s,[cat]:p.id}).errors.length===0);
  if(!pool.length){showToast("Aucune alternative 100% compatible dans la bibliothèque — passe par « Voir toute la catégorie ».");return}
  const G=["Warzone","Elden Ring","Cyberpunk 2077"];
+ const RES=state.fpsRes||state.screen||"1080p";
  const curGpu=get("gpu",s.gpu),curCpu=get("cpu",s.cpu);
- const base=(curGpu&&curCpu)?avgFpsOf(curGpu,curCpu,G,"1080p"):null;
+ const base=(curGpu&&curCpu)?avgFpsOf(curGpu,curCpu,G,RES):null;
  const gainOf=p=>{
    if(!base)return null;
-   if(cat==="gpu")return avgFpsOf(p,curCpu,G,"1080p")-base;
-   if(cat==="cpu")return avgFpsOf(curGpu,p,G,"1080p")-base;
+   if(cat==="gpu")return avgFpsOf(p,curCpu,G,RES)-base;
+   if(cat==="cpu")return avgFpsOf(curGpu,p,G,RES)-base;
    return null;
  };
  const colScore=p=>targetColor?(p.color===targetColor?1:0):0;
  const byBalance=[...pool].sort((a,b)=>(colScore(b)-colScore(a))||(Math.abs((a.price||0)-(cur?.price||0))-Math.abs((b.price||0)-(cur?.price||0))));
- const reco=byBalance[0];
+ let reco;
+ if(cat==="gpu"||cat==="cpu"){
+   const ups=pool.filter(p=>(gainOf(p)??0)>=0);
+   const spent=p=>Math.max(30,(p.price||0)-(cur?.price||0));
+   ups.sort((a,b)=>(colScore(b)-colScore(a))||(((gainOf(b)||0)/spent(b))-((gainOf(a)||0)/spent(a))));
+   reco=ups[0]||null;
+ }else{reco=byBalance[0]}
  const cheap=[...pool].sort((a,b)=>(a.price||0)-(b.price||0)).find(p=>p.id!==reco.id);
  const strong=[...pool].sort((a,b)=>{const ga=gainOf(a),gb=gainOf(b);return (gb??(b.price||0))-(ga??(a.price||0))}).find(p=>p.id!==reco.id&&(!cheap||p.id!==cheap.id));
  const whyOf=p=>{
@@ -2022,14 +2039,14 @@ function changePart(cat){
  const card=(p,tag,cls,extraWhy)=>{
    if(!p)return "";
    const g=gainOf(p);
-   const gainHtml=g==null?"":`<span class="vm-gain ${g<0?"neg":""}">${g>=0?"+":""}${Math.round(g)} FPS environ (1080p)</span>`;
+   const gainHtml=g==null?"":`<span class="vm-gain ${g<0?"neg":""}">${g>=0?"+":""}${Math.round(g)} FPS environ (${RES==="4k"?"4K":RES})</span>`;
    return `<div class="vm-opt ${cls}"><span class="vm-tag">${tag}</span><h4>${escapeHtml(shortPieceName(p.name))}</h4><span class="vm-price">${money(p.price)}</span>${gainHtml}<span class="vm-why">${extraWhy||whyOf(p)}</span><button class="btn" data-choosepart="${p.id}">Choisir</button></div>`;
  };
  voltModal(`<h3 style="margin:0">${labelCat(cat)} — trois options pour toi</h3>
    <p class="small-note" style="margin:6px 0 0">Les trois sont <strong style="color:#34d399">100% compatibles</strong> avec le reste de ton PC — déjà vérifié par le moteur.</p>
    <div class="vm-grid">
-     ${card(reco,"Notre recommandation","reco","Le meilleur équilibre pour ta machine"+(targetColor&&reco.color===targetColor?" — et dans ton coloris.":"."))}
-     ${card(cheap,"Moins chère","",null)}
+     ${reco?card(reco,"Notre recommandation","reco","Le meilleur gain pour chaque euro dépensé"+(targetColor&&reco.color===targetColor?" — et dans ton coloris.":".")):`<div class="vm-opt reco"><span class="vm-tag">Notre avis</span><h4>${escapeHtml(shortPieceName(cur?.name||""))}</h4><span class="vm-why">Ta pièce actuelle est déjà au sommet de la bibliothèque — la remplacer ferait PERDRE des performances. Garde ton argent. 💚</span></div>`}
+     ${card(cheap,"Option économique","",(gainOf(cheap)??0)<0?"Moins rapide que ta pièce actuelle — uniquement pour économiser.":null)}
      ${card(strong,"Plus puissante","",cat==="gpu"||cat==="cpu"?"Le plus gros gain — vérifie ton budget.":null)}
    </div>
    <div style="display:flex;justify-content:space-between;margin-top:14px"><button class="btn ghost" id="vmBrowse">Voir toute la catégorie (${parts[cat].length})</button><button class="btn secondary" id="vmClose">Fermer</button></div>`);
@@ -2620,14 +2637,18 @@ function renderPersonalLibrary(){
 }
 function editPersonalItem(cat,id){
  const p=parts[cat].find(x=>x.id===id);if(!p)return;
- const name=prompt("Nom de la référence :",p.name);if(!name)return;
- const price=prompt("Prix indicatif (€) :",String(p.price||0));
- const color=prompt("Couleur : white, black ou neutral",p.color||"neutral");
+ voltAsk("Nom de la référence",p.name,name=>{
+  voltAsk("Prix indicatif (€)",String(p.price||0),price=>{
+   voltAsk("Couleur : white, black ou neutral",p.color||"neutral",color=>{
  const updated={...p,name,price:Number(price)||0,color:["white","black","neutral"].includes(color)?color:"neutral",origin:"personal",custom:true};
  addToPersonalLibrary(cat,updated);
  renderPersonalLibrary();renderSimpleLibrary();renderExpertToolbox();showToast("Référence modifiée.");
+   });
+  });
+ });
 }
 function openPersonalLibrary(){
+ if(!window.__navGuard)try{history.pushState({app:"personalLibraryPanel"},"","#personalLibraryPanel")}catch(e){};
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("personalLibraryPanel").classList.add("active");
  renderPersonalLibrary();
@@ -2667,7 +2688,7 @@ function renderSaved(){
  w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{if(!confirmReplaceCart())return;const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)});
  w.querySelectorAll("[data-uplab]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.uplab)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");openUpLab()})
 }
-function openSaved(){document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById("savedPanel").classList.add("active");renderSaved();renderCloudConfigs();renderPurchaseList()}
+function openSaved(){if(!window.__navGuard)try{history.pushState({app:"savedPanel"},"","#savedPanel")}catch(e){};openPanel("savedPanel");renderSaved();renderCloudConfigs();renderPurchaseList()}
 function saveCurrent(){
  if(!state.cart)return;
  voltAsk("Donne un nom à cette configuration","Setup de "+(((typeof currentUser==="function")&&currentUser())||"la famille"),name=>{
@@ -2696,7 +2717,7 @@ document.getElementById("openCompare").onclick=()=>{renderCompare();showPanel("c
 document.getElementById("closeCompare").onclick=()=>showPanel("shopHome");
 document.getElementById("clearCompare").onclick=()=>{compareItems=[];renderCompareTray()};
 document.getElementById("generateShareCode").onclick=()=>{const c=encodeShareCode();if(!c){showToast("Aucun projet.");return}const b=document.getElementById("shareCodeBox");b.style.display="block";b.textContent=c;navigator.clipboard?.writeText(c);showToast("Code généré et copié.")};
-document.getElementById("importShareCode").onclick=()=>{const c=prompt("Colle le code :");if(!c)return;const d=decodeShareCode(c);if(!d||!d.cart){alert("Code invalide.");return}state.cart=d.cart;state.mood=d.mood;state.budget=d.budget||1500;renderCart();go(4)};
+document.getElementById("importShareCode").onclick=()=>{voltAsk("Colle le code de partage","",c=>{const d=decodeShareCode(c);if(!d||!d.cart){showToast("Code invalide.");return}state.cart=d.cart;state.mood=d.mood;state.budget=d.budget||1500;renderCart();go(4)})};
 
 document.getElementById("openPersonalLibrary").onclick=openPersonalLibrary;
 document.getElementById("closePersonalLibrary").onclick=()=>{document.getElementById("personalLibraryPanel").classList.remove("active");go(state.cart?4:state.step)};
@@ -3302,6 +3323,12 @@ document.getElementById("doorMyPc").onclick=openMyPc;
 const __dv=document.getElementById("doorVerify");if(__dv)__dv.onclick=()=>document.getElementById("openImport").click();
 try{history.replaceState({app:"step0"},"","#accueil")}catch(e){}
 window.onpopstate=(e)=>{
+ const vm=document.getElementById("voltModal");
+ if(vm&&vm.classList.contains("active")){
+   closeVoltModal();
+   window.__navGuard=true;try{history.pushState(e.state||{app:"step"+(state.step||0)},"",location.hash||"#")}catch(_e){}window.__navGuard=false;
+   return;
+ }
  const t=e.state&&e.state.app;
  window.__navGuard=true;
  try{
@@ -3323,13 +3350,14 @@ function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;cons
 function voltModal(inner){const m=document.getElementById("voltModal");document.getElementById("voltModalBody").innerHTML=inner;m.classList.add("active")}
 function closeVoltModal(){document.getElementById("voltModal").classList.remove("active")}
 document.addEventListener("click",e=>{if(e.target&&e.target.id==="voltModal")closeVoltModal()});
-function voltAsk(title,def,cb){
+function voltAsk(title,def,cb,onCancel){
  voltModal(`<h3 style="margin:0 0 12px">${title}</h3><input id="vmInput" style="width:100%;padding:12px" value="${escapeHtml(def||"")}"><div style="display:flex;gap:10px;margin-top:14px;justify-content:flex-end"><button class="btn secondary" id="vmCancel">Annuler</button><button class="btn" id="vmOk">Valider</button></div>`);
- const ok=()=>{const v=document.getElementById("vmInput").value.trim();closeVoltModal();if(v)cb(v)};
+ const ok=()=>{const v=document.getElementById("vmInput").value.trim();closeVoltModal();if(v)cb(v);else if(onCancel)onCancel()};
  document.getElementById("vmOk").onclick=ok;
- document.getElementById("vmCancel").onclick=closeVoltModal;
+ document.getElementById("vmCancel").onclick=()=>{closeVoltModal();if(onCancel)onCancel()};
  const inp=document.getElementById("vmInput");inp.focus();inp.onkeydown=e=>{if(e.key==="Enter")ok()};
 }
+function voltAskP(title,def){return new Promise(res=>voltAsk(title,def,v=>res(v),()=>res(null)))}
 const VOLT_SCENES={
  verify:`<svg width="235" height="110" viewBox="0 0 235 110"><path d="M10 12 h150 l6 6 v72 l-6 6 h-150 l-6-6 v-72 z" fill="#0d0f15" stroke="#1f232e"/><rect x="20" y="24" width="84" height="8" fill="#1f232e"/><rect x="20" y="40" width="118" height="5" fill="#171a22"/><rect x="20" y="51" width="118" height="5" fill="#171a22"/><text x="20" y="80" font-size="10" fill="#f87171" font-weight="700" font-family="Inter,sans-serif">✕ GPU absent</text><text x="94" y="80" font-size="10" fill="#fb923c" font-weight="700" font-family="Inter,sans-serif">▲ 899 €</text><line x1="6" y1="50" x2="164" y2="50" stroke="#9D6BFF" stroke-width="2"><animate attributeName="y1" values="16;88;16" dur="3.6s" repeatCount="indefinite"/><animate attributeName="y2" values="16;88;16" dur="3.6s" repeatCount="indefinite"/></line><circle cx="190" cy="46" r="21" fill="none" stroke="#9D6BFF" stroke-width="2.6"/><line x1="205" y1="61" x2="224" y2="80" stroke="#9D6BFF" stroke-width="3"/><circle cx="190" cy="46" r="27" fill="none" stroke="#9D6BFF" stroke-width="1" opacity=".35"><animate attributeName="r" values="23;32" dur="2s" repeatCount="indefinite"/><animate attributeName="opacity" values=".4;0" dur="2s" repeatCount="indefinite"/></circle></svg>`,
  create:`<svg width="235" height="110" viewBox="0 0 235 110"><path d="M96 8 h46 l6 6 v80 l-6 6 h-46 l-6-6 v-80 z" fill="#0d0f15" stroke="#2b2542" stroke-width="1.4"/><g font-family="Inter,sans-serif" font-weight="800" font-size="9.5"><rect x="12" y="14" width="56" height="19" fill="#12141c" stroke="#9D6BFF"/><text x="24" y="27" fill="#EEF0F6">STYLE</text><rect x="12" y="45" width="56" height="19" fill="#12141c" stroke="#9D6BFF"/><text x="20" y="58" fill="#EEF0F6">BUDGET</text><rect x="12" y="76" width="56" height="19" fill="#12141c" stroke="#9D6BFF"/><text x="27" y="89" fill="#EEF0F6">JEUX</text></g><path d="M68 23 h22 M68 54 h22 M68 85 h22" stroke="#9D6BFF" stroke-width="1.6"><animate attributeName="opacity" values=".35;1;.35" dur="2.4s" repeatCount="indefinite"/></path><circle cx="119" cy="30" r="9" fill="none" stroke="#9D6BFF" stroke-width="1.6"/><line x1="104" y1="54" x2="134" y2="54" stroke="#9D6BFF" stroke-width="1.6"/><line x1="104" y1="66" x2="134" y2="66" stroke="#2b2542" stroke-width="1.3"/><path d="M119 76 l-5 8 h4 l-3 8 9 -10 h-4 l4 -6 z" fill="#9D6BFF"/><text x="158" y="58" font-size="10" fill="#858B99" font-family="Inter,sans-serif">→ PC complet,</text><text x="158" y="72" font-size="10" fill="#34d399" font-weight="700" font-family="Inter,sans-serif">✓ compatible</text></svg>`};
