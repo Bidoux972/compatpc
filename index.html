@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.1 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.2 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -1189,7 +1189,7 @@ const stepLabels=["Style","Budget","Usages","Propositions","Projet"];
 
 function money(n){return Number(n||0).toLocaleString("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0})}
 function googleUrl(query){return "https://www.google.com/search?q="+encodeURIComponent(query)}
-function showPanel(id){if(!window.__navGuard)try{history.pushState({app:id},"","#"+id)}catch(e){};document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
+function showPanel(id){if(!window.__navGuard&&(!history.state||history.state.app!==id))try{history.pushState({app:id},"","#"+id)}catch(e){};document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active");window.scrollTo({top:0,behavior:"smooth"})}
 function readFavorites(){try{return JSON.parse(localStorage.getItem(FAVORITES_KEY)||"[]")}catch(e){return []}}
 function saveFavorites(a){localStorage.setItem(FAVORITES_KEY,JSON.stringify(a))}
 function keyOf(c,i){return c+"|"+i}function isFavorite(c,i){return readFavorites().includes(keyOf(c,i))}
@@ -1277,7 +1277,7 @@ function renderSteps(){
 }
 function go(i){
  state.step=i;
- if(!window.__navGuard)try{history.pushState({app:"step"+i},"","#etape"+(i+1))}catch(e){}
+ if(!window.__navGuard&&(!history.state||history.state.app!=="step"+i))try{history.pushState({app:"step"+i},"","#etape"+(i+1))}catch(e){}
 document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll(".panel[data-step]").forEach(p=>p.classList.toggle("active",Number(p.dataset.step)===i));
  document.getElementById("importPanel").classList.remove("active");document.getElementById("savedPanel").classList.remove("active");document.getElementById("personalLibraryPanel").classList.remove("active");
  renderSteps();window.scrollTo({top:0,behavior:"smooth"});
@@ -1425,21 +1425,38 @@ function fpsPanelHtml(sel,res){
  
  let speak="";
  if(copMode){
-   const g=get("gpu",sel.gpu),c=get("cpu",sel.cpu);
-   if(g&&c){
+   const g=get("gpu",sel.gpu),c=get("cpu",sel.ram?sel.cpu:sel.cpu);
+   const cc=get("cpu",sel.cpu);
+   if(g&&cc){
      const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
      const goal=state.screen||"1080p";
      const gl=goal==="4k"?"4K":goal;
-     const fg=avgFpsOf(g,c,GG,goal),f1=avgFpsOf(g,c,GG,"1080p");
+     const labGoal=goal==="4k"?"fps4k":goal==="1440p"?"fps1440":"fps1080";
+     const fg=avgFpsOf(g,cc,GG,goal),f1=avgFpsOf(g,cc,GG,"1080p");
      const wd=f=>f>=110?"excellent":f>=75?"très bon":f>=50?"bon":"trop juste";
      const line1=goal==="1080p"
        ?`<strong>Ton PC est ${wd(f1)} pour jouer en 1080p.</strong>`
        :`<strong>Ton PC est ${wd(f1)} en 1080p, ${fg>=60?`et il tient ton objectif ${gl}.`:`mais trop juste pour ton objectif ${gl}.`}</strong>`;
      const ramP=get("ram",sel.ram);
-     const adv=fg<60?"la carte graphique":((ramP&&(ramP.capacity||0)<32)?"la mémoire (passer à 32 Go)":null);
-     const line2=adv
-       ?`L’amélioration prioritaire pour ton objectif ${gl} : <strong>${adv}</strong>.<div style="margin-top:10px"><button class="btn" onclick="openUpLab()">Voir cette amélioration →</button></div>`
-       :`Aucun achat nécessaire pour ton objectif ${gl} — garde ton argent. 💚`;
+     const advCat=fg<60?"gpu":((ramP&&(ramP.capacity||0)<32)?"ram":null);
+     let line2;
+     if(!advCat){line2=`Aucun achat nécessaire pour ton objectif ${gl} — garde ton argent. 💚`;}
+     else{
+       // LA meilleure option, calculée et vérifiée — une seule action
+       let best=null,bestGain=null;
+       if(advCat==="gpu"){
+         const cand=parts.gpu.filter(p=>p.id!==sel.gpu&&(p.price||0)>0&&analyzeBuild({...sel,gpu:p.id}).errors.length===0);
+         const spent=p=>Math.max(30,(p.price||0)-((g&&g.price)||0));
+         cand.forEach(p=>{const gn=avgFpsOf(p,cc,GG,goal)-fg;if(gn>=5){const sc=gn/spent(p);if(!best||sc>best.__sc){best=p;best.__sc=sc;bestGain=gn}}});
+       }else{
+         const cand=parts.ram.filter(p=>(p.capacity||0)>=32&&(p.price||0)>0&&analyzeBuild({...sel,ram:p.id}).errors.length===0).sort((a,b)=>(a.price||0)-(b.price||0));
+         best=cand[0]||null;
+       }
+       const advName=advCat==="gpu"?"la carte graphique":"la mémoire (passer à 32 Go)";
+       line2=`Notre conseil : change uniquement <strong>${advName}</strong>.`;
+       if(best)line2+=`<br>La meilleure option pour toi : <strong>${escapeHtml(shortPieceName(best.name))}</strong>${bestGain?` · +${Math.round(bestGain)} FPS en ${gl}`:""} · ${money(best.price)}<div style="margin-top:10px"><button class="btn" onclick="applyBestOption('${advCat}','${best.id}')">Choisir cette amélioration</button> <button class="btn secondary" onclick="openUpLabGoal('${labGoal}')" style="margin-left:8px">D’autres plans (Lab) →</button></div>`;
+       else line2+=`<div style="margin-top:10px"><button class="btn" onclick="openUpLabGoal('${labGoal}')">Voir cette amélioration →</button></div>`;
+     }
      speak=`<div class="duel-box" style="margin-bottom:12px">${line1}<br>${line2}</div>`;
    }
  }
@@ -1787,7 +1804,7 @@ let simpleLibraryTarget=null;
 function openSimpleLibrary(category){
  if(!window.__keepDecodeTarget)window.decodeReplaceTarget=null;window.__keepDecodeTarget=false;
  simpleLibraryTarget=category||null;
- if(!window.__navGuard)try{history.pushState({app:"simpleLibrary"},"","#simpleLibrary")}catch(e){};
+ if(!window.__navGuard&&(!history.state||history.state.app!=="simpleLibrary"))try{history.pushState({app:"simpleLibrary"},"","#simpleLibrary")}catch(e){};
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("simpleLibrary").classList.add("active");
  const catSel=document.getElementById("simpleCategory");
@@ -1896,7 +1913,7 @@ function renderSimpleLibrary(){
 }
 
 function openExpertWorkshop(){
- if(!window.__navGuard)try{history.pushState({app:"expertWorkshop"},"","#expertWorkshop")}catch(e){};
+ if(!window.__navGuard&&(!history.state||history.state.app!=="expertWorkshop"))try{history.pushState({app:"expertWorkshop"},"","#expertWorkshop")}catch(e){};
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("expertWorkshop").classList.add("active");
  if(state.cart && !Object.keys(state.expertSelection).length)state.expertSelection={...state.cart.selection};
@@ -2021,13 +2038,13 @@ function changePart(cat){
  const byBalance=[...pool].sort((a,b)=>(colScore(b)-colScore(a))||(Math.abs((a.price||0)-(cur?.price||0))-Math.abs((b.price||0)-(cur?.price||0))));
  let reco;
  if(cat==="gpu"||cat==="cpu"){
-   const ups=pool.filter(p=>(gainOf(p)??0)>=0);
+   const ups=pool.filter(p=>(gainOf(p)??0)>=5); // un gain RÉEL, pas un jumeau à 0 FPS
    const spent=p=>Math.max(30,(p.price||0)-(cur?.price||0));
    ups.sort((a,b)=>(colScore(b)-colScore(a))||(((gainOf(b)||0)/spent(b))-((gainOf(a)||0)/spent(a))));
    reco=ups[0]||null;
  }else{reco=byBalance[0]}
- const cheap=[...pool].sort((a,b)=>(a.price||0)-(b.price||0)).find(p=>p.id!==reco.id);
- const strong=[...pool].sort((a,b)=>{const ga=gainOf(a),gb=gainOf(b);return (gb??(b.price||0))-(ga??(a.price||0))}).find(p=>p.id!==reco.id&&(!cheap||p.id!==cheap.id));
+ const cheap=[...pool].sort((a,b)=>(a.price||0)-(b.price||0)).find(p=>p.id!==reco?.id);
+ const strong=[...pool].filter(p=>{const g=gainOf(p);return g==null||g>=5}).sort((a,b)=>{const ga=gainOf(a),gb=gainOf(b);return (gb??(b.price||0))-(ga??(a.price||0))}).find(p=>p.id!==reco?.id&&(!cheap||p.id!==cheap.id))||null;
  const whyOf=p=>{
    if(cat==="ram")return `${p.capacity||"?"} Go ${p.type||""} — le bon type pour ta carte mère.`;
    if(cat==="psu")return `${p.watts||"?"} W — couvre les besoins de ta config, vérifié.`;
@@ -2045,7 +2062,7 @@ function changePart(cat){
  voltModal(`<h3 style="margin:0">${labelCat(cat)} — trois options pour toi</h3>
    <p class="small-note" style="margin:6px 0 0">Les trois sont <strong style="color:#34d399">100% compatibles</strong> avec le reste de ton PC — déjà vérifié par le moteur.</p>
    <div class="vm-grid">
-     ${reco?card(reco,"Notre recommandation","reco","Le meilleur gain pour chaque euro dépensé"+(targetColor&&reco.color===targetColor?" — et dans ton coloris.":".")):`<div class="vm-opt reco"><span class="vm-tag">Notre avis</span><h4>${escapeHtml(shortPieceName(cur?.name||""))}</h4><span class="vm-why">Ta pièce actuelle est déjà au sommet de la bibliothèque — la remplacer ferait PERDRE des performances. Garde ton argent. 💚</span></div>`}
+     ${reco?card(reco,"Notre recommandation","reco","Le meilleur gain pour chaque euro dépensé"+(targetColor&&reco.color===targetColor?" — et dans ton coloris.":".")):`<div class="vm-opt reco"><span class="vm-tag">Notre avis</span><h4>${escapeHtml(shortPieceName(cur?.name||""))}</h4><span class="vm-why">Ta pièce actuelle est déjà au meilleur niveau — aucun changement utile. Garde ton argent. 💚</span></div>`}
      ${card(cheap,"Option économique","",(gainOf(cheap)??0)<0?"Moins rapide que ta pièce actuelle — uniquement pour économiser.":null)}
      ${card(strong,"Plus puissante","",cat==="gpu"||cat==="cpu"?"Le plus gros gain — vérifie ton budget.":null)}
    </div>
@@ -2648,7 +2665,7 @@ function editPersonalItem(cat,id){
  });
 }
 function openPersonalLibrary(){
- if(!window.__navGuard)try{history.pushState({app:"personalLibraryPanel"},"","#personalLibraryPanel")}catch(e){};
+ if(!window.__navGuard&&(!history.state||history.state.app!=="personalLibraryPanel"))try{history.pushState({app:"personalLibraryPanel"},"","#personalLibraryPanel")}catch(e){};
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));
  document.getElementById("personalLibraryPanel").classList.add("active");
  renderPersonalLibrary();
@@ -2688,7 +2705,7 @@ function renderSaved(){
  w.querySelectorAll("[data-load]").forEach(b=>b.onclick=()=>{if(!confirmReplaceCart())return;const x=arr[Number(b.dataset.load)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");go(4)});
  w.querySelectorAll("[data-uplab]").forEach(b=>b.onclick=()=>{const x=arr[Number(b.dataset.uplab)];state.cart=x.cart;state.mood=x.mood;state.budget=x.budget;renderCart();document.getElementById("savedPanel").classList.remove("active");openUpLab()})
 }
-function openSaved(){if(!window.__navGuard)try{history.pushState({app:"savedPanel"},"","#savedPanel")}catch(e){};openPanel("savedPanel");renderSaved();renderCloudConfigs();renderPurchaseList()}
+function openSaved(){if(!window.__navGuard&&(!history.state||history.state.app!=="savedPanel"))try{history.pushState({app:"savedPanel"},"","#savedPanel")}catch(e){};openPanel("savedPanel");renderSaved();renderCloudConfigs();renderPurchaseList()}
 function saveCurrent(){
  if(!state.cart)return;
  voltAsk("Donne un nom à cette configuration","Setup de "+(((typeof currentUser==="function")&&currentUser())||"la famille"),name=>{
@@ -2696,7 +2713,7 @@ function saveCurrent(){
  });
 }
 
-document.querySelectorAll("[data-next]").forEach(b=>b.onclick=()=>{if(state.step===0&&!state.mood){alert("Choisis d’abord un style.");return}go(Math.min(4,state.step+1))});
+document.querySelectorAll("[data-next]").forEach(b=>b.onclick=()=>{if(state.step===0&&!state.mood){showToast("Choisis d’abord un style.");return}go(Math.min(4,state.step+1))});
 document.querySelectorAll("[data-prev]").forEach(b=>b.onclick=()=>go(Math.max(0,state.step-1)));
 document.getElementById("generateBuilds").onclick=generate;
 document.getElementById("customBudget").addEventListener("input",e=>{if(e.target.value)state.budget=Number(e.target.value)});
@@ -2736,7 +2753,7 @@ document.getElementById("importPersonalFile").onchange=async e=>{
    const lib=data.personalLibrary||data;
    for(const [cat,arr] of Object.entries(lib))for(const p of arr||[])addToPersonalLibrary(cat,p);
    renderPersonalLibrary();renderSimpleLibrary();renderExpertToolbox();showToast("Bibliothèque importée.");
- }catch(err){alert("Fichier JSON invalide.");}
+ }catch(err){showToast("Fichier JSON invalide.");}
  e.target.value="";
 };
 
@@ -3245,7 +3262,7 @@ const MYPC_KEY="compatpc-mypc-v1";
 function getMyPc(){try{return JSON.parse(localStorage.getItem(MYPC_KEY)||"null")}catch(e){return null}}
 function saveMyPcProfile(p){try{localStorage.setItem(MYPC_KEY,JSON.stringify(p))}catch(e){}}
 function openPanel(id){
- if(!window.__navGuard)try{history.pushState({app:id},"","#"+id)}catch(e){}
+ if(!window.__navGuard&&(!history.state||history.state.app!==id))try{history.pushState({app:id},"","#"+id)}catch(e){}
  document.body.classList.remove("home-view");document.querySelectorAll(".panel").forEach(p=>p.classList.remove("active"));document.getElementById(id).classList.add("active")}
 function makeMyPcStub(cat,cpu,ram){
  const names={motherboard:"Carte mère de mon PC (à préciser)","case":"Boîtier de mon PC (à préciser)",cooler:"Refroidissement de mon PC (à préciser)",ssd:"SSD de mon PC (à préciser)",psu:"Alimentation de mon PC (à préciser)",fans:"Ventilateurs de mon PC"};
@@ -3321,7 +3338,7 @@ function openMyPc(){
 }
 document.getElementById("doorMyPc").onclick=openMyPc;
 const __dv=document.getElementById("doorVerify");if(__dv)__dv.onclick=()=>document.getElementById("openImport").click();
-try{history.replaceState({app:"step0"},"","#accueil")}catch(e){}
+try{history.replaceState({app:"shopHome"},"","#accueil")}catch(e){}
 window.onpopstate=(e)=>{
  const vm=document.getElementById("voltModal");
  if(vm&&vm.classList.contains("active")){
@@ -3332,10 +3349,10 @@ window.onpopstate=(e)=>{
  const t=e.state&&e.state.app;
  window.__navGuard=true;
  try{
-   if(!t||t==="step0")go(0);
+   if(!t||t==="step0"||t==="shopHome"){const h=document.getElementById("goHome");if(h)h.click();else go(0);}
    else if(/^step\d+$/.test(t))go(Number(t.slice(4)));
    else if(document.getElementById(t))openPanel(t);
-   else go(0);
+   else {const h=document.getElementById("goHome");if(h)h.click();else go(0);}
  }finally{window.__navGuard=false}
 };
 const __vm=document.getElementById("voltMode");if(__vm)__vm.onclick=(e)=>{e.stopPropagation();const b=document.getElementById("modeToggle");if(b)b.click();__vm.textContent=getAppMode()==="copilote"?"Mode guidé":"Mode complet"};
@@ -3347,6 +3364,15 @@ const __he=document.getElementById("hubEdit");if(__he)__he.onclick=()=>{document
 /* ===== V8.4.3 Copilote : le conseil d'abord ===== */
 function modeKey(){return "compatpc-mode:"+(((typeof currentUser==="function"&&currentUser())||"anon").toLowerCase())}
 function getAppMode(){const s=localStorage.getItem(modeKey());if(s)return s;const u=(typeof currentUser==="function"&&currentUser())||"";return /noah/i.test(u)?"copilote":"expert"}
+function applyBestOption(cat,id){
+ if(!state.cart)return;
+ state.cart.selection[cat]=id;window.__justChanged=new Set([cat]);
+ renderCart();showToast("C’est changé — et tout reste compatible ✔");
+}
+function openUpLabGoal(goal){
+ openUpLab();
+ setTimeout(()=>{const s=document.getElementById("upGoal");if(s){s.value=goal}},80);
+}
 function voltModal(inner){const m=document.getElementById("voltModal");document.getElementById("voltModalBody").innerHTML=inner;m.classList.add("active")}
 function closeVoltModal(){document.getElementById("voltModal").classList.remove("active")}
 document.addEventListener("click",e=>{if(e.target&&e.target.id==="voltModal")closeVoltModal()});
