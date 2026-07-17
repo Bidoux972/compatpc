@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.4 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.5 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -1873,7 +1873,7 @@ function renderSimpleLibrary(){
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
-   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.familyId}">${p.familySize-1} variante(s) ▸</button>`:""}${window.decodeReplaceTarget===cat?`<button class="btn" data-decpick="${cat}|${p.id}">Utiliser pour le décodage</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?`<button class="btn secondary" data-use="${cat}|${p.id}">Mettre dans mon projet</button>`:""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
+   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.familyId}">${p.familySize-1} variante(s) ▸</button>`:""}${window.decodeReplaceTarget===cat?`<button class="btn" data-decpick="${cat}|${p.id}">Utiliser pour le décodage</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?"":""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
  if(rows.length>LIB_LIMIT){
@@ -1987,7 +1987,7 @@ function renderCart(){
  Object.entries(state.cart.selection).forEach(([cat,id])=>{
   const p=get(cat,id);const d=document.createElement("div");d.className="cart-item";
   const dm=state.cart.decodeMeta&&state.cart.decodeMeta[cat];
-  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}${window.__justChanged&&window.__justChanged.has(cat)?' <span class="gv-good" style="font-size:10px;font-weight:900">🆕 MIS À JOUR</span>':""}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
+  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}${window.__justChanged&&window.__justChanged.has(cat)?' <span class="gv-good" style="font-size:10px;font-weight:900">🆕 MIS À JOUR</span>':""}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" data-sheet="${cat}|${p.id}" style="cursor:pointer">📋 Voir la fiche complète</a> · <a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
   <div style="display:flex;flex-direction:column;gap:7px"><button class="btn ghost" data-change="${cat}">Changer rapidement</button><button class="btn secondary" data-browse="${cat}">Voir toute la catégorie</button></div>`;
   list.appendChild(d)
  });
@@ -2258,16 +2258,39 @@ function specRows(cat,p){
  if(p.origin==="personal"||p.custom)add("Origine","Import famille / perso");
  return rows;
 }
+function sheetProjectBlock(cat,p){
+ if(!state.cart||!state.cart.selection)return "";
+ const s=state.cart.selection;
+ const inProject=s[cat]===p.id;
+ const test={...s,[cat]:p.id};
+ const rep=analyzeBuild(test);
+ const cur=get(cat,s[cat]);
+ let lines=[];
+ if(rep.errors.length)lines.push(`<span style="color:#f87171">✕ Incompatible avec ton projet : ${escapeHtml(rep.errors[0].title||rep.errors[0].text||"conflit")}</span>`);
+ else lines.push(`<span class="gv-good" style="font-weight:800">✅ 100% compatible avec le reste de ton projet — vérifié par le moteur.</span>`);
+ if(!rep.errors.length&&rep.warns&&rep.warns.length)lines.push(`<span style="color:#f0b45c">⚠ ${escapeHtml(rep.warns[0].title||rep.warns[0].text||"")}</span>`);
+ if(cat==="gpu"&&!rep.errors.length){
+   const cpu=get("cpu",test.cpu);
+   if(cpu){const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
+     const vs=["1080p","1440p","4k"].map(r=>{const f=avgFpsOf(p,cpu,GG,r);const v=fpsVerdict(f);return `${r==="4k"?"4K":r} ${v[0]} ${v[1]}`}).join(" · ");
+     lines.push(`<span class="small-note">Dans TON projet : ${vs}</span>`);}
+ }
+ const action=inProject
+   ?`<span class="gv-good" style="font-weight:900;display:inline-block;padding:10px 0">✓ Cette pièce est dans ton projet</span>`
+   :(rep.errors.length?"":`<button class="btn" data-use="${cat}|${p.id}">Remplacer ${cur?"ma "+labelCat(cat).toLowerCase()+" ("+escapeHtml(shortPieceName(cur.name))+")":"— mettre dans mon projet"} par celle-ci</button>`);
+ return `<div class="duel-box" style="margin:10px 0"><strong>🧩 Dans ton projet</strong><div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:12.5px">${lines.join("")}</div><div style="margin-top:8px">${action}</div></div>`;
+}
 function openSheet(cat,id){
  const p=get(cat,id);if(!p)return;
  const o=document.getElementById("sheetOverlay"),c=document.getElementById("sheetCard");
  const rows=specRows(cat,p).map(([l,v])=>`<div class="sheet-row"><span>${escapeHtml(l)}</span><b>${escapeHtml(String(v))}</b></div>`).join("");
+ const projBlock=sheetProjectBlock(cat,p);
  c.innerHTML=`
   <div class="sheet-top"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}"><div class="art-wrap">${productVisual(cat,p,false)}</div></div>
   <div><div class="component-type" style="position:static;display:inline-block;margin-bottom:6px">${labelCat(cat)}</div><h3>${escapeHtml(p.name)}</h3><div class="price" style="margin:6px 0">${money(p.price)} <button class="btn ghost" id="sheetPriceBtn" style="font-size:11px;padding:3px 9px;vertical-align:middle">✏️ corriger</button></div>
   <div style="margin:4px 0 8px">${fpBadge(cat,p,true)}</div>
   <div id="sheetPriceForm" style="display:none;margin:6px 0 10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="sheetPriceInput" type="number" min="1" step="0.01" placeholder="Prix constaté en €" style="width:160px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:8px 10px"><button class="btn" id="sheetPriceSave">Enregistrer pour la famille</button></div><div class="small-note" style="margin-top:6px">Le nouveau prix s'applique partout : bibliothèque, propositions, budgets, duels.</div></div>${p.description?`<p class="small-note">${escapeHtml(p.description.slice(0,260))}${p.description.length>260?"…":""}</p>`:""}</div></div>
-  <div class="sheet-specs">${rows}</div>
+  <div class="sheet-specs">${projBlock}${rows}</div>
   <div class="shop-actions" style="margin-top:14px;flex-wrap:wrap">
    <button class="btn" id="sheetUse">Mettre dans mon projet</button>
    <button class="btn ghost fav-btn ${isFavorite(cat,id)?"active":""}" id="sheetFav">★ Favori</button>
@@ -2318,6 +2341,7 @@ function openSheet(cat,id){
    openSheet(cat,id);renderShop();
  };
  document.getElementById("sheetCompare").onclick=()=>{addCompare(cat,id);showToast("Ajouté au comparateur (3 max).")};
+ const __su=document.getElementById("sheetUse");if(__su&&state.cart&&state.cart.selection){__su.style.display="none";__su.textContent=""}
  document.getElementById("sheetUse").onclick=()=>{
    if(state.cart){state.cart.selection[cat]=id;renderCart();o.style.display="none";go(4);showToast(p.name+" est dans ton projet.")}
    else{o.style.display="none";showToast("Crée d'abord un setup : parcours guidé ou atelier expert.")}
@@ -3542,6 +3566,17 @@ function compareDecodedToMyPc(){
  else verdict=`Bonne nouvelle : <strong>ton PC tient tête</strong> à celui-là sur les gros jeux ! Pas besoin de craquer ${money(total)}. 💪`;
  if(box)box.innerHTML=`<div class="duel-box" style="margin-top:10px"><strong>⚖️ Ton PC vs ce PC</strong><div class="small-note" style="margin-top:6px">Ton PC (${escapeHtml(shortPieceName(gpuA.name))}) : <strong>${fA} FPS</strong> • Ce PC (${escapeHtml(shortPieceName(gpuB.name))}) : <strong>${fB} FPS</strong> — moyenne des gros jeux en 1080p, estimation Compat’PC.</div><div style="margin-top:6px">${verdict}</div></div>`;
 }
+document.addEventListener("click",e=>{
+ const t=e.target.closest&&e.target.closest("[data-sheet]");
+ if(t){const [c,i]=t.dataset.sheet.split("|");openSheet(c,i);e.preventDefault();return}
+ const u=e.target.closest&&e.target.closest("#sheetCard [data-use]");
+ if(u&&state.cart&&state.cart.selection){
+   const [c,i]=u.dataset.use.split("|");
+   state.cart.selection[c]=i;window.__justChanged=new Set([c]);
+   const ov=document.getElementById("sheetOverlay");if(ov)ov.classList.remove("active");
+   renderCart();go(4);showToast("Remplacé — ton projet est à jour ✔");
+ }
+});
 document.getElementById("modeToggle").onclick=()=>{
  const to=getAppMode()==="copilote"?"expert":"copilote";
  setAppMode(to,true);
