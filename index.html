@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.7 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.9 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -449,6 +449,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
 .sheet-row:nth-child(odd){background:rgba(255,255,255,.025)}
 .sheet-row b{color:#c9b8f5}
 .sheet-row{padding:7px 10px;border-radius:4px}
+.award-badge{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.4px;padding:3px 8px;margin-right:5px;border-radius:4px;background:linear-gradient(120deg,#3a2f14,#4d3d12);border:1px solid #b8912f;color:#f0d27a;vertical-align:middle;cursor:help}
 </style>
 </head>
 <body>
@@ -1203,7 +1204,7 @@ function renderCompare(){const g=document.getElementById("compareGrid");g.innerH
 function shopCard(cat,p){return `<div class="shop-product"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}" data-sheet="${cat}|${p.id}" style="cursor:pointer"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div></div><div class="shop-product-body"><h4>${productNameHtml(p)}</h4><p>${labelCat(cat)}</p><div class="price">${money(p.price)}</div><div class="shop-actions"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div></div></div>`}
 function bindShop(root){root.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});root.querySelectorAll("[data-shop-use]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.shopUse.split("|");openSimpleLibrary(c);document.getElementById("simpleSearch").value=get(c,i).name;renderSimpleLibrary()});root.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.fav.split("|");toggleFavorite(c,i)});root.querySelectorAll("[data-compare]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.compare.split("|");addCompare(c,i)})}
 function renderShop(){
- computeFamilies();
+ computeFamilies();computeAwards();
  const cols=[
  ["Aquarium blanc","Verre, RGB et composants blancs.","white","case","white","aquarium"],
  ["Aquarium noir","Une vitrine sombre et lumineuse.","black","case","black","aquarium"],
@@ -1710,12 +1711,67 @@ function renderBuilds(){
 }
 function labelCat(k){return ({cpu:"Processeur",motherboard:"Carte mère",ram:"Mémoire",gpu:"Carte graphique",case:"Boîtier",cooler:"Refroidissement",fans:"Ventilateurs",ssd:"SSD",psu:"Alimentation"})[k]||k}
 function tierLabel(tier){return tier==="haut"?"Haut de gamme":tier==="moyen"?"Milieu de gamme":"Entrée de gamme"}
+let AWARDS={};
+function computeAwards(){
+ AWARDS={};
+ const tag=(id,icon,label,why)=>{(AWARDS[id]=AWARDS[id]||[]).push([icon,label,why])};
+ const gi=p=>{const e=(typeof GPU_PERF!=="undefined")&&GPU_PERF.find(e=>e[0].test(p.name));return e?e[1]:0};
+ const ci=p=>{const e=(typeof CPU_PERF!=="undefined")&&CPU_PERF.find(e=>e[0].test(p.name));return e?e[1]:0};
+ const gp=parts.gpu.filter(p=>(p.price||0)>0&&!/occasion/i.test(p.name)&&gi(p)>0);
+ if(gp.length){
+   const pow=[...gp].sort((a,b)=>gi(b)-gi(a)||((a.price||0)-(b.price||0)))[0];
+   tag(pow.id,"🏆","La plus puissante","Indice de performances le plus haut de toute la bibliothèque.");
+   const val=[...gp].sort((a,b)=>(gi(b)/(b.price||1))-(gi(a)/(a.price||1)))[0];
+   tag(val.id,"💎","Meilleur rapport perf/prix","Le plus de performances par euro, calculé sur toute la bibliothèque.");
+   const pick=[...gp].filter(p=>(p.vram||0)>=12&&(p.price||0)<=700).sort((a,b)=>(gi(b)/(b.price||1))-(gi(a)/(a.price||1)))[0];
+   if(pick)tag(pick.id,"⭐","Le choix Compat’PC","Notre règle, affichée : 12 Go de VRAM minimum, 700 € maximum, meilleur perf/€ — la valeur sûre qui dure.");
+ }
+ const cp=parts.cpu.filter(p=>(p.price||0)>0&&ci(p)>0);
+ if(cp.length){
+   const pow=[...cp].sort((a,b)=>ci(b)-ci(a)||((a.price||0)-(b.price||0)))[0];
+   tag(pow.id,"🏆","Le plus puissant","Indice de performances en jeu le plus haut de la bibliothèque.");
+   const val=[...cp].sort((a,b)=>(ci(b)/(b.price||1))-(ci(a)/(a.price||1)))[0];
+   tag(val.id,"💎","Meilleur rapport perf/prix","Le plus de performances par euro de toute la bibliothèque.");
+   const pick=[...cp].filter(p=>(p.price||0)<=500&&/X3D/i.test(p.name)).sort((a,b)=>(ci(b)/(b.price||1))-(ci(a)/(a.price||1)))[0];
+   if(pick)tag(pick.id,"⭐","Le choix Compat’PC","Notre règle, affichée : un X3D (cache 3D, roi du jeu) à 500 € maximum, meilleur perf/€.");
+ }
+ // RAM : le Go utile et le réglage parfait
+ const rm=parts.ram.filter(p=>(p.price||0)>0&&(p.capacity||0)>0);
+ if(rm.length){
+   const val=[...rm].filter(p=>p.type==="DDR5"&&(p.capacity||0)>=32&&(p.sticks||0)===2).sort((a,b)=>((a.price||0)/(a.capacity||1))-((b.price||0)/(b.capacity||1)))[0];
+   if(val)tag(val.id,"💎","Meilleur prix du Go utile","Le Go de DDR5 le moins cher parmi les kits 32 Go et plus, en 2 barrettes (double canal).");
+   const pick=[...rm].filter(p=>p.type==="DDR5"&&(p.capacity||0)>=32&&(p.speed||0)>=6000&&p.expo).sort((a,b)=>(a.price||0)-(b.price||0))[0];
+   if(pick)tag(pick.id,"⭐","Le choix Compat’PC","Notre règle, affichée : 32 Go, 6000 MT/s, profil EXPO, 2 barrettes — le réglage parfait des Ryzen AM5, au meilleur prix.");
+ }
+ // Alimentation : le watt certifié le moins cher, prêt pour les cartes modernes
+ const ps=parts.psu.filter(p=>(p.price||0)>0&&(p.watts||0)>0);
+ if(ps.length){
+   const val=[...ps].filter(p=>p.atx31&&["Gold","Platinum"].includes(p.quality)).sort((a,b)=>((a.price||0)/(a.watts||1))-((b.price||0)/(b.watts||1)))[0];
+   if(val)tag(val.id,"💎","Meilleur prix du watt","Le watt certifié Gold/Platinum le moins cher, avec le connecteur moderne 12V-2x6 (ATX 3.1).");
+ }
+ // SSD : le To NVMe le moins cher
+ const sd=parts.ssd.filter(p=>(p.price||0)>0&&(p.capacity||0)>0);
+ if(sd.length){
+   const val=[...sd].sort((a,b)=>((a.price||0)/(a.capacity||1))-((b.price||0)/(b.capacity||1)))[0];
+   tag(val.id,"💎","Meilleur prix du To","Le téraoctet de stockage le moins cher de la bibliothèque.");
+ }
+ const clr=p=>p.maxGpu||p.gpuClearance||p.gpuMax||0;
+ const cs=parts.case.filter(p=>(p.price||0)>0);
+ if(cs.length&&cs.some(p=>clr(p)>0)){
+   const smart=[...cs].filter(p=>clr(p)>=360).sort((a,b)=>(a.price||0)-(b.price||0))[0];
+   if(smart)tag(smart.id,"💎","Le malin","Le boîtier le moins cher qui avale même les très grandes cartes graphiques (≥ 360 mm).");
+ }
+}
+function awardChips(p){
+ const a=AWARDS[p?.id];if(!a||!a.length)return "";
+ return a.map(([ic,lb,why])=>`<span class="award-badge" title="${escapeHtml(why)}">${ic} ${lb}</span>`).join("");
+}
 function productBadges(p){
  const top=p?.topRank?(p.familyRep
-   ?`<span class="top-badge">★ TOP 10 · #${p.topRank}</span>`
+   ?`<span class="top-badge" title="Top 10 Compat’PC = nos 10 familles recommandées, tous prix confondus — le meilleur achat à chaque étage, PAS un classement de puissance.">★ TOP 10 · #${p.topRank}</span>`
    :`<span class="top-badge variant-badge">Variante du Top #${p.topRank}</span>`):"";
  const tier=p?.tier||"entrée";
- return `${top}<span class="tier-badge tier-${tier}">${tierLabel(tier)}</span>`;
+ return `${awardChips(p)}${top}<span class="tier-badge tier-${tier}">${tierLabel(tier)}</span>`;
 }
 function productNameHtml(p){return `<span class="product-title-line"><span>${escapeHtml(p.name)}</span>${productBadges(p)}</span>`}
 
@@ -1929,13 +1985,13 @@ function analyzeBuild(sel,opts={}){
  const checks=[];let score=100;
  const push=(kind,title,text,pen=0)=>{checks.push({kind,title,text});if(kind!=="ok")score-=pen};
  const AS=(p,f)=>!!(p&&p._assumed&&p._assumed[f]);
- const unverif=(title,champ)=>push("warn",title,"Non vérifiable : "+champ+" estimé lors de l\u2019import — vérifie sur la fiche marchande.",4);
+ const unverif=(title,champ)=>push("warn",title,"Non vérifiable : "+champ+" estimé lors de l’import — vérifie sur la fiche marchande.",4);
  if(cpu&&mb){if(AS(mb,"socket"))unverif("Processeur et carte mère","le socket de la carte mère");
    else cpu.socket===mb.socket?push("ok","Processeur et carte mère","Même socket : "+cpu.socket+"."):push("bad","Processeur et carte mère","Sockets différents : "+cpu.socket+" et "+mb.socket+".",40)}
  if(ram&&mb){if(AS(mb,"ram"))unverif("Mémoire et carte mère","le type de mémoire de la carte mère");
    else ram.type===mb.ram?push("ok","Mémoire et carte mère","La mémoire "+ram.type+" correspond."):push("bad","Mémoire et carte mère","La carte mère demande "+mb.ram+", mais la mémoire choisie est "+ram.type+".",40)}
  if(mb&&cs){if(AS(mb,"form")||AS(cs,"forms"))unverif("Carte mère et boîtier","le format");
-   else (cs.forms||[]).includes(mb.form)?push("ok","Carte mère et boîtier","Le format "+mb.form+" rentre dans le boîtier."):push("bad","Carte mère et boîtier","Le boîtier n\u2019accepte pas le format "+mb.form+".",30)}
+   else (cs.forms||[]).includes(mb.form)?push("ok","Carte mère et boîtier","Le format "+mb.form+" rentre dans le boîtier."):push("bad","Carte mère et boîtier","Le boîtier n’accepte pas le format "+mb.form+".",30)}
  let clearanceMargin=null;
  if(gpu&&cs&&(AS(gpu,"length")||AS(cs,"maxGpu"))){unverif("Carte graphique et boîtier","la longueur de la carte ou le dégagement du boîtier")}
  else if(gpu&&cs){
@@ -1951,11 +2007,11 @@ function analyzeBuild(sel,opts={}){
  else if(cool&&cs){
    if(!cool.rad)push("ok","Refroidissement et boîtier","Ventirad sélectionné.");
    else if((cs.rad||[]).includes(cool.rad))push("ok","Watercooling et boîtier","Radiateur "+cool.rad+" mm accepté.");
-   else push("bad","Watercooling et boîtier","Le boîtier n\u2019accepte pas ce radiateur de "+cool.rad+" mm.",25);
+   else push("bad","Watercooling et boîtier","Le boîtier n’accepte pas ce radiateur de "+cool.rad+" mm.",25);
    if(cool.rad&&(opts.mount==="front"||opts.mount==="top"))push("warn","Emplacement du radiateur","Emplacement « "+(opts.mount==="front"?"façade":"dessus")+" » choisi : la bibliothèque ne détaille pas chaque emplacement — vérifie sur la fiche du boîtier que le "+cool.rad+" mm y est bien accepté.",0);
  }
  if(cpu&&cool){if(AS(cool,"sockets"))unverif("Refroidissement et processeur","la liste des sockets du refroidisseur");
-   else (cool.sockets||[]).includes(cpu.socket)?push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+"."):push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n\u2019est pas indiquée.",25)}
+   else (cool.sockets||[]).includes(cpu.socket)?push("ok","Refroidissement et processeur","Fixation compatible "+cpu.socket+"."):push("bad","Refroidissement et processeur","La fixation "+cpu.socket+" n’est pas indiquée.",25)}
  let need=null;
  if(gpu&&psu&&(AS(gpu,"power")||AS(psu,"watts"))){unverif("Alimentation","la consommation réelle (import)")}
  else if(gpu&&psu){
@@ -2368,7 +2424,7 @@ function openSheet(cat,id){
  const cultureBlock=pieceCulture(cat,p);
  c.innerHTML=`
   <div class="sheet-top"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}"><div class="art-wrap">${productVisual(cat,p,false)}</div></div>
-  <div><div class="component-type" style="position:static;display:inline-block;margin-bottom:6px">${labelCat(cat)}</div><h3>${escapeHtml(p.name)}</h3><div class="price" style="margin:6px 0">${money(p.price)} <button class="btn ghost" id="sheetPriceBtn" style="font-size:11px;padding:3px 9px;vertical-align:middle">✏️ corriger</button></div>
+  <div><div class="component-type" style="position:static;display:inline-block;margin-bottom:6px">${labelCat(cat)}</div><h3>${escapeHtml(p.name)}${awardChips(p)}</h3><div class="price" style="margin:6px 0">${money(p.price)} <button class="btn ghost" id="sheetPriceBtn" style="font-size:11px;padding:3px 9px;vertical-align:middle">✏️ corriger</button></div>
   <div style="margin:4px 0 8px">${fpBadge(cat,p,true)}</div>
   <div id="sheetPriceForm" style="display:none;margin:6px 0 10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="sheetPriceInput" type="number" min="1" step="0.01" placeholder="Prix constaté en €" style="width:160px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:8px 10px"><button class="btn" id="sheetPriceSave">Enregistrer pour la famille</button></div><div class="small-note" style="margin-top:6px">Le nouveau prix s'applique partout : bibliothèque, propositions, budgets, duels.</div></div>${p.description?`<p class="small-note">${escapeHtml(p.description.slice(0,260))}${p.description.length>260?"…":""}</p>`:""}</div></div>
   <div class="sheet-specs">${projBlock}${cultureBlock}${rows}</div>
@@ -2477,6 +2533,7 @@ function impactChips(cat,p){
 }
 /* ===== Glossaire ===== */
 const GLOSSARY=[
+["Top 10 Compat’PC","Nos 10 familles recommandées par catégorie, tous prix confondus : le n°1 est le meilleur ACHAT, pas la pièce la plus puissante. Les médailles 🏆 (la plus puissante), 💎 (meilleur perf/prix) et ⭐ (le choix Compat’PC, critères affichés) se voient d’un coup d’œil sur les fiches."],
 ["DLSS (NVIDIA)","L’intelligence artificielle de NVIDIA qui invente des pixels et des images en plus : le jeu calcule en petit, la carte affiche en grand et fluide. Résultat : beaucoup plus de FPS « gratuits » sur les cartes RTX."],
 ["FSR (AMD)","La réponse d’AMD au DLSS : même principe (agrandir intelligemment l’image pour gagner des FPS), en version ouverte qui marche sur presque toutes les cartes."],
 ["Génération d’images (Frame Gen)","La carte graphique fabrique des images intermédiaires entre deux vraies images. Les FPS affichés grimpent fort — idéal pour la fluidité, un peu moins pour les jeux de réflexes purs."],
@@ -3132,7 +3189,7 @@ function runDecode(){
  window.__decode={out:matchDecoded(det),det};
  renderDecodeReport();
 }
-function decodeHowLabel(how){return({exact:"Modèle exact identifié",specs:"Caractéristiques reconnues",famille:"Même famille",approx:"Équivalent proposé",auto:"Complété par l\u2019app",unknown:"Non reconnu",original:"📝 Original à compléter",manual:"Choisie manuellement"})[how]||how}
+function decodeHowLabel(how){return({exact:"Modèle exact identifié",specs:"Caractéristiques reconnues",famille:"Même famille",approx:"Équivalent proposé",auto:"Complété par l’app",unknown:"Non reconnu",original:"📝 Original à compléter",manual:"Choisie manuellement"})[how]||how}
 function renderDecodeReport(){
  const D=window.__decode;if(!D)return;const {out,det}=D;
  const box=document.getElementById("decodeResult");
@@ -3144,7 +3201,7 @@ function renderDecodeReport(){
    const r=out[cat];if(!r||!r.p)return "";
    const fixable=(r.how==="famille"||r.how==="approx"||r.how==="auto"||r.how==="unknown");
    if(fixable&&r.src)missing++;
-   const btns=fixable?`<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${r.src?`<button class="btn ghost" data-addorig="${cat}" style="font-size:10.5px;padding:4px 9px">＋ Ajouter l\u2019original</button>`:""}<button class="btn ghost" data-choose="${cat}" style="font-size:10.5px;padding:4px 9px">Choisir autrement</button></div>`:"";
+   const btns=fixable?`<div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap">${r.src?`<button class="btn ghost" data-addorig="${cat}" style="font-size:10.5px;padding:4px 9px">＋ Ajouter l’original</button>`:""}<button class="btn ghost" data-choose="${cat}" style="font-size:10.5px;padding:4px 9px">Choisir autrement</button></div>`:"";
    return `<div class="duel-row"><div>${labelCat(cat)}<small>${escapeHtml(r.note)}</small>${btns}</div><span class="${CLS[r.how]}" style="font-size:10.5px;font-weight:900">${decodeHowLabel(r.how)}</span><div style="text-align:right">${escapeHtml(r.p.name)}<small>${money(r.p.price)} ${fpIcon(cat,r.p)}</small></div></div>`;
  }).join("");
  const colorLine=out.__color?`<div class="small-note" style="margin:2px 0 8px">🎨 <strong>Style détecté : setup ${out.__color==="white"?"blanc":"noir"}</strong> — le coloris est respecté partout où la bibliothèque le permet ; chaque exception est signalée sur sa ligne.</div>`:"";
@@ -3324,15 +3381,15 @@ function renderUpgradePlans(){
      const c=x.c;
      const games=planGameLines(c.apply,R.res==="4k"?"4k":R.res);
      const verify=c.warns&&c.warns.length
-       ?`<details class="small-note" style="color:#f0b45c"><summary style="cursor:pointer">Oui — ${c.warns.length} chose(s) à vérifier avant d\u2019acheter</summary><ul style="margin:6px 0 0 16px;padding:0">${c.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`
+       ?`<details class="small-note" style="color:#f0b45c"><summary style="cursor:pointer">Oui — ${c.warns.length} chose(s) à vérifier avant d’acheter</summary><ul style="margin:6px 0 0 16px;padding:0">${c.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`
        :`<span class="gv-good" style="font-size:11px;font-weight:900">Non — tout est vérifié ✔</span>`;
      return `<div class="duel-box" style="margin-top:10px${main?";border-color:#5b4794":""}">
        ${main?`<strong>🎯 Notre conseil pour toi</strong> — ${x.pitch}<br>`:""}
-       <div style="margin-top:6px"><span class="small-note">Qu\u2019est-ce que je change ?</span><br>${c.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(shortPieceName(ch.from.name))} → <strong>${escapeHtml(shortPieceName(ch.to.name))}</strong>`).join("<br>")}</div>
+       <div style="margin-top:6px"><span class="small-note">Qu’est-ce que je change ?</span><br>${c.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(shortPieceName(ch.from.name))} → <strong>${escapeHtml(shortPieceName(ch.to.name))}</strong>`).join("<br>")}</div>
        <div style="margin-top:6px"><span class="small-note">Combien ça coûte ?</span><br><strong>${money(c.cost)}</strong>${x.over?` <span style="color:#f0b45c">⚠ dépasse ton budget de ${money(x.over)}</span>`:""}</div>
-       <div style="margin-top:6px"><span class="small-note">Qu\u2019est-ce que ça améliore dans mes jeux ?</span><br>${games}</div>
+       <div style="margin-top:6px"><span class="small-note">Qu’est-ce que ça améliore dans mes jeux ?</span><br>${games}</div>
        <div style="margin-top:6px"><span class="small-note">Quelque chose à vérifier ?</span><br>${verify}</div>
-       <details class="small-note" style="margin-top:6px"><summary style="cursor:pointer">Voir les chiffres</summary>Avant : ${R.before} FPS → Après : ${c.after} FPS (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • ${(c.cost/c.delta).toFixed(1)} €/FPS gagné • Estimation Compat\u2019PC, valeur indicative.</details>
+       <details class="small-note" style="margin-top:6px"><summary style="cursor:pointer">Voir les chiffres</summary>Avant : ${R.before} FPS → Après : ${c.after} FPS (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • ${(c.cost/c.delta).toFixed(1)} €/FPS gagné • Estimation Compat’PC, valeur indicative.</details>
        <button class="btn" data-applyplan="${i}" style="margin-top:8px">${main?"Appliquer ce conseil":"Appliquer ce plan"}</button></div>`;
    };
    const main=R.plans[mainIdx];
