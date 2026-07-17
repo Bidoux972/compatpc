@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.5 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.6 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -446,6 +446,9 @@ body.copilote .duel-box,body.copilote .cart-item,body.copilote .verdict-warn,bod
 body.copilote .btn,body.copilote input,body.copilote select,body.copilote textarea{border-radius:0}
 body.copilote input,body.copilote select,body.copilote textarea{background:#0b0d12;border:1px solid #1f232e}
 body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;font-size:13px;margin:6px 0 10px}
+.sheet-row:nth-child(odd){background:rgba(255,255,255,.025)}
+.sheet-row b{color:#c9b8f5}
+.sheet-row{padding:7px 10px;border-radius:4px}
 </style>
 </head>
 <body>
@@ -2265,20 +2268,63 @@ function sheetProjectBlock(cat,p){
  const test={...s,[cat]:p.id};
  const rep=analyzeBuild(test);
  const cur=get(cat,s[cat]);
- let lines=[];
- if(rep.errors.length)lines.push(`<span style="color:#f87171">✕ Incompatible avec ton projet : ${escapeHtml(rep.errors[0].title||rep.errors[0].text||"conflit")}</span>`);
- else lines.push(`<span class="gv-good" style="font-weight:800">✅ 100% compatible avec le reste de ton projet — vérifié par le moteur.</span>`);
- if(!rep.errors.length&&rep.warns&&rep.warns.length)lines.push(`<span style="color:#f0b45c">⚠ ${escapeHtml(rep.warns[0].title||rep.warns[0].text||"")}</span>`);
- if(cat==="gpu"&&!rep.errors.length){
-   const cpu=get("cpu",test.cpu);
-   if(cpu){const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
-     const vs=["1080p","1440p","4k"].map(r=>{const f=avgFpsOf(p,cpu,GG,r);const v=fpsVerdict(f);return `${r==="4k"?"4K":r} ${v[0]} ${v[1]}`}).join(" · ");
-     lines.push(`<span class="small-note">Dans TON projet : ${vs}</span>`);}
+ const UV="#9D6BFF";
+ // ----- bannière de statut, avec pastille -----
+ const ok=!rep.errors.length;
+ const bCol=inProject?UV:ok?"#34d399":"#f87171";
+ const bIco=inProject?"🧩":ok?"✔":"✕";
+ const bTitle=inProject?"Cette pièce est dans ton projet":ok?"100% compatible avec ton projet":"Incompatible avec ton projet";
+ const bSub=inProject?"Elle est déjà montée dans ta configuration.":ok?((rep.warns&&rep.warns[0])?("⚠ "+escapeHtml(rep.warns[0].title||rep.warns[0].text||"")):"Vérifié par le moteur : elle s’installe sans rien changer d’autre."):escapeHtml((rep.errors[0]&&(rep.errors[0].title||rep.errors[0].text))||"conflit");
+ const banner=`<div style="display:flex;gap:14px;align-items:center;padding:13px 16px;border:1px solid ${bCol}55;border-left:4px solid ${bCol};background:${bCol}12;margin-bottom:12px">
+   <span style="width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;background:${bCol}22;border:1.5px solid ${bCol};color:${bCol}">${bIco}</span>
+   <span><strong style="font-size:14px">${bTitle}</strong><br><span class="small-note">${bSub}</span></span>
+ </div>`;
+ // ----- jauges FPS : ta pièce (fine, grise) vs celle-ci (pleine, colorée) -----
+ let gauges="";
+ const perfCat=(cat==="gpu"||cat==="cpu");
+ if(perfCat&&ok){
+   const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
+   const gpuN=cat==="gpu"?p:get("gpu",test.gpu);
+   const cpuN=cat==="cpu"?p:get("cpu",test.cpu);
+   const gpuC=get("gpu",s.gpu),cpuC=get("cpu",s.cpu);
+   if(gpuN&&cpuN){
+     const row=(lab,res)=>{
+       const fN=avgFpsOf(gpuN,cpuN,GG,res);
+       const fC=(gpuC&&cpuC&&!inProject)?avgFpsOf(gpuC,cpuC,GG,res):null;
+       const pct=f=>Math.min(100,Math.round(f/160*100));
+       const v=fpsVerdict(fN);
+       const col=v[0]==="🟢"?"#34d399":v[0]==="🟡"?"#eab308":v[0]==="🟠"?"#fb923c":"#f87171";
+       const d=fC!=null?fN-fC:null;
+       return `<div style="display:grid;grid-template-columns:46px 1fr 130px;gap:12px;align-items:center;margin:8px 0">
+         <b style="font-size:12px">${lab}</b>
+         <div>${fC!=null?`<div style="height:5px;background:#22252e;border-radius:3px;overflow:hidden;margin-bottom:3px"><div style="height:100%;width:${pct(fC)}%;background:#4a4f5c"></div></div>`:""}
+           <div style="height:11px;background:#191c24;border-radius:5px;overflow:hidden;box-shadow:0 0 12px ${col}33"><div style="height:100%;width:${pct(fN)}%;background:linear-gradient(90deg,${col}bb,${col})"></div></div></div>
+         <span style="font-size:12.5px;font-weight:900">${fC!=null?`<span style="opacity:.55">${fC}</span> → `:""}${fN} <span style="opacity:.6;font-weight:700">FPS</span>${d!=null&&d!==0?` <span style="color:${d>0?"#34d399":"#fb923c"}">${d>0?"+":""}${d}</span>`:""}</span>
+       </div>`;
+     };
+     gauges=`<div style="margin:4px 0 10px">
+       <div class="small-note" style="margin-bottom:2px">${inProject?"Ce qu’elle donne dans ton projet (gros jeux) :":"Ta "+labelCat(cat).toLowerCase()+" actuelle <span style=\"display:inline-block;width:16px;height:4px;background:#4a4f5c;vertical-align:middle;border-radius:2px\"></span> &nbsp;vs&nbsp; celle-ci <span style=\"display:inline-block;width:16px;height:6px;background:${UV};vertical-align:middle;border-radius:3px\"></span> :"}</div>
+       ${row("1080p","1080p")}${row("1440p","1440p")}${row("4K","4k")}
+     </div>`;
+   }
+ }
+ // ----- jauge d'alimentation : la barre et le trait du besoin -----
+ if(cat==="psu"&&ok){
+   const need=recommendedPsuWatts(get("cpu",test.cpu),get("gpu",test.gpu));
+   const w=p.watts||0,max=1200;
+   const okW=w>=need;
+   gauges=`<div style="margin:4px 0 12px"><div class="small-note" style="margin-bottom:5px">Puissance de celle-ci vs le besoin de TON PC :</div>
+     <div style="position:relative;height:14px;background:#191c24;border-radius:7px;overflow:visible">
+       <div style="height:100%;width:${Math.min(100,Math.round(w/max*100))}%;background:linear-gradient(90deg,${okW?"#34d399":"#f87171"}aa,${okW?"#34d399":"#f87171"});border-radius:7px"></div>
+       <div style="position:absolute;top:-4px;bottom:-4px;left:${Math.min(98,Math.round(need/max*100))}%;width:2px;background:#fff"></div>
+       <span style="position:absolute;top:-20px;left:${Math.min(90,Math.round(need/max*100))}%;font-size:10px;color:#fff;transform:translateX(-50%)">besoin ~${need} W</span>
+     </div>
+     <div style="font-weight:900;font-size:12.5px;margin-top:6px">${w} W ${okW?'<span style="color:#34d399">✔ couvre ton PC</span>':'<span style="color:#f87171">✕ trop juste pour ton PC</span>'}</div></div>`;
  }
  const action=inProject
-   ?`<span class="gv-good" style="font-weight:900;display:inline-block;padding:10px 0">✓ Cette pièce est dans ton projet</span>`
-   :(rep.errors.length?"":`<button class="btn" data-use="${cat}|${p.id}">Remplacer ${cur?"ma "+labelCat(cat).toLowerCase()+" ("+escapeHtml(shortPieceName(cur.name))+")":"— mettre dans mon projet"} par celle-ci</button>`);
- return `<div class="duel-box" style="margin:10px 0"><strong>🧩 Dans ton projet</strong><div style="display:flex;flex-direction:column;gap:5px;margin-top:6px;font-size:12.5px">${lines.join("")}</div><div style="margin-top:8px">${action}</div></div>`;
+   ?""
+   :(rep.errors.length?"":`<button class="btn" data-use="${cat}|${p.id}" style="box-shadow:0 0 20px ${UV}55">Remplacer ${cur?"ma "+labelCat(cat).toLowerCase()+" ("+escapeHtml(shortPieceName(cur.name))+")":"— mettre dans mon projet"} par celle-ci</button>`);
+ return `<div class="duel-box" style="margin:10px 0;border-color:${bCol}44"><strong style="letter-spacing:.4px">🧩 DANS TON PROJET</strong><div style="margin-top:10px">${banner}${gauges}${action}</div></div>`;
 }
 function openSheet(cat,id){
  const p=get(cat,id);if(!p)return;
