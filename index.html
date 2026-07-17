@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.6 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.7 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -2261,6 +2261,40 @@ function specRows(cat,p){
  if(p.origin==="personal"||p.custom)add("Origine","Import famille / perso");
  return rows;
 }
+function pieceCulture(cat,p){
+ const L=[];
+ const nm=p.name||"";
+ if(cat==="gpu"){
+   const isN=/RTX|GeForce|NVIDIA/i.test(nm)||p.brand==="nvidia";
+   if(isN)L.push("<b>Camp NVIDIA</b> : son arme s’appelle <b>DLSS</b> — l’IA fabrique des images et des pixels en plus, donc plus de FPS sans changer de carte. Ray tracing le plus abouti du marché. Tu paies l’écosystème logiciel, et il le vaut souvent.");
+   else L.push("<b>Camp AMD Radeon</b> : sa réponse s’appelle <b>FSR</b> (même idée que le DLSS, en version ouverte). Sa vraie force : <b>plus de VRAM par euro</b> — le choix du rapport prix/performances.");
+   if(p.vram)L.push(p.vram>=24?`<b>${p.vram} Go de VRAM</b> : territoire créateurs et 4K extrême — au-delà du besoin de la plupart des joueurs.`:p.vram>=16?`<b>${p.vram} Go de VRAM</b> : le confort pour des années, 1440p et 4K sereins.`:p.vram>=12?`<b>${p.vram} Go de VRAM</b> : bien aujourd’hui, à surveiller sur les très gros jeux de demain.`:`<b>${p.vram} Go de VRAM</b> : suffisant en 1080p aujourd’hui — c’est LA limite qui vieillira en premier.`);
+   if(/occasion/i.test(nm))L.push("⚠ <b>Occasion / génération arrêtée</b> : plus de garantie constructeur, prix à négocier — jamais un choix par défaut.");
+ }
+ if(cat==="cpu"){
+   const isIntel=/Intel|Core/i.test(nm)||/LGA/i.test(p.socket||"");
+   if(/X3D/i.test(nm))L.push("<b>X3D = cache 3D empilé</b> : AMD colle une réserve de mémoire ultra-rapide sur la puce. En jeu, c’est l’arme absolue — souvent devant des processeurs bien plus chers.");
+   L.push(isIntel?"<b>Camp Intel</b> : beaucoup de cœurs et de gros GHz — très fort pour tout faire. En jeu pur, AMD X3D garde souvent le dernier mot.":"<b>Camp AMD Ryzen</b> : l’efficacité et la plateforme qui dure (un socket AM garde plusieurs générations de processeurs — ta carte mère vit plus longtemps).");
+   L.push("Notre règle maison : en jeu, <b>le cache et l’architecture comptent plus que les GHz</b> affichés en gros sur la boîte."+(p.gen?` Génération : <b>${escapeHtml(p.gen)}</b>.`:"")+(p.tdp?` Consommation typique : <b>${p.tdp} W</b>.`:""));
+ }
+ if(cat==="ram"){
+   if(p.type)L.push(p.type==="DDR5"?"<b>DDR5</b> : la génération actuelle — obligatoire sur AM5 et les plateformes récentes.":"<b>DDR4</b> : la génération précédente — encore parfaite sur AM4, imposée par la carte mère.");
+   if(p.speed)L.push(`<b>${p.speed} MT/s</b> : la vitesse de la mémoire. ${p.type==="DDR5"&&p.speed>=6000?"Le point d’équilibre idéal des Ryzen AM5 — exactement ce qu’on recommande.":p.type==="DDR5"?"Correct — 6000 MT/s est le point d’équilibre idéal sur AM5.":"Le standard éprouvé de sa génération."}`);
+   if(p.sticks)L.push(`<b>${p.sticks} barrettes</b> = double canal : deux voies au lieu d’une entre la mémoire et le processeur. Toujours 2 barrettes plutôt qu’une seule grosse.`);
+   if(p.expo)L.push("<b>Profil EXPO</b> : la vitesse annoncée s’active en un clic dans le BIOS — sans lui, la RAM tourne au ralenti d’usine.");
+ }
+ if(cat==="psu"){
+   if(p.quality)L.push(`<b>Certification ${escapeHtml(p.quality)}</b> : le rendement. Moins d’électricité gaspillée en chaleur, plus de silence, meilleure longévité.`);
+   if(p.atx31)L.push("<b>ATX 3.1 / 12V-2x6</b> : le connecteur natif des cartes graphiques récentes — sans adaptateur, sans risque de câble qui chauffe.");
+   L.push("Notre règle maison : l’alimentation est la pièce où <b>on n’économise jamais</b> — c’est elle qui protège tout le reste.");
+ }
+ if(cat==="motherboard")L.push("La carte mère ne donne pas de FPS : elle donne <b>le socket</b> (donc les processeurs possibles), la connectique et la marge d’évolution. On la choisit pour l’avenir, pas pour le chiffre.");
+ if(cat==="ssd")L.push("Un NVMe rend le PC <b>réactif</b> : démarrages et chargements. Au-delà du milieu de gamme, en jeu, la différence se sent à peine — mets l’argent dans la capacité.");
+ if(cat==="cooler")L.push("Le refroidissement n’ajoute pas de FPS : il achète <b>le silence</b> et la stabilité des performances dans le temps.");
+ if(cat==="case")L.push("Le boîtier, c’est le style ET la respiration : un bon flux d’air vaut mieux qu’une vitre de plus. Vérifie toujours la place pour la carte graphique — nous, on le fait pour toi.");
+ if(!L.length)return "";
+ return `<div class="duel-box" style="margin:10px 0;border-color:#9D6BFF33"><strong style="letter-spacing:.4px">🎙️ L’AVIS COMPAT’PC</strong><div class="small-note" style="margin:2px 0 8px">Notre philosophie : le gain utile par euro — jamais le marketing.</div><div style="display:flex;flex-direction:column;gap:7px;font-size:12.5px;line-height:1.5">${L.map(x=>`<span>• ${x}</span>`).join("")}</div></div>`;
+}
 function sheetProjectBlock(cat,p){
  if(!state.cart||!state.cart.selection)return "";
  const s=state.cart.selection;
@@ -2331,12 +2365,13 @@ function openSheet(cat,id){
  const o=document.getElementById("sheetOverlay"),c=document.getElementById("sheetCard");
  const rows=specRows(cat,p).map(([l,v])=>`<div class="sheet-row"><span>${escapeHtml(l)}</span><b>${escapeHtml(String(v))}</b></div>`).join("");
  const projBlock=sheetProjectBlock(cat,p);
+ const cultureBlock=pieceCulture(cat,p);
  c.innerHTML=`
   <div class="sheet-top"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}"><div class="art-wrap">${productVisual(cat,p,false)}</div></div>
   <div><div class="component-type" style="position:static;display:inline-block;margin-bottom:6px">${labelCat(cat)}</div><h3>${escapeHtml(p.name)}</h3><div class="price" style="margin:6px 0">${money(p.price)} <button class="btn ghost" id="sheetPriceBtn" style="font-size:11px;padding:3px 9px;vertical-align:middle">✏️ corriger</button></div>
   <div style="margin:4px 0 8px">${fpBadge(cat,p,true)}</div>
   <div id="sheetPriceForm" style="display:none;margin:6px 0 10px"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="sheetPriceInput" type="number" min="1" step="0.01" placeholder="Prix constaté en €" style="width:160px;background:#121217;border:1px solid #35353f;border-radius:8px;color:var(--text);padding:8px 10px"><button class="btn" id="sheetPriceSave">Enregistrer pour la famille</button></div><div class="small-note" style="margin-top:6px">Le nouveau prix s'applique partout : bibliothèque, propositions, budgets, duels.</div></div>${p.description?`<p class="small-note">${escapeHtml(p.description.slice(0,260))}${p.description.length>260?"…":""}</p>`:""}</div></div>
-  <div class="sheet-specs">${projBlock}${rows}</div>
+  <div class="sheet-specs">${projBlock}${cultureBlock}${rows}</div>
   <div class="shop-actions" style="margin-top:14px;flex-wrap:wrap">
    <button class="btn" id="sheetUse">Mettre dans mon projet</button>
    <button class="btn ghost fav-btn ${isFavorite(cat,id)?"active":""}" id="sheetFav">★ Favori</button>
@@ -2442,6 +2477,17 @@ function impactChips(cat,p){
 }
 /* ===== Glossaire ===== */
 const GLOSSARY=[
+["DLSS (NVIDIA)","L’intelligence artificielle de NVIDIA qui invente des pixels et des images en plus : le jeu calcule en petit, la carte affiche en grand et fluide. Résultat : beaucoup plus de FPS « gratuits » sur les cartes RTX."],
+["FSR (AMD)","La réponse d’AMD au DLSS : même principe (agrandir intelligemment l’image pour gagner des FPS), en version ouverte qui marche sur presque toutes les cartes."],
+["Génération d’images (Frame Gen)","La carte graphique fabrique des images intermédiaires entre deux vraies images. Les FPS affichés grimpent fort — idéal pour la fluidité, un peu moins pour les jeux de réflexes purs."],
+["Ray tracing","Le calcul réaliste de la lumière : reflets, ombres, éclairages dignes du cinéma. Magnifique mais très gourmand — c’est là que le DLSS/FSR devient indispensable."],
+["X3D (cache 3D d’AMD)","AMD empile une réserve de mémoire ultra-rapide directement sur le processeur. En jeu, ces puces (5700X3D, 7800X3D, 9800X3D…) battent souvent des processeurs bien plus chers."],
+["Intel vs AMD (processeurs)","La grande bataille : Intel mise sur beaucoup de cœurs et de gros GHz, AMD sur l’efficacité et les puces X3D reines du jeu. En 2026, pour jouer, l’avantage est au camp AMD — mais ça se rejoue à chaque génération."],
+["NVIDIA vs AMD (cartes graphiques)","NVIDIA vend l’écosystème (DLSS, ray tracing au sommet) un peu plus cher ; AMD Radeon vend plus de VRAM et de performances par euro. Aucun mauvais camp : deux philosophies."],
+["Fréquence (GHz)","La vitesse de battement du processeur. Important, mais trompeur tout seul : à génération égale, le cache et l’architecture font souvent plus de FPS que quelques GHz de plus."],
+["Vitesse RAM (MT/s)","Le débit de la mémoire. Sur AM5/DDR5, le point d’équilibre idéal est 6000 MT/s : au-delà, on paie cher pour presque rien."],
+["Double canal (dual channel)","Deux barrettes de RAM = deux voies simultanées entre mémoire et processeur. Toujours préférer 2×16 Go à 1×32 Go : c’est gratuit et plus rapide."],
+
 ["VRAM","La mémoire de la carte graphique — celle qui stocke les images du jeu. Plus il y en a (en Go), plus les gros jeux et les hautes résolutions passent bien. En 2026 : 8 Go = juste, 12 Go = bien, 16 Go = tranquille pour des années."],
 ["Socket (AM4, AM5, LGA…)","La « prise » sur la carte mère où se branche le processeur. Un processeur ne rentre QUE dans son socket. AM5 = la prise AMD actuelle et future (🛡️). AM4 = l'ancienne, sans avenir (🧱). LGA = les prises Intel, qui changent souvent."],
 ["DDR4 / DDR5","Les générations de mémoire vive (RAM). La DDR5 est le standard actuel et durable. La DDR4 est en fin de vie : moins chère, mais aucune carte mère future ne l'acceptera. Attention : une carte mère accepte l'une OU l'autre, jamais les deux."],
