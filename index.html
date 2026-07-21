@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.9 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.6.10 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -842,7 +842,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.6.9 « Retour partout » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.6.10 « Trois états, zéro omission » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
@@ -2402,10 +2402,12 @@ function sheetProjectBlock(cat,p){
  const UV="#9D6BFF";
  // ----- bannière de statut, avec pastille -----
  const ok=!rep.errors.length;
- const bCol=inProject?UV:ok?"#34d399":"#f87171";
- const bIco=inProject?"🧩":ok?"✔":"✕";
- const bTitle=inProject?"Cette pièce est dans ton projet":ok?"100% compatible avec ton projet":"Incompatible avec ton projet";
- const bSub=inProject?"Elle est déjà montée dans ta configuration.":ok?((rep.warns&&rep.warns[0])?("⚠ "+escapeHtml(rep.warns[0].title||rep.warns[0].text||"")):"Vérifié par le moteur : elle s’installe sans rien changer d’autre."):escapeHtml((rep.errors[0]&&(rep.errors[0].title||rep.errors[0].text))||"conflit");
+ const warns=rep.warnings||rep.warns||[];
+ const hasWarn=ok&&warns.length>0;
+ const bCol=inProject?UV:!ok?"#f87171":hasWarn?"#f0b45c":"#34d399";
+ const bIco=inProject?"🧩":!ok?"✕":hasWarn?"⚠":"✔";
+ const bTitle=inProject?"Cette pièce est dans ton projet":!ok?"Incompatible avec ton projet":hasWarn?"Compatible — un point à vérifier":"100% compatible avec ton projet";
+ const bSub=inProject?"Elle est déjà montée dans ta configuration.":!ok?escapeHtml((rep.errors[0]&&(rep.errors[0].title||rep.errors[0].text))||"conflit"):hasWarn?escapeHtml(warns[0].title||warns[0].text||warns[0]||""):"Vérifié par le moteur : elle s’installe sans rien changer d’autre.";
  const banner=`<div style="display:flex;gap:14px;align-items:center;padding:13px 16px;border:1px solid ${bCol}55;border-left:4px solid ${bCol};background:${bCol}12;margin-bottom:12px">
    <span style="width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;background:${bCol}22;border:1.5px solid ${bCol};color:${bCol}">${bIco}</span>
    <span><strong style="font-size:14px">${bTitle}</strong><br><span class="small-note">${bSub}</span></span>
