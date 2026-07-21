@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.6.10 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.7.0 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -277,8 +277,8 @@ h1 .volt,#brandHome .volt{color:var(--accent)}
 #userChip{color:#c4b5fd;border-color:#3a3a44;background:#1a1a20}
 /* Fiche produit */
 .sheet-overlay{position:fixed;inset:0;background:rgba(5,5,7,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:1200;padding:18px}
-.sheet-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px;max-width:640px;width:100%;max-height:90vh;overflow:auto}
-.sheet-top{display:grid;grid-template-columns:200px 1fr;gap:14px;align-items:start;margin-bottom:12px}
+.sheet-card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px 24px;max-width:940px;width:100%;max-height:90vh;overflow:auto}
+.sheet-top{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start;margin-bottom:12px}
 .sheet-top .visual{height:170px;border-radius:12px;overflow:hidden;position:relative}
 .sheet-top h3{margin:0}
 .sheet-row{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid #232329;font-size:13px}
@@ -450,6 +450,10 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
 .sheet-row b{color:#c9b8f5}
 .sheet-row{padding:7px 10px;border-radius:4px}
 .award-badge{display:inline-block;font-size:10px;font-weight:900;letter-spacing:.4px;padding:3px 8px;margin-right:5px;border-radius:4px;background:linear-gradient(120deg,#3a2f14,#4d3d12);border:1px solid #b8912f;color:#f0d27a;vertical-align:middle;cursor:help}
+.pc-tile{display:inline-flex;width:30px;height:30px;align-items:center;justify-content:center;background:#12141c;border:1px solid #2b2542;margin-right:9px;font-size:15px;vertical-align:-9px;border-radius:6px}
+.pc-tile.lim{border-color:#f0b45c;box-shadow:0 0 12px rgba(240,180,92,.35)}
+.cart-item.lim-item{border-color:#f0b45c!important;box-shadow:0 0 16px rgba(240,180,92,.15)}
+.line-verdict{font-size:10px;font-weight:900;margin-left:8px;letter-spacing:.3px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -842,7 +846,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.6.10 « Trois états, zéro omission » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.7.0 « Le théâtre » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
@@ -2084,10 +2088,20 @@ function renderCart(){
  __cartAutosave();
  if(!state.cart)return;
  const list=document.getElementById("cartList");list.innerHTML="";
+ const __lim=(()=>{const s=state.cart.selection;const g=get("gpu",s.gpu),c=get("cpu",s.cpu),r=get("ram",s.ram);if(!g||!c)return null;const GG=["Warzone","Elden Ring","Cyberpunk 2077"];const goal=state.screen||"1080p";if(avgFpsOf(g,c,GG,goal)<60)return "gpu";if(r&&(r.capacity||0)<32)return "ram";if((g.vram||0)<12)return "gpu";return null})();
+ const __ICO={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};
+ const __chip=(cat,p)=>{
+   const s=state.cart.selection;const goal=state.screen||"1080p";const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
+   if(cat===__lim)return `<span class="line-verdict" style="color:#f0b45c">⚠️ Première pièce qui vieillira</span>`;
+   if(cat==="gpu"||cat==="cpu"){const g=get("gpu",s.gpu),c=get("cpu",s.cpu);if(g&&c){const f=avgFpsOf(g,c,GG,goal);return f>=75?`<span class="line-verdict" style="color:#34d399">✅ Très bon pour ton objectif</span>`:f>=60?`<span class="line-verdict" style="color:#34d399">✅ Bon pour ton objectif</span>`:``}}
+   if(cat==="ram"&&(p.capacity||0)>=32)return `<span class="line-verdict" style="color:#34d399">✅ 32 Go — paré pour longtemps</span>`;
+   if(cat==="psu"){const need=recommendedPsuWatts(get("cpu",s.cpu),get("gpu",s.gpu));if(p.watts)return (p.watts-need)>=120?`<span class="line-verdict" style="color:#34d399">✅ Marge confortable</span>`:`<span class="line-verdict" style="color:#f0b45c">⚠️ Marge juste</span>`}
+   return "";
+ };
  Object.entries(state.cart.selection).forEach(([cat,id])=>{
-  const p=get(cat,id);const d=document.createElement("div");d.className="cart-item";
+  const p=get(cat,id);const d=document.createElement("div");d.className="cart-item"+(cat===__lim?" lim-item":"");
   const dm=state.cart.decodeMeta&&state.cart.decodeMeta[cat];
-  d.innerHTML=`<div><h4>${labelCat(cat)} — ${escapeHtml(p.name)}${window.__justChanged&&window.__justChanged.has(cat)?' <span class="gv-good" style="font-size:10px;font-weight:900">🆕 MIS À JOUR</span>':""}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" data-sheet="${cat}|${p.id}" style="cursor:pointer">📋 Voir la fiche complète</a> · <a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
+  d.innerHTML=`<div><h4 data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Voir la fiche complète"><span class="pc-tile${cat===__lim?" lim":""}">${__ICO[cat]||"🔧"}</span>${labelCat(cat)} — ${escapeHtml(p.name)}${__chip(cat,p)}${window.__justChanged&&window.__justChanged.has(cat)?' <span class="gv-good" style="font-size:10px;font-weight:900">🆕 MIS À JOUR</span>':""}</h4><p>${money(p.price)}${cat==="cooler"&&p.gif?" • GIF/image personnalisable":""} ${fpBadge(cat,p,false)}</p>${dm?`<p class="small-note" style="margin-top:4px">🧭 <strong>${escapeHtml(decodeHowLabel(dm.how))}</strong> — ${escapeHtml(dm.note||"")}</p>`:""}<div style="margin-top:8px"><a class="search-link" data-sheet="${cat}|${p.id}" style="cursor:pointer">📋 Voir la fiche complète</a> · <a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir à quoi ça ressemble</a></div></div>
   <div style="display:flex;flex-direction:column;gap:7px"><button class="btn ghost" data-change="${cat}">Changer rapidement</button><button class="btn secondary" data-browse="${cat}">Voir toute la catégorie</button></div>`;
   list.appendChild(d)
  });
@@ -3450,10 +3464,19 @@ function computeUpgradePlans(){
 function renderUpgradePlans(){
  const zone=document.getElementById("upPlans");
  const R=computeUpgradePlans();window.__upResult=R;
+ const planVisual=(pl)=>{
+  const ico={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};
+  const ch=pl.changes&&pl.changes[0];
+  const tile=(t,name,accent)=>`<div style="flex:1;min-width:0;background:${accent?"#171226":"#0d0f15"};border:1px solid ${accent?"#9D6BFF":"#1f232e"};padding:10px 12px;text-align:center;${accent?"box-shadow:0 0 18px #9D6BFF33":""}"><div style="font-size:22px">${t}</div><div style="font-size:11.5px;font-weight:800;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div></div>`;
+  const heads=ch?`<div style="display:flex;gap:10px;align-items:center;margin:6px 0 4px">${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.from.name)),false)}<div style="font-size:22px;color:#9D6BFF;font-weight:900">→</div>${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.to.name)),true)}</div>${pl.changes.length>1?`<div class="small-note" style="text-align:center;margin-bottom:4px">+ ${pl.changes.length-1} autre(s) pièce(s) — détail ci-dessous</div>`:""}`:"";
+  const big=`<div style="text-align:center;margin:8px 0 10px"><span style="font-size:24px;font-weight:900;opacity:.5">${escapeHtml(String(pl.before))}</span><span style="font-size:20px;color:#9D6BFF;font-weight:900;margin:0 12px">→</span><span style="font-size:34px;font-weight:900;color:#34d399;text-shadow:0 0 20px #34d39955">${escapeHtml(String(pl.after))}</span></div>`;
+  const zones=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px"><div style="background:#0d1a13;border:1px solid #1f4d33;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#34d399">CE QUE TU GAGNES</div><div style="font-size:12.5px;margin-top:3px"><strong>${escapeHtml(pl.metric||"")}</strong></div></div><div style="background:#1a130d;border:1px solid #4d3a1f;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#f0b45c">CE QUE TU ACCEPTES</div><div style="font-size:12.5px;margin-top:3px"><strong>${money(pl.cost)}</strong>${pl.over?` · dépasse de ${money(pl.over)}`:""}${pl.warns&&pl.warns.length?` · ⚠ ${pl.warns.length} avertissement(s)`:""}</div></div></div>`;
+  return heads+big+zones;
+ };
  if(!R){zone.innerHTML='<p class="small-note">Charge d’abord un projet.</p>';return}
  if(!R.plans.length){zone.innerHTML='<p class="small-note">'+(R.hadCands?("Des pistes existent, mais <strong>aucune ne tient dans ton budget de "+money(R.budget)+"</strong> — augmente le budget ou libère une contrainte."):"Aucun plan trouvé avec ces contraintes — essaie un budget plus large ou libère une pièce.")+'</p>';return}
  if(R.goal==="stockage"){
-   zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px"><strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${pl.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${pl.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
+   zone.innerHTML=R.plans.map((pl,i)=>`<div class="duel-box" style="margin-top:10px">${planVisual(pl)}<strong>${pl.title}</strong> — ${pl.pitch}<br>${pl.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)} → <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>")}<div class="small-note" style="margin-top:6px">${pl.before} → <strong>${pl.after}</strong> • Coût ${money(pl.cost)} • <strong>${pl.metric}</strong></div>${pl.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(pl.over)}.</div>`:""}${pl.warns&&pl.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${pl.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${pl.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`).join("");
  }else if(getAppMode()==="copilote"){
    const mainIdx=Math.max(0,R.plans.findIndex(x=>x.title.includes("gaming")));
    const card=(x,i,main)=>{
@@ -3464,6 +3487,7 @@ function renderUpgradePlans(){
        :`<span class="gv-good" style="font-size:11px;font-weight:900">Non — tout est vérifié ✔</span>`;
      return `<div class="duel-box" style="margin-top:10px${main?";border-color:#5b4794":""}">
        ${main?`<strong>🎯 Notre conseil pour toi</strong> — ${x.pitch}<br>`:""}
+       ${(()=>{const ch=c.changes[0];const ico={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};const tile=(t,nm,a)=>`<div style="flex:1;min-width:0;background:${a?"#171226":"#0d0f15"};border:1px solid ${a?"#9D6BFF":"#1f232e"};padding:10px 12px;text-align:center;${a?"box-shadow:0 0 18px #9D6BFF33":""}"><div style="font-size:22px">${t}</div><div style="font-size:11.5px;font-weight:800;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</div></div>`;return (ch?`<div style="display:flex;gap:10px;align-items:center;margin:8px 0 4px">${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.from.name)),false)}<div style="font-size:22px;color:#9D6BFF;font-weight:900">→</div>${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.to.name)),true)}</div>${c.changes.length>1?`<div class="small-note" style="text-align:center">+ ${c.changes.length-1} autre(s) pièce(s) — détail ci-dessous</div>`:""}`:"")+`<div style="text-align:center;margin:8px 0 10px"><span style="font-size:24px;font-weight:900;opacity:.5">${R.before} FPS</span><span style="font-size:20px;color:#9D6BFF;font-weight:900;margin:0 12px">→</span><span style="font-size:34px;font-weight:900;color:#34d399;text-shadow:0 0 20px #34d39955">${c.after} FPS</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 8px"><div style="background:#0d1a13;border:1px solid #1f4d33;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#34d399">CE QUE TU GAGNES</div><div style="font-size:12.5px;margin-top:3px"><strong>+${c.delta} FPS en ${R.res==="4k"?"4K":R.res}</strong> · ${(c.cost/c.delta).toFixed(1)} €/FPS</div></div><div style="background:#1a130d;border:1px solid #4d3a1f;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#f0b45c">CE QUE TU ACCEPTES</div><div style="font-size:12.5px;margin-top:3px"><strong>${money(c.cost)}</strong>${x.over?` · dépasse de ${money(x.over)}`:""}${c.warns&&c.warns.length?` · ⚠ ${c.warns.length} à vérifier`:""}</div></div></div>`})()}
        <div style="margin-top:6px"><span class="small-note">Qu’est-ce que je change ?</span><br>${c.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(shortPieceName(ch.from.name))} → <strong>${escapeHtml(shortPieceName(ch.to.name))}</strong>`).join("<br>")}</div>
        <div style="margin-top:6px"><span class="small-note">Combien ça coûte ?</span><br><strong>${money(c.cost)}</strong>${x.over?` <span style="color:#f0b45c">⚠ dépasse ton budget de ${money(x.over)}</span>`:""}</div>
        <div style="margin-top:6px"><span class="small-note">Qu’est-ce que ça améliore dans mes jeux ?</span><br>${games}</div>
