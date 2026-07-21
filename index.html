@@ -465,6 +465,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       <button id="expertMode">Mode expert</button>
       <button id="openGlossary" title="Le glossaire : tous les mots compliqués expliqués simplement">📖 C'est quoi ?</button>
       <button id="userChip" title="Changer de joueur">👤 …</button>
+      <button id="authChip" title="Connexion pour publier/modifier en ligne">🔒 Se connecter</button>
         <span id="voltMode" title="Changer de mode">Mode guidé</span>
     </div>
   </div>
@@ -827,9 +828,39 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
+  <div id="authOverlay" class="welcome-overlay" style="display:none">
+    <div class="welcome-card">
+      <h2>Compte famille</h2>
+      <p style="color:var(--muted);line-height:1.5">Connecte-toi pour <strong>publier, modifier ou supprimer</strong> en ligne. La consultation reste libre, sans compte.</p>
+      <div class="field" style="text-align:left;margin-top:6px"><label for="authEmail">E-mail</label><input id="authEmail" type="email" autocomplete="email" placeholder="prenom@exemple.fr"></div>
+      <div class="field" style="text-align:left;margin-top:10px"><label for="authPassword">Mot de passe</label><input id="authPassword" type="password" autocomplete="current-password" placeholder="au moins 6 caractères"></div>
+      <div id="authError" class="status warn" style="display:none;margin-top:10px"></div>
+      <div class="welcome-buttons" style="flex-direction:column;align-items:stretch;gap:10px;margin-top:14px">
+        <button class="btn" id="authSignInBtn">Se connecter</button>
+        <button class="btn secondary" id="authSignUpBtn">Créer un compte</button>
+        <button class="btn ghost" id="authCancelBtn">Plus tard</button>
+      </div>
+    </div>
+  </div>
   <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.6.1 « Retour partout » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
+<script type="module">
+  // Authentification famille — client Supabase officiel (chargé à la demande).
+  // Échec silencieux si hors ligne : l'app reste utilisable, seule la synchro en ligne est suspendue.
+  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+  try{
+    const sb = createClient(
+      "https://nvomaxjyhuemdfvhzcbf.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52b21heGp5aHVlbWRmdmh6Y2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTI3NjEsImV4cCI6MjA4NzY2ODc2MX0.2vQyuT6rPTeGzMp244L9n0OzBwOnW3WTviC3RKxrp8U",
+      { auth:{ persistSession:true, autoRefreshToken:true, storageKey:"compatpc-auth" } }
+    );
+    window.__sb = sb;
+    const relay = (session)=>{ window.__sbSession = session||null; if(typeof window.onAuthChanged==="function") window.onAuthChanged(session||null); };
+    sb.auth.getSession().then(({data})=>relay(data.session)).catch(()=>{});
+    sb.auth.onAuthStateChange((_e,session)=>relay(session));
+  }catch(e){ window.__sbError = e; }
+</script>
 <script>
 const moods=[
 {id:"white-aquarium",title:"Aquarium blanc",desc:"Verre, blanc, RGB et écran LCD/GIF.",visual:"white",tags:["Blanc","Aquarium","GIF"]},
@@ -900,8 +931,17 @@ mergePersonalLibrary();
 const SUPABASE_URL="https://nvomaxjyhuemdfvhzcbf.supabase.co";
 const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im52b21heGp5aHVlbWRmdmh6Y2JmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwOTI3NjEsImV4cCI6MjA4NzY2ODc2MX0.2vQyuT6rPTeGzMp244L9n0OzBwOnW3WTviC3RKxrp8U";
 const CLOUD_ON=SUPABASE_ANON_KEY.startsWith("eyJ")||SUPABASE_ANON_KEY.startsWith("sb_");
+let __authModalTimer=null;
+function isAuthed(){return !!(window.__sbSession&&window.__sbSession.access_token)}
+function currentUid(){return (window.__sbSession&&window.__sbSession.user&&window.__sbSession.user.id)||null}
+function currentEmail(){return (window.__sbSession&&window.__sbSession.user&&window.__sbSession.user.email)||null}
+function promptAuth(){clearTimeout(__authModalTimer);__authModalTimer=setTimeout(()=>{try{openAuth()}catch(e){}},60)}
 function supaFetch(path,options={}){
- return fetch(SUPABASE_URL+"/rest/v1/"+path,{...options,headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+SUPABASE_ANON_KEY,"Content-Type":"application/json",...(options.headers||{})}});
+ const method=(options.method||"GET").toUpperCase();
+ // Lecture : libre (clé anon). Écriture : connexion obligatoire — RLS refuse de toute façon côté serveur.
+ if(method!=="GET"&&!isAuthed()){promptAuth();return Promise.resolve(new Response('{"message":"Connexion requise pour modifier en ligne."}',{status:401,headers:{"Content-Type":"application/json"}}))}
+ const token=isAuthed()?window.__sbSession.access_token:SUPABASE_ANON_KEY;
+ return fetch(SUPABASE_URL+"/rest/v1/"+path,{...options,headers:{"apikey":SUPABASE_ANON_KEY,"Authorization":"Bearer "+token,"Content-Type":"application/json",...(options.headers||{})}});
 }
 function getUserName(){
  const n=currentUser();
@@ -932,7 +972,7 @@ async function renderCloudConfigs(){
    arr.forEach(b=>{
      const d=document.createElement("div");d.className="saved";
      const date=new Date(b.created_at).toLocaleDateString("fr-FR",{day:"2-digit",month:"short"});
-     d.innerHTML=`<div><strong>${escapeHtml(b.nom)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • par ${escapeHtml(b.auteur)} • ${date}</div></div><div style="display:flex;gap:8px"><button class="btn warn" data-duel="${b.id}" title="Défier avec cette config">⚔️</button><button class="btn secondary" data-cloud-load="${b.id}">Charger</button><button class="btn ghost" data-cloud-uplab="${b.id}">🔼</button><button class="btn danger" data-cloud-del="${b.id}">Suppr.</button></div>`;
+     d.innerHTML=`<div><strong>${escapeHtml(b.nom)}</strong><div style="color:var(--muted);font-size:12px">${money(b.total)} • par ${escapeHtml(b.auteur)} • ${date}</div></div><div style="display:flex;gap:8px"><button class="btn warn" data-duel="${b.id}" title="Défier avec cette config">⚔️</button><button class="btn secondary" data-cloud-load="${b.id}">Charger</button><button class="btn ghost" data-cloud-uplab="${b.id}">🔼</button>${b.user_id&&currentUid()===b.user_id?`<button class="btn danger" data-cloud-del="${b.id}">Suppr.</button>`:""}</div>`;
      d.dataset.configId=b.id;
      w.appendChild(d);
    });
@@ -954,7 +994,7 @@ async function renderCloudConfigs(){
      showToast("Configuration de "+b.auteur+" chargée.");
    });
    w.querySelectorAll("[data-cloud-del]").forEach(btn=>btn.onclick=async()=>{
-     if(!confirm("Supprimer cette configuration pour toute la famille ?"))return;
+     if(!confirm("Supprimer cette configuration ? (seulement les tiennes)"))return;
      try{
        const r=await supaFetch("compatpc_configs?id=eq."+btn.dataset.cloudDel,{method:"DELETE"});
        if(!r.ok)throw new Error("HTTP "+r.status);
@@ -969,7 +1009,7 @@ function pushLibraryToCloud(cat,item){
 }
 function deleteLibraryFromCloud(cat,id){
  if(!CLOUD_ON)return;
- supaFetch("compatpc_bibliotheque?id=eq."+encodeURIComponent(id),{method:"DELETE"}).catch(()=>{});
+ supaFetch("compatpc_bibliotheque?id=eq."+encodeURIComponent(id)+"&cat=eq."+encodeURIComponent(cat),{method:"DELETE"}).catch(()=>{});
 }
 function mergeCloudItem(cat,item){
  if(!parts[cat])parts[cat]=[];
@@ -2033,10 +2073,11 @@ function compatibility(){
 }
 
 function styleScore(){
- const s=state.cart.selection;const items=["case","cooler","fans","ram"].map(k=>get(k,s[k]));const target=(state.cart&&state.cart.targetColor)||(state.mood?.includes("white")?"white":state.mood?.includes("black")||state.mood==="stealth"?"black":null);
+ const s=state.cart.selection;const items=["case","cooler","fans","ram"].map(k=>get(k,s[k])).filter(Boolean);const target=(state.cart&&state.cart.targetColor)||(state.mood?.includes("white")?"white":state.mood?.includes("black")||state.mood==="stealth"?"black":null);
  let score=100;if(target){const known=items.filter(x=>x.color!=="neutral");const match=known.filter(x=>x.color===target).length;score=Math.round(match/Math.max(1,known.length)*100)}
- if((state.mood||"").includes("aquarium")&&get("case",s.case).style!=="aquarium")score-=25;
- if((state.mood||"").includes("aquarium")&&!get("cooler",s.cooler).gif)score-=20;
+ const cs=get("case",s.case),cool=get("cooler",s.cooler);
+ if((state.mood||"").includes("aquarium")&&cs&&cs.style!=="aquarium")score-=25;
+ if((state.mood||"").includes("aquarium")&&cool&&!cool.gif)score-=20;
  return Math.max(0,score)
 }
 function renderCart(){
@@ -2973,6 +3014,42 @@ function showWelcome(){document.getElementById("welcomeOther").value="";document
 document.querySelectorAll("#welcomeOverlay [data-who]").forEach(b=>b.onclick=()=>setUser(b.dataset.who));
 document.getElementById("welcomeOtherBtn").onclick=()=>{const v=document.getElementById("welcomeOther").value.trim();if(v)setUser(v)};
 document.getElementById("welcomeOther").addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("welcomeOtherBtn").click()});
+/* ===== Authentification e-mail/mot de passe (Supabase) ===== */
+function openAuth(){const o=document.getElementById("authOverlay");if(!o)return;const e=document.getElementById("authError");if(e)e.style.display="none";o.style.display="flex";const em=document.getElementById("authEmail");if(em){if(!em.value&&currentEmail())em.value=currentEmail();em.focus()}}
+function closeAuth(){const o=document.getElementById("authOverlay");if(o)o.style.display="none"}
+function authShowError(msg){const e=document.getElementById("authError");if(!e)return;e.textContent=msg;e.style.display="block"}
+async function doAuth(mode){
+ if(!window.__sb){authShowError("Service en ligne indisponible (hors connexion ou librairie non chargée). Réessaie connecté à Internet.");return}
+ const email=(document.getElementById("authEmail").value||"").trim();
+ const pw=document.getElementById("authPassword").value||"";
+ if(!email||!pw){authShowError("Entre ton e-mail et ton mot de passe.");return}
+ if(pw.length<6){authShowError("Le mot de passe doit faire au moins 6 caractères.");return}
+ try{
+   const {data,error}= mode==="up"
+     ? await window.__sb.auth.signUp({email,password:pw})
+     : await window.__sb.auth.signInWithPassword({email,password:pw});
+   if(error){authShowError(error.message||"Connexion impossible.");return}
+   if(mode==="up"&&!(data&&data.session)){authShowError("Compte créé. Vérifie ta boîte mail pour confirmer l'adresse, puis connecte-toi.");return}
+   document.getElementById("authPassword").value="";
+   closeAuth();showToast("Connecté ✓");
+ }catch(e){authShowError((e&&e.message)||"Erreur inattendue.")}
+}
+async function authSignOut(){try{if(window.__sb)await window.__sb.auth.signOut()}catch(e){}showToast("Déconnecté.")}
+function updateAuthChip(){
+ const c=document.getElementById("authChip");if(!c)return;
+ if(isAuthed()){c.textContent="🔓 "+(currentEmail()||"connecté");c.title="Connecté — clique pour te déconnecter"}
+ else{c.textContent="🔒 Se connecter";c.title="Connexion pour publier / modifier en ligne"}
+}
+window.onAuthChanged=function(session){
+ window.__sbSession=session||null;updateAuthChip();
+ try{const sp=document.getElementById("savedPanel");if(sp&&sp.classList.contains("active"))renderCloudConfigs()}catch(e){}
+};
+document.getElementById("authSignInBtn").onclick=()=>doAuth("in");
+document.getElementById("authSignUpBtn").onclick=()=>doAuth("up");
+document.getElementById("authCancelBtn").onclick=closeAuth;
+document.getElementById("authChip").onclick=()=>{isAuthed()?authSignOut():openAuth()};
+document.getElementById("authPassword").addEventListener("keydown",e=>{if(e.key==="Enter")doAuth("in")});
+updateAuthChip();
 document.getElementById("userChip").onclick=showWelcome;
 document.getElementById("goHome").onclick=()=>showPanel("shopHome");
 document.getElementById("brandHome").onclick=()=>showPanel("shopHome");
