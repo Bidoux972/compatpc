@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.7.0 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.7.1 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -454,6 +454,8 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
 .pc-tile.lim{border-color:#f0b45c;box-shadow:0 0 12px rgba(240,180,92,.35)}
 .cart-item.lim-item{border-color:#f0b45c!important;box-shadow:0 0 16px rgba(240,180,92,.15)}
 .line-verdict{font-size:10px;font-weight:900;margin-left:8px;letter-spacing:.3px;white-space:nowrap}
+.plan-thumb{height:46px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.plan-thumb img,.plan-thumb svg{max-height:46px;max-width:100%;object-fit:contain}
 </style>
 </head>
 <body>
@@ -505,7 +507,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
           <div class="door-grid">
             <div class="door" id="doorMyPc" style="grid-column:1/-1;border:1px solid #5b4794;background:linear-gradient(135deg,#171026,#12121a)">
               <h3>🔼 Upgrader mon PC</h3>
-              <p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p>
+              <p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et jusqu’à 3 plans chiffrés en €/FPS gagné.</p>
             </div>
             <div class="door door-guided" id="doorVerify"></div>
             <div class="door" id="shopStart">
@@ -612,7 +614,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
                 <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepGpu">Je garde la carte graphique</label>
                 <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepCase">Je garde le boîtier</label>
                 <label style="font-size:12px;display:flex;gap:5px;align-items:center"><input type="checkbox" id="upKeepMobo">Je ne change pas carte mère/CPU</label></div></details>
-                <button class="btn" id="upGo">Proposer 3 plans</button>
+                <button class="btn" id="upGo">Proposer jusqu’à 3 plans</button>
               </div>
               <div id="upPlans"></div>
             </div>
@@ -846,7 +848,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.7.0 « Le théâtre » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.7.1 « Le parcours cohérent » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
@@ -2088,12 +2090,29 @@ function renderCart(){
  __cartAutosave();
  if(!state.cart)return;
  const list=document.getElementById("cartList");list.innerHTML="";
- const __lim=(()=>{const s=state.cart.selection;const g=get("gpu",s.gpu),c=get("cpu",s.cpu),r=get("ram",s.ram);if(!g||!c)return null;const GG=["Warzone","Elden Ring","Cyberpunk 2077"];const goal=state.screen||"1080p";if(avgFpsOf(g,c,GG,goal)<60)return "gpu";if(r&&(r.capacity||0)<32)return "ram";if((g.vram||0)<12)return "gpu";return null})();
+ const __lim=(()=>{const s=state.cart.selection;const g=get("gpu",s.gpu),c=get("cpu",s.cpu),r=get("ram",s.ram);if(!g||!c)return null;const GG=["Warzone","Elden Ring","Cyberpunk 2077"];const goal=state.screen||"1080p";
+   const f=avgFpsOf(g,c,GG,goal);window.__rowF=f;
+   const gi=p=>{const e=GPU_PERF.find(e=>e[0].test(p.name));return e?e[1]:0};
+   const ci=p=>{const e=(typeof CPU_PERF!=="undefined")&&CPU_PERF.find(e=>e[0].test(p.name));return e?e[1]:0};
+   const topG=[...parts.gpu].filter(p=>!/occasion/i.test(p.name)).sort((a,b)=>gi(b)-gi(a))[0];
+   const topC=[...parts.cpu].sort((a,b)=>ci(b)-ci(a))[0];
+   window.__gainG=topG?Math.max(0,avgFpsOf(topG,c,GG,goal)-f):0;   // vrai potentiel côté GPU
+   window.__gainC=topC?Math.max(0,avgFpsOf(g,topC,GG,goal)-f):0;   // vrai potentiel côté CPU
+   if(f<60){window.__limWhy="perf";return window.__gainG>=window.__gainC?"gpu":"cpu"}
+   window.__limWhy="age";
+   if(r&&(r.capacity||0)<32)return "ram";
+   if((g.vram||0)<12)return "gpu";
+   return null})();
  const __ICO={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};
  const __chip=(cat,p)=>{
    const s=state.cart.selection;const goal=state.screen||"1080p";const GG=["Warzone","Elden Ring","Cyberpunk 2077"];
-   if(cat===__lim)return `<span class="line-verdict" style="color:#f0b45c">⚠️ Première pièce qui vieillira</span>`;
-   if(cat==="gpu"||cat==="cpu"){const g=get("gpu",s.gpu),c=get("cpu",s.cpu);if(g&&c){const f=avgFpsOf(g,c,GG,goal);return f>=75?`<span class="line-verdict" style="color:#34d399">✅ Très bon pour ton objectif</span>`:f>=60?`<span class="line-verdict" style="color:#34d399">✅ Bon pour ton objectif</span>`:``}}
+   const gl=goal==="4k"?"4K":goal;
+   if(cat===__lim)return window.__limWhy==="perf"
+     ?`<span class="line-verdict" style="color:#f0b45c">⚠️ Limite principale en ${gl}</span>`
+     :`<span class="line-verdict" style="color:#f0b45c">⚠️ Première pièce qui vieillira</span>`;
+   if(cat==="gpu"&&(window.__rowF||0)>=60)return `<span class="line-verdict" style="color:#34d399">✅ Suffisant pour ton objectif</span>`;
+   if(cat==="cpu"&&(window.__gainC??99)<5)return `<span class="line-verdict" style="color:#34d399">✅ Aucun besoin de le changer pour ton objectif</span>`;
+   if(cat==="cpu")return ``;
    if(cat==="ram"&&(p.capacity||0)>=32)return `<span class="line-verdict" style="color:#34d399">✅ 32 Go — paré pour longtemps</span>`;
    if(cat==="psu"){const need=recommendedPsuWatts(get("cpu",s.cpu),get("gpu",s.gpu));if(p.watts)return (p.watts-need)>=120?`<span class="line-verdict" style="color:#34d399">✅ Marge confortable</span>`:`<span class="line-verdict" style="color:#f0b45c">⚠️ Marge juste</span>`}
    return "";
@@ -2420,8 +2439,9 @@ function sheetProjectBlock(cat,p){
  const hasWarn=ok&&warns.length>0;
  const bCol=inProject?UV:!ok?"#f87171":hasWarn?"#f0b45c":"#34d399";
  const bIco=inProject?"🧩":!ok?"✕":hasWarn?"⚠":"✔";
- const bTitle=inProject?"Cette pièce est dans ton projet":!ok?"Incompatible avec ton projet":hasWarn?"Compatible — un point à vérifier":"100% compatible avec ton projet";
- const bSub=inProject?"Elle est déjà montée dans ta configuration.":!ok?escapeHtml((rep.errors[0]&&(rep.errors[0].title||rep.errors[0].text))||"conflit"):hasWarn?escapeHtml(warns[0].title||warns[0].text||warns[0]||""):"Vérifié par le moteur : elle s’installe sans rien changer d’autre.";
+ const inWarn=inProject&&warns.length>0;
+ const bTitle=inProject?(inWarn?"Dans ton projet — un point à vérifier":"Cette pièce est dans ton projet"):!ok?"Incompatible avec ton projet":hasWarn?"Compatible — un point à vérifier":"100% compatible avec ton projet";
+ const bSub=inProject?(inWarn?("⚠ "+escapeHtml(warns[0].title||warns[0].text||warns[0]||"")):"Elle est déjà montée dans ta configuration."):!ok?escapeHtml((rep.errors[0]&&(rep.errors[0].title||rep.errors[0].text))||"conflit"):hasWarn?escapeHtml(warns[0].title||warns[0].text||warns[0]||""):"Vérifié par le moteur : elle s’installe sans rien changer d’autre.";
  const banner=`<div style="display:flex;gap:14px;align-items:center;padding:13px 16px;border:1px solid ${bCol}55;border-left:4px solid ${bCol};background:${bCol}12;margin-bottom:12px">
    <span style="width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;background:${bCol}22;border:1.5px solid ${bCol};color:${bCol}">${bIco}</span>
    <span><strong style="font-size:14px">${bTitle}</strong><br><span class="small-note">${bSub}</span></span>
@@ -2450,7 +2470,7 @@ function sheetProjectBlock(cat,p){
        </div>`;
      };
      gauges=`<div style="margin:4px 0 10px">
-       <div class="small-note" style="margin-bottom:2px">${inProject?"Ce qu’elle donne dans ton projet (gros jeux) :":"Ta "+labelCat(cat).toLowerCase()+" actuelle <span style=\"display:inline-block;width:16px;height:4px;background:#4a4f5c;vertical-align:middle;border-radius:2px\"></span> &nbsp;vs&nbsp; celle-ci <span style=\"display:inline-block;width:16px;height:6px;background:${UV};vertical-align:middle;border-radius:3px\"></span> :"}</div>
+       <div class="small-note" style="margin-bottom:2px">${inProject?"Performances estimées de TON PC avec cette pièce (gros jeux) :":"Ta "+labelCat(cat).toLowerCase()+" actuelle <span style=\"display:inline-block;width:16px;height:4px;background:#4a4f5c;vertical-align:middle;border-radius:2px\"></span> &nbsp;vs&nbsp; celle-ci <span style=\"display:inline-block;width:16px;height:6px;background:${UV};vertical-align:middle;border-radius:3px\"></span> :"}</div>
        ${row("1080p","1080p")}${row("1440p","1440p")}${row("4K","4k")}
      </div>`;
    }
@@ -3468,7 +3488,7 @@ function renderUpgradePlans(){
   const ico={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};
   const ch=pl.changes&&pl.changes[0];
   const tile=(t,name,accent)=>`<div style="flex:1;min-width:0;background:${accent?"#171226":"#0d0f15"};border:1px solid ${accent?"#9D6BFF":"#1f232e"};padding:10px 12px;text-align:center;${accent?"box-shadow:0 0 18px #9D6BFF33":""}"><div style="font-size:22px">${t}</div><div style="font-size:11.5px;font-weight:800;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${name}</div></div>`;
-  const heads=ch?`<div style="display:flex;gap:10px;align-items:center;margin:6px 0 4px">${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.from.name)),false)}<div style="font-size:22px;color:#9D6BFF;font-weight:900">→</div>${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.to.name)),true)}</div>${pl.changes.length>1?`<div class="small-note" style="text-align:center;margin-bottom:4px">+ ${pl.changes.length-1} autre(s) pièce(s) — détail ci-dessous</div>`:""}`:"";
+  const heads=ch?`<div style="display:flex;gap:10px;align-items:center;margin:6px 0 4px">${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.from.name)),false,ch.cat,ch.from)}<div style="font-size:22px;color:#9D6BFF;font-weight:900">→</div>${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.to.name)),true,ch.cat,ch.to)}</div>${pl.changes.length>1?`<div class="small-note" style="text-align:center;margin-bottom:4px">+ ${pl.changes.length-1} autre(s) pièce(s) — détail ci-dessous</div>`:""}`:"";
   const big=`<div style="text-align:center;margin:8px 0 10px"><span style="font-size:24px;font-weight:900;opacity:.5">${escapeHtml(String(pl.before))}</span><span style="font-size:20px;color:#9D6BFF;font-weight:900;margin:0 12px">→</span><span style="font-size:34px;font-weight:900;color:#34d399;text-shadow:0 0 20px #34d39955">${escapeHtml(String(pl.after))}</span></div>`;
   const zones=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 10px"><div style="background:#0d1a13;border:1px solid #1f4d33;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#34d399">CE QUE TU GAGNES</div><div style="font-size:12.5px;margin-top:3px"><strong>${escapeHtml(pl.metric||"")}</strong></div></div><div style="background:#1a130d;border:1px solid #4d3a1f;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#f0b45c">CE QUE TU ACCEPTES</div><div style="font-size:12.5px;margin-top:3px"><strong>${money(pl.cost)}</strong>${pl.over?` · dépasse de ${money(pl.over)}`:""}${pl.warns&&pl.warns.length?` · ⚠ ${pl.warns.length} avertissement(s)`:""}</div></div></div>`;
   return heads+big+zones;
@@ -3487,7 +3507,7 @@ function renderUpgradePlans(){
        :`<span class="gv-good" style="font-size:11px;font-weight:900">Non — tout est vérifié ✔</span>`;
      return `<div class="duel-box" style="margin-top:10px${main?";border-color:#5b4794":""}">
        ${main?`<strong>🎯 Notre conseil pour toi</strong> — ${x.pitch}<br>`:""}
-       ${(()=>{const ch=c.changes[0];const ico={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};const tile=(t,nm,a)=>`<div style="flex:1;min-width:0;background:${a?"#171226":"#0d0f15"};border:1px solid ${a?"#9D6BFF":"#1f232e"};padding:10px 12px;text-align:center;${a?"box-shadow:0 0 18px #9D6BFF33":""}"><div style="font-size:22px">${t}</div><div style="font-size:11.5px;font-weight:800;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</div></div>`;return (ch?`<div style="display:flex;gap:10px;align-items:center;margin:8px 0 4px">${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.from.name)),false)}<div style="font-size:22px;color:#9D6BFF;font-weight:900">→</div>${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.to.name)),true)}</div>${c.changes.length>1?`<div class="small-note" style="text-align:center">+ ${c.changes.length-1} autre(s) pièce(s) — détail ci-dessous</div>`:""}`:"")+`<div style="text-align:center;margin:8px 0 10px"><span style="font-size:24px;font-weight:900;opacity:.5">${R.before} FPS</span><span style="font-size:20px;color:#9D6BFF;font-weight:900;margin:0 12px">→</span><span style="font-size:34px;font-weight:900;color:#34d399;text-shadow:0 0 20px #34d39955">${c.after} FPS</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 8px"><div style="background:#0d1a13;border:1px solid #1f4d33;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#34d399">CE QUE TU GAGNES</div><div style="font-size:12.5px;margin-top:3px"><strong>+${c.delta} FPS en ${R.res==="4k"?"4K":R.res}</strong> · ${(c.cost/c.delta).toFixed(1)} €/FPS</div></div><div style="background:#1a130d;border:1px solid #4d3a1f;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#f0b45c">CE QUE TU ACCEPTES</div><div style="font-size:12.5px;margin-top:3px"><strong>${money(c.cost)}</strong>${x.over?` · dépasse de ${money(x.over)}`:""}${c.warns&&c.warns.length?` · ⚠ ${c.warns.length} à vérifier`:""}</div></div></div>`})()}
+       ${(()=>{const ch=c.changes[0];const ico={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};const tile=(t,nm,a,cat2,pp)=>`<div style="flex:1;min-width:0;background:${a?"#171226":"#0d0f15"};border:1px solid ${a?"#9D6BFF":"#1f232e"};padding:8px 10px;text-align:center;${a?"box-shadow:0 0 18px #9D6BFF33":""}"><div class="plan-thumb">${(cat2&&pp)?productVisual(cat2,pp):`<span style="font-size:22px">${t}</span>`}</div><div style="font-size:11.5px;font-weight:800;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${nm}</div></div>`;return (ch?`<div style="display:flex;gap:10px;align-items:center;margin:8px 0 4px">${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.from.name)),false,ch.cat,ch.from)}<div style="font-size:22px;color:#9D6BFF;font-weight:900">→</div>${tile(ico[ch.cat]||"🔧",escapeHtml(shortPieceName(ch.to.name)),true,ch.cat,ch.to)}</div>${c.changes.length>1?`<div class="small-note" style="text-align:center">+ ${c.changes.length-1} autre(s) pièce(s) — détail ci-dessous</div>`:""}`:"")+`<div style="text-align:center;margin:8px 0 10px"><span style="font-size:24px;font-weight:900;opacity:.5">${R.before} FPS</span><span style="font-size:20px;color:#9D6BFF;font-weight:900;margin:0 12px">→</span><span style="font-size:34px;font-weight:900;color:#34d399;text-shadow:0 0 20px #34d39955">${c.after} FPS</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 0 8px"><div style="background:#0d1a13;border:1px solid #1f4d33;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#34d399">CE QUE TU GAGNES</div><div style="font-size:12.5px;margin-top:3px"><strong>+${c.delta} FPS en ${R.res==="4k"?"4K":R.res}</strong> · ${(c.cost/c.delta).toFixed(1)} €/FPS</div></div><div style="background:#1a130d;border:1px solid #4d3a1f;padding:9px 12px"><div style="font-size:10px;font-weight:900;letter-spacing:1.2px;color:#f0b45c">CE QUE TU ACCEPTES</div><div style="font-size:12.5px;margin-top:3px"><strong>${money(c.cost)}</strong>${x.over?` · dépasse de ${money(x.over)}`:""}${c.warns&&c.warns.length?` · ⚠ ${c.warns.length} à vérifier`:""}</div></div></div>`})()}
        <div style="margin-top:6px"><span class="small-note">Qu’est-ce que je change ?</span><br>${c.changes.map(ch=>`${labelCat(ch.cat)} : ${escapeHtml(shortPieceName(ch.from.name))} → <strong>${escapeHtml(shortPieceName(ch.to.name))}</strong>`).join("<br>")}</div>
        <div style="margin-top:6px"><span class="small-note">Combien ça coûte ?</span><br><strong>${money(c.cost)}</strong>${x.over?` <span style="color:#f0b45c">⚠ dépasse ton budget de ${money(x.over)}</span>`:""}</div>
        <div style="margin-top:6px"><span class="small-note">Qu’est-ce que ça améliore dans mes jeux ?</span><br>${games}</div>
@@ -3497,7 +3517,7 @@ function renderUpgradePlans(){
    };
    const main=R.plans[mainIdx];
    const alts=R.plans.map((x,i)=>({x,i})).filter(o=>o.i!==mainIdx);
-   zone.innerHTML=card(main,mainIdx,true)+alts.map(o=>`<details style="margin-top:8px"><summary class="small-note" style="cursor:pointer">${o.x.title.includes("malin")?"💡 La même idée, en moins cher":"🛡️ Plus costaud (plus cher)"} — ${money(o.x.c.cost)}</summary>${card(o.x,o.i,false)}</details>`).join("");
+   zone.innerHTML=((/^fps/.test(R.goal)&&R.before>=60)?`<div class="small-note" style="color:#34d399;font-weight:800;margin:6px 0">💚 Ton PC tient déjà cet objectif (${R.before} FPS de moyenne) — les plans ci-dessous sont OPTIONNELS, pour viser plus haut.</div>`:"")+card(main,mainIdx,true)+alts.map(o=>`<details style="margin-top:8px"><summary class="small-note" style="cursor:pointer">${o.x.title.includes("malin")?"💡 La même idée, en moins cher":"🛡️ Plus costaud (plus cher)"} — ${money(o.x.c.cost)}</summary>${card(o.x,o.i,false)}</details>`).join("");
  }else{
    zone.innerHTML=R.plans.map((x,i)=>{const c=x.c;return `<div class="duel-box" style="margin-top:10px"><strong>${x.title}</strong> — ${x.pitch}<br>${c.changes.map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong> (${money(ch.to.price)})`).join("<br>")}<div class="small-note" style="margin-top:6px">Avant : <strong>${R.before} FPS</strong> → Après : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res}) • Coût ${money(c.cost)} • <strong>${(c.cost/c.delta).toFixed(1)} €/FPS gagné</strong> <em>— estimation Compat’PC, valeur indicative</em></div>${x.over?`<div class="small-note" style="color:#f0b45c">⚠ Ce plan dépasse ton budget de ${money(x.over)}.</div>`:""}${c.warns&&c.warns.length?`<details class="small-note" style="color:#f0b45c;margin-top:4px"><summary style="cursor:pointer">⚠ ${c.warns.length} avertissement(s) — voir le détail</summary><ul style="margin:6px 0 0 16px;padding:0">${c.warns.map(k=>`<li>${escapeHtml(k.title)} : ${escapeHtml(k.text)}</li>`).join("")}</ul></details>`:""}<button class="btn" data-applyplan="${i}" style="margin-top:8px">Appliquer ce plan</button></div>`}).join("");
  }
@@ -3521,7 +3541,8 @@ function renderAppliedRecap(plan,R){
  const c=isStock?plan:plan.c;
  const changes=(c.changes||[]).map(ch=>`− ${labelCat(ch.cat)} : ${escapeHtml(ch.from.name)}<br>＋ <strong>${escapeHtml(ch.to.name)}</strong>`).join("<br>");
  const perf=isStock?`${plan.before} → <strong>${plan.after}</strong>`:`Avant : <strong>${R.before} FPS</strong> → maintenant : <strong>${c.after} FPS</strong> (moyenne AAA, ${R.res==="4k"?"4K":R.res})`;
- zone.innerHTML=`<div class="duel-box" style="margin-top:10px;border-color:#3f7d4f"><strong>✅ Plan appliqué ! Voici ce qui a changé :</strong><br>${changes}${plan._gameLines?`<div style="margin-top:6px">${plan._gameLines}</div>`:""}<div class="small-note" style="margin-top:6px">${perf} • Coût ${money(c.cost)}</div><div class="small-note" style="margin-top:4px">Les pièces mises à jour portent le badge 🆕 dans la liste ci-dessus.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="recapSeeParts">⬆ Voir mes pièces mises à jour</button><button class="btn secondary" id="recapMorePlans">🔁 Chercher un autre upgrade</button><button class="btn ghost" id="recapUndo">↩ Annuler ce plan</button></div></div>`;
+ const __theatre=(()=>{if(isStock||!c||!c.changes||!c.changes.length)return "";const ch=c.changes[0];return `<div style="text-align:center;margin:6px 0 10px"><span style="font-size:22px;font-weight:900;opacity:.5">${R.before} FPS</span><span style="font-size:18px;color:#9D6BFF;font-weight:900;margin:0 10px">→</span><span style="font-size:30px;font-weight:900;color:#34d399;text-shadow:0 0 18px #34d39955">${c.after} FPS</span></div>`})();
+ zone.innerHTML=`${__theatre}<div class="duel-box" style="margin-top:10px;border-color:#3f7d4f"><strong>✅ Plan appliqué ! Voici ce qui a changé :</strong><br>${changes}${plan._gameLines?`<div style="margin-top:6px">${plan._gameLines}</div>`:""}<div class="small-note" style="margin-top:6px">${perf} • Coût ${money(c.cost)}</div><div class="small-note" style="margin-top:4px">Les pièces mises à jour portent le badge 🆕 dans la liste ci-dessus.</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="recapSeeParts">⬆ Voir mes pièces mises à jour</button><button class="btn secondary" id="recapMorePlans">🔁 Chercher un autre upgrade</button><button class="btn ghost" id="recapUndo">↩ Annuler ce plan</button></div></div>`;
  const g=id=>document.getElementById(id);
  g("recapSeeParts").onclick=()=>{const cl=document.getElementById("cartList");if(cl)cl.scrollIntoView({behavior:"smooth",block:"start"})};
  g("recapMorePlans").onclick=()=>renderUpgradePlans();
@@ -3529,6 +3550,11 @@ function renderAppliedRecap(plan,R){
 }
 function openUpLab(){
  go(4);
+ const s=document.getElementById("upGoal");
+ if(s&&state.cart){
+   const g=(state.screen==="4k")?"fps4k":(state.screen==="1440p")?"fps1440":"fps1080";
+   if([...s.options].some(o=>o.value===g))s.value=g;
+ }
  const card=document.getElementById("upLabCard");
  if(card)setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"start"}),120);
 }
@@ -3608,7 +3634,7 @@ function openMyPc(){
  const prof=getMyPc();
  if(prof&&loadMyPcIntoCart(prof)){
    if(getAppMode()==="copilote"){renderMyPcHub();openPanel("mypcHub")}
-   else{openUpLab();showToast("Ton PC est chargé — objectif, budget, et je te sors 3 plans !")}
+   else{openUpLab();showToast("Ton PC est chargé — objectif, budget, et je te sors les meilleurs plans !")}
  }
  else{renderMyPcForm();openPanel("mypcPanel")}
 }
@@ -3866,7 +3892,7 @@ function renderMyPcDoor(){
    const cop=getAppMode()==="copilote";
    d.innerHTML=cop
      ?`<div><span class="volt-tag">⚡ Mon PC</span><h3 style="font-size:28px;margin:8px 0 2px">Fais évoluer ton setup.</h3><p class="volt-punch">Plus de FPS. Plus de place. Plus longtemps.</p><p class="volt-sub">Décris ta machine une seule fois — je te dirai ce qui vaut vraiment son prix.</p><span class="volt-btn">Enregistrer mon PC</span></div><div style="text-align:center">${voltHeroSvg("CPU ?","GPU ?","RAM ?")}</div>`
-     :`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
+     :`<h3>🔼 Upgrader mon PC</h3><p>Décris ton PC une seule fois. Ensuite : un appui, un objectif, un budget — et jusqu’à 3 plans chiffrés en €/FPS gagné.</p><p style="font-weight:800;color:#a78bfa">Enregistrer mon PC →</p>`;
  }
 }
 renderMyPcDoor();
