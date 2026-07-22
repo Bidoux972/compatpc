@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.8.0 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.8.1 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -130,8 +130,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 
 .search-link{display:inline-flex;align-items:center;gap:6px;padding:7px 9px;border-radius:8px;background:#1d1d24;border:1px solid #35353f;color:#e6e6ec;text-decoration:none;font-size:12px;font-weight:800}
 .search-link:hover{filter:brightness(1.08)}
 
-.expert-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:16px}
-.toolbox{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.expert-grid{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);gap:16px}
+.toolbox{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .radar{display:grid;gap:10px}
 .radar-row{display:grid;grid-template-columns:145px 1fr 52px;gap:10px;align-items:center}
 .radar-track{height:10px;border-radius:999px;background:#121217;border:1px solid #2b3c5e;overflow:hidden}
@@ -460,6 +460,10 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
 .exp-thumb{width:54px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .exp-thumb img,.exp-thumb svg{max-width:100%;max-height:44px;object-fit:contain}
 .btn-mini{padding:5px 10px;font-size:11px;white-space:nowrap}
+.expert-grid>*,.toolbox>*{min-width:0}
+.exp-info{flex-wrap:wrap}
+.exp-info>div[style*="flex:1"]{flex:1 1 140px}
+@media(max-width:1250px){.toolbox{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -852,7 +856,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.8.0 « Le pont Atelier–Bibliothèque » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.8.1 « L'Atelier respire à toutes les tailles » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
