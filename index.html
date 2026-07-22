@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.8.1 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.8.2 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -464,6 +464,18 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
 .exp-info{flex-wrap:wrap}
 .exp-info>div[style*="flex:1"]{flex:1 1 140px}
 @media(max-width:1250px){.toolbox{grid-template-columns:1fr}}
+.exp-slot{background:#101216;border:1px solid #23262f;border-radius:12px;padding:12px 13px}
+.exp-slot-head{display:flex;gap:8px;align-items:center;margin-bottom:9px}
+.exp-slot-head label{font-size:11px;letter-spacing:1.4px;font-weight:900;color:var(--muted)}
+.exp-slot-ico{font-size:16px}
+.exp-empty{color:var(--muted);text-align:center;padding:10px 0 8px;font-size:12.5px}
+.exp-quick summary{cursor:pointer;font-size:11.5px;color:var(--muted);margin-top:9px;user-select:none}
+.exp-quick[open] summary{margin-bottom:6px}
+.exp-thumb{width:90px;height:75px}
+.exp-thumb img,.exp-thumb svg{max-height:75px}
+.exp-compat{font-size:11px;font-weight:800;margin-top:4px}
+.exp-compat.ok{color:#34d399}
+.exp-compat.bad{color:#f87171;white-space:normal}
 </style>
 </head>
 <body>
@@ -856,7 +868,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.8.1 « L'Atelier respire à toutes les tailles » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.8.2 « Le tableau d’assemblage » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
@@ -1255,7 +1267,7 @@ function toggleFavorite(c,i){const k=keyOf(c,i),a=readFavorites();saveFavorites(
 function addCompare(c,i){if(compareItems.some(x=>x.cat===c&&x.id===i))return;if(compareItems.length>=3){showToast("Maximum 3 composants.");return}compareItems.push({cat:c,id:i});renderCompareTray()}
 function renderCompareTray(){const e=document.getElementById("compareTray");e.classList.toggle("show",compareItems.length>0);document.getElementById("compareTrayText").textContent=compareItems.length+" composant(s)"}
 function renderCompare(){const g=document.getElementById("compareGrid");g.innerHTML="";compareItems.forEach(({cat,id})=>{const p=get(cat,id);if(!p)return;g.innerHTML+=`<div class="compare-card"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}"><div class="art-wrap">${renderArt(cat,p,false)}</div></div><h3>${productNameHtml(p)}</h3><div class="price">${money(p.price)}</div><div class="chip-row">${Object.entries(p).filter(([k,v])=>["vram","length","power","maxGpu","rad","socket","ram","capacity","watts"].includes(k)).slice(0,5).map(([k,v])=>`<span class="chip">${escapeHtml(k)} : ${escapeHtml(Array.isArray(v)?v.join("/"):v)}</span>`).join("")}</div></div>`})}
-function shopCard(cat,p){return `<div class="shop-product"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}" data-sheet="${cat}|${p.id}" style="cursor:pointer"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div></div><div class="shop-product-body"><h4>${productNameHtml(p)}</h4><p>${labelCat(cat)}</p><div class="price">${money(p.price)}</div><div class="shop-actions"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div></div></div>`}
+function shopCard(cat,p){return `<div class="shop-product"><div class="visual ${p.color==="white"?"white":p.color==="black"?"black":"clean"}" data-sheet="${cat}|${p.id}" style="cursor:pointer"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div></div><div class="shop-product-body"><h4>${productNameHtml(p)}</h4><p>${labelCat(cat)}</p><div class="price">${money(p.price)}</div><div class="shop-actions">${window.__atelierPick===cat?`<button class="btn" data-atelierpick="${cat}|${p.id}">🛠️ Choisir pour mon Atelier</button>`:""}<button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button><button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div></div></div>`}
 function bindShop(root){root.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});root.querySelectorAll("[data-shop-use]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.shopUse.split("|");openSimpleLibrary(c);document.getElementById("simpleSearch").value=get(c,i).name;renderSimpleLibrary()});root.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.fav.split("|");toggleFavorite(c,i)});root.querySelectorAll("[data-compare]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.compare.split("|");addCompare(c,i)})}
 function renderShop(){
  computeFamilies();computeAwards();
@@ -1540,7 +1552,8 @@ function avgFpsOf(gpu,cpu,names,res){
 function renderExpertDash(cpu,gpu,cool,psu){
  const dash=document.getElementById("expertDash");if(!dash)return;
  const res=state.fpsRes||state.screen||"1080p";
- const both=gpu&&cpu;
+ const __mbD=expertSelected("motherboard"),__ramD=expertSelected("ram");
+  const both=gpu&&cpu&&__mbD&&__ramD&&analyzeBuild(state.expertSelection).errors.length===0; // pas de FPS sur un PC qui ne démarre pas
  const fpsE=both?avgFpsOf(gpu,cpu,["Fortnite","Valorant","Rocket League"],res):null;
  const fpsH=both?avgFpsOf(gpu,cpu,["Warzone","Elden Ring","Cyberpunk 2077"],res):null;
  const need=gpu?recommendedPsuWatts(cpu,gpu):null;
@@ -1863,7 +1876,9 @@ function renderExpertToolbox(){
      +grp("Mes imports / famille",groups.perso)
      +grp("Autres",groups.autres);
    const HINTS={gpu:"GeForce = DLSS & ray tracing • Radeon = plus de VRAM/€ — les deux vont très bien avec un Ryzen.",cpu:"Ryzen AM5 = plateforme évolutive 🛡️ • Intel = très bon aujourd'hui, socket sans avenir garanti.",motherboard:"Le socket doit être CELUI de ton processeur. X870/B850 = chipsets récents, souvent Wi-Fi 7."};
-   wrap.innerHTML=`<label>${labelCat(cat)} — ${parts[cat].length} choix</label><select id="expert-${cat}">${options}</select>${HINTS[cat]?`<div class="small-note" style="margin-top:4px;font-size:11px">${HINTS[cat]}</div>`:""}<div class="exp-infobox" data-expinfo="${cat}"></div>`;
+   wrap.classList.add("exp-slot");
+   const __SLOTICO={gpu:"🎮",cpu:"🧠",ram:"💾",ssd:"📀",psu:"🔌",motherboard:"🧩",case:"🖥️",cooler:"❄️",fans:"🌀"};
+   wrap.innerHTML=`<div class="exp-slot-head"><span class="exp-slot-ico">${__SLOTICO[cat]||"🔧"}</span><label style="margin:0">${labelCat(cat).toUpperCase()}</label></div><div class="exp-infobox" data-expinfo="${cat}"></div><details class="exp-quick"><summary>Choix rapide par nom ▾</summary><select id="expert-${cat}">${options}</select>${HINTS[cat]?`<div class="small-note" style="margin-top:4px;font-size:11px">${HINTS[cat]}</div>`:""}</details>`;
    box.appendChild(wrap);
    const sel=wrap.querySelector("select");
    sel.value=state.expertSelection[cat]||"";
@@ -1875,9 +1890,20 @@ function renderExpertToolbox(){
 function renderExpertRowInfo(cat){
  const box=document.querySelector(`[data-expinfo="${cat}"]`);if(!box)return;
  const p=expertSelected(cat);
- if(!p){box.innerHTML=`<div class="exp-info empty"><span class="small-note" style="flex:1">Aucune pièce choisie — le menu, ou la bibliothèque en images :</span><span class="btn ghost btn-mini" data-explore="${cat}">🔎 Explorer</span></div>`;return}
+ if(!p){
+   box.innerHTML=`<div class="exp-empty">Aucun composant sélectionné</div><button class="btn" data-explore="${cat}" style="width:100%">🔎 Explorer les ${parts[cat].length} choix</button>`;
+   return;
+ }
  const spec=(typeof specRows==="function"?(specRows(cat,p)||[]).slice(0,2).map(([l,v])=>`${escapeHtml(String(l))} ${escapeHtml(String(v))}`).join(" · "):"");
- box.innerHTML=`<div class="exp-info"><div class="exp-thumb">${productVisual(cat,p,false)}</div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}</div><div class="small-note" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${money(p.price)}${spec?" · "+spec:""}</div></div><span class="btn ghost btn-mini" data-sheet="${cat}|${p.id}">📋 Fiche</span><span class="btn ghost btn-mini" data-explore="${cat}">🔎 Explorer</span></div>`;
+ let compat="";
+ const ub=window.__expUB;
+ if(ub){
+   const lbl=labelCat(cat).toLowerCase();
+   const hit=(ub.errors||[]).find(e=>((e.title||"")+" "+(e.text||"")).toLowerCase().includes(lbl));
+   if(hit)compat=`<div class="exp-compat bad">✕ ${escapeHtml(hit.title||"Incompatibilité")}</div>`;
+   else if(Object.keys(state.expertSelection).filter(k=>state.expertSelection[k]).length>=2)compat=`<div class="exp-compat ok">✅ Compatible avec les pièces choisies</div>`;
+ }
+ box.innerHTML=`<div class="exp-info"><div class="exp-thumb">${productVisual(cat,p,false)}</div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}</div><div class="small-note" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${money(p.price)}${spec?" · "+spec:""}</div>${compat}</div><span class="btn ghost btn-mini" data-sheet="${cat}|${p.id}">📋 Fiche</span><span class="btn ghost btn-mini" data-explore="${cat}">🔎 Changer</span></div>`;
 }
 function expertSelected(cat){return get(cat,state.expertSelection[cat])}
 function analyzeExpert(){
@@ -1895,19 +1921,28 @@ function analyzeExpert(){
  if(chosen<expertCategories.length)push("warn","Configuration incomplète",(expertCategories.length-chosen)+" catégorie(s) restent à choisir.");
 
  const total=expertCategories.reduce((sum,k)=>sum+(expertSelected(k)?.price||0),0);
- const score=Math.max(0,ub.score-(expertCategories.length-chosen)*2);
- document.getElementById("expertCompatScore").textContent=score+"%";
+ window.__expUB=ub;
+ const missing=expertCategories.length-chosen;
+ const scoreEl=document.getElementById("expertCompatScore");
+ if(scoreEl)scoreEl.textContent=missing>0?`${chosen}/${expertCategories.length} — à compléter`:Math.max(0,ub.score)+"%";
+ const abtn=document.getElementById("applyExpertToCart");
+ if(abtn){
+   const blocked=missing>0||hard>0;
+   abtn.disabled=blocked;abtn.style.opacity=blocked?".45":"";abtn.style.cursor=blocked?"not-allowed":"";
+   abtn.textContent=missing>0?`Encore ${missing} pièce${missing>1?"s":""} à choisir`:hard>0?"Blocage à résoudre d’abord":"Utiliser comme projet";
+ }
+ if(typeof renderExpertRowInfo==="function")expertCategories.forEach(renderExpertRowInfo);
  document.getElementById("expertTotal").textContent=money(total);
  renderExpertDash(cpu,gpu,cool,psu);
 
  const radarData=[
-   ["CPU / carte mère", cpu&&mb?(cpu.socket===mb.socket?100:0):35],
-   ["RAM", ram&&mb?(ram.type===mb.ram?100:0):35],
-   ["Dimensions", gpu&&cs?Math.max(0,Math.min(100,50+((effectiveGpuClearance(cs,cool,state.expertAioMount||"auto")-gpu.length)/2))):35],
-   ["Refroidissement", cool&&cs?(!cool.rad||(cs.rad||[]).includes(cool.rad)?100:0):35],
-   ["Alimentation", gpu&&psu?(psu.watts>=recommendedPsuWatts(cpu,gpu)?100:20):35]
+   ["CPU / carte mère", cpu&&mb?(cpu.socket===mb.socket?100:0):null],
+   ["RAM", ram&&mb?(ram.type===mb.ram?100:0):null],
+   ["Dimensions", gpu&&cs?Math.max(0,Math.min(100,50+((effectiveGpuClearance(cs,cool,state.expertAioMount||"auto")-gpu.length)/2))):null],
+   ["Refroidissement", cool&&cs?(!cool.rad||(cs.rad||[]).includes(cool.rad)?100:0):null],
+   ["Alimentation", gpu&&psu?(psu.watts>=recommendedPsuWatts(cpu,gpu)?100:20):null]
  ];
- document.getElementById("expertRadar").innerHTML=radarData.map(([label,val])=>`<div class="radar-row"><span>${label}</span><div class="radar-track"><div class="radar-fill" style="width:${val}%"></div></div><strong>${Math.round(val)}%</strong></div>`).join("");
+ document.getElementById("expertRadar").innerHTML=radarData.map(([label,val])=>`<div class="radar-row"><span>${label}</span><div class="radar-track"><div class="radar-fill" style="width:${val==null?0:val}%"></div></div><strong>${val==null?"—":Math.round(val)+"%"}</strong></div>`).join("");
  document.getElementById("expertResults").innerHTML=checks.map(c=>`<div class="expert-result ${c.kind}"><strong>${c.title}</strong><div style="color:var(--muted);font-size:12px;margin-top:4px">${c.text}</div></div>`).join("");
 }
 function loadCartIntoExpert(){
@@ -1994,7 +2029,7 @@ function renderSimpleLibrary(){
    const d=document.createElement("div");d.className="option-card";
    const visualClass=p.color==="white"?"white":p.color==="black"?"black":"clean";
    if(p.origin==="personal")d.classList.add("origin-personal");
-   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div><h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.familyId}">${p.familySize-1} variante(s) ▸</button>`:""}${window.decodeReplaceTarget===cat?`<button class="btn" data-decpick="${cat}|${p.id}">Utiliser pour le décodage</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?"":""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
+   d.innerHTML=`<div class="visual ${visualClass}" data-sheet="${cat}|${p.id}" style="cursor:pointer" title="Ouvrir la fiche"><div class="component-type">${labelCat(cat)}</div><div class="art-wrap">${productVisual(cat,p,false)}</div><div class="item-shelf"></div></div>${window.__atelierPick===cat?`<button class="btn" data-atelierpick="${cat}|${p.id}" style="width:100%;margin:8px 0 2px">🛠️ Choisir pour mon Atelier</button>`:""}<h3>${productNameHtml(p)}</h3><p>${labelCat(cat)} • ${money(p.price)}</p><div class="chip-row"><span class="chip">${p.color==="white"?"Blanc":p.color==="black"?"Noir":"Neutre"}</span><span class="chip">${p.origin==="personal"?"Ma bibliothèque":"Bibliothèque intégrée"}</span>${p.image?'<span class="chip" style="color:var(--accent);border-color:#5b4794">📸 vraie photo</span>':""}${fpBadge(cat,p,false)}${(p.styles||[]).slice(0,3).map(s=>`<span class="chip">${escapeHtml(s)}</span>`).join("")}</div>${impactChips(cat,p)}<div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:12px"><button class="btn secondary" data-sheet="${cat}|${p.id}">Fiche</button>${p.familyRep&&p.familySize>1?`<button class="btn ghost" data-family="${cat}|${p.familyId}">${p.familySize-1} variante(s) ▸</button>`:""}${window.decodeReplaceTarget===cat?`<button class="btn" data-decpick="${cat}|${p.id}">Utiliser pour le décodage</button>`:""}<a class="search-link" href="${googleUrl(p.name)}" target="_blank" rel="noopener">Voir sur Google</a>${state.cart?"":""}${p.origin==="personal"?`<button class="btn ghost" data-edit-personal="${cat}|${p.id}">Modifier</button><button class="btn danger" data-delete-personal="${cat}|${p.id}">Supprimer</button>`:""}<button class="btn ghost fav-btn ${isFavorite(cat,p.id)?"active":""}" data-fav="${cat}|${p.id}">★</button><button class="btn ghost" data-compare="${cat}|${p.id}">Comparer</button></div>`;
    g.appendChild(d);
  });
  if(rows.length>LIB_LIMIT){
@@ -3037,7 +3072,7 @@ document.getElementById("importPersonalFile").onchange=async e=>{
 };
 
 document.getElementById("openSimpleLibrary").onclick=()=>openSimpleLibrary();
-document.getElementById("closeSimpleLibrary").onclick=()=>{document.getElementById("simpleLibrary").classList.remove("active");go(state.cart?4:state.step)};
+document.getElementById("closeSimpleLibrary").onclick=()=>{document.getElementById("simpleLibrary").classList.remove("active");if(window.__atelierPick){window.__atelierPick=null;openExpertWorkshop()}else go(state.cart?4:state.step)};
 ["simpleSearch","simpleCategory","simpleColor","simpleStyle","simpleTop","simpleTier","simpleSort","simpleBrand"].forEach(id=>{
  const el=document.getElementById(id);el.addEventListener(id==="simpleSearch"?"input":"change",()=>{LIB_LIMIT=120;FAMILY_VIEW=null;renderSimpleLibrary()});
 });
@@ -3679,6 +3714,7 @@ window.onpopstate=(e)=>{
    return;
  }
  const t=e.state&&e.state.app;
+ if(window.__atelierPick&&t!=="simpleLibrary")window.__atelierPick=null;
  window.__navGuard=true;
  try{
    if(!t||t==="step0"||t==="shopHome"){const h=document.getElementById("goHome");if(h)h.click();else go(0);}
