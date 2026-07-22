@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.7.1 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.7.2 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -848,7 +848,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.7.1 « Le parcours cohérent » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.7.2 « L'objectif suit, partout » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
@@ -1753,7 +1753,7 @@ function renderBuilds(){
   <div class="parts">${lines}</div><button class="btn" data-pick="${i}">En faire mon projet</button></div>`;
   g.appendChild(d)
  });
- g.querySelectorAll("[data-pick]").forEach(btn=>btn.onclick=()=>{if(!confirmReplaceCart())return;state.cart=JSON.parse(JSON.stringify(state.builds[Number(btn.dataset.pick)]));renderCart();go(4)})
+ g.querySelectorAll("[data-pick]").forEach(btn=>btn.onclick=()=>{if(!confirmReplaceCart())return;state.cart=JSON.parse(JSON.stringify(state.builds[Number(btn.dataset.pick)]));renderCart();syncLabGoalToProject();go(4)})
 }
 function labelCat(k){return ({cpu:"Processeur",motherboard:"Carte mère",ram:"Mémoire",gpu:"Carte graphique",case:"Boîtier",cooler:"Refroidissement",fans:"Ventilateurs",ssd:"SSD",psu:"Alimentation"})[k]||k}
 function tierLabel(tier){return tier==="haut"?"Haut de gamme":tier==="moyen"?"Milieu de gamme":"Entrée de gamme"}
@@ -1902,7 +1902,7 @@ function applyExpertToCart(){
  const missing=expertCategories.filter(k=>!state.expertSelection[k]);
  if(missing.length){showToast("Choisis encore "+missing.length+" catégorie(s) avant de créer le projet.");return}
  state.cart={profile:"expert",label:"Configuration expert",desc:"Configuration créée librement dans l’atelier.",selection:{...state.expertSelection},total:0};
- renderCart();go(4);showToast("Configuration expert appliquée au projet.");
+ renderCart();syncLabGoalToProject();go(4);showToast("Configuration expert appliquée au projet.");
 }
 
 let simpleLibraryTarget=null;
@@ -2002,7 +2002,7 @@ function renderSimpleLibrary(){
  });
  g.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  g.querySelectorAll("[data-use]").forEach(b=>b.onclick=()=>{
-   const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();go(4);showToast("Pièce ajoutée à ton projet.");
+   const [cat,id]=b.dataset.use.split("|");state.cart.selection[cat]=id;renderCart();syncLabGoalToProject();go(4);showToast("Pièce ajoutée à ton projet.");
  });
  g.querySelectorAll("[data-fav]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.fav.split("|");toggleFavorite(c,i)});
  g.querySelectorAll("[data-compare]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.compare.split("|");addCompare(c,i)});
@@ -2892,7 +2892,7 @@ function renderPersonalLibrary(){
  list.querySelectorAll("[data-sheet]").forEach(b=>b.onclick=()=>{const [c,i]=b.dataset.sheet.split("|");openSheet(c,i)});
  list.querySelectorAll("[data-personal-use]").forEach(b=>b.onclick=()=>{
    if(!state.cart){showToast("Choisis d’abord un projet.");return}
-   const [cat,id]=b.dataset.personalUse.split("|");state.cart.selection[cat]=id;renderCart();go(4);
+   const [cat,id]=b.dataset.personalUse.split("|");state.cart.selection[cat]=id;renderCart();syncLabGoalToProject();go(4);
  });
  list.querySelectorAll("[data-personal-delete]").forEach(b=>b.onclick=()=>{
    const [cat,id]=b.dataset.personalDelete.split("|");
@@ -2984,7 +2984,7 @@ document.getElementById("openCompare").onclick=()=>{renderCompare();showPanel("c
 document.getElementById("closeCompare").onclick=()=>showPanel("shopHome");
 document.getElementById("clearCompare").onclick=()=>{compareItems=[];renderCompareTray()};
 document.getElementById("generateShareCode").onclick=()=>{const c=encodeShareCode();if(!c){showToast("Aucun projet.");return}const b=document.getElementById("shareCodeBox");b.style.display="block";b.textContent=c;navigator.clipboard?.writeText(c);showToast("Code généré et copié.")};
-document.getElementById("importShareCode").onclick=()=>{voltAsk("Colle le code de partage","",c=>{const d=decodeShareCode(c);if(!d||!d.cart){showToast("Code invalide.");return}state.cart=d.cart;state.mood=d.mood;state.budget=d.budget||1500;renderCart();go(4)})};
+document.getElementById("importShareCode").onclick=()=>{voltAsk("Colle le code de partage","",c=>{const d=decodeShareCode(c);if(!d||!d.cart){showToast("Code invalide.");return}state.cart=d.cart;state.mood=d.mood;state.budget=d.budget||1500;renderCart();syncLabGoalToProject();go(4)})};
 
 document.getElementById("openPersonalLibrary").onclick=openPersonalLibrary;
 document.getElementById("closePersonalLibrary").onclick=()=>{document.getElementById("personalLibraryPanel").classList.remove("active");go(state.cart?4:state.step)};
@@ -3372,7 +3372,7 @@ function createDecodedCart(){
    state.cart.label="Mon PC";state.cart.desc="Mon PC réel — reconnu depuis ta description";
    renderCart();renderMyPcDoor();openUpLab();showToast("PC enregistré comme « Mon PC » ! La prochaine fois : un seul appui.");return;
  }
- renderCart();go(4);showToast("PC reconnu — ouvert comme projet ! Tu peux le comparer, l’améliorer ou le garder.");
+ renderCart();syncLabGoalToProject();go(4);showToast("PC reconnu — ouvert comme projet ! Tu peux le comparer, l’améliorer ou le garder.");
 }
 function makeOriginalStub(cat,label,color){
  const obj={id:"personal-"+Date.now()+"-"+Math.floor(Math.random()*999),name:label+" (import à compléter)",price:0,color:color||"black",custom:true,origin:"session",url:"",image:"",_assumed:{}};
@@ -3548,13 +3548,14 @@ function renderAppliedRecap(plan,R){
  g("recapMorePlans").onclick=()=>renderUpgradePlans();
  g("recapUndo").onclick=()=>{window.__justChanged=null;cartUndo();renderUpgradePlans();showToast("Plan annulé — ton projet est revenu comme avant.")};
 }
+function syncLabGoalToProject(){
+ const s=document.getElementById("upGoal");
+ if(!s)return;
+ const g=(state.screen==="4k")?"fps4k":(state.screen==="1440p")?"fps1440":"fps1080";
+ if([...s.options].some(o=>o.value===g))s.value=g;
+}
 function openUpLab(){
  go(4);
- const s=document.getElementById("upGoal");
- if(s&&state.cart){
-   const g=(state.screen==="4k")?"fps4k":(state.screen==="1440p")?"fps1440":"fps1080";
-   if([...s.options].some(o=>o.value===g))s.value=g;
- }
  const card=document.getElementById("upLabCard");
  if(card)setTimeout(()=>card.scrollIntoView({behavior:"smooth",block:"start"}),120);
 }
@@ -3803,7 +3804,7 @@ function copiloteAdvice(cat){
 function copiloteUse(cat,id){
  if(!state.cart&&getMyPc())loadMyPcIntoCart();
  if(!state.cart){showToast("Choisis d’abord un projet (ou enregistre Mon PC).");return}
- state.cart.selection[cat]=id;renderCart();go(4);showToast("Conseil appliqué à ton projet !");
+ state.cart.selection[cat]=id;renderCart();syncLabGoalToProject();go(4);showToast("Conseil appliqué à ton projet !");
 }
 function renderCopiloteBar(cat){
  const bar=document.getElementById("copiloteBar");if(!bar)return;
@@ -3852,7 +3853,7 @@ document.addEventListener("click",e=>{
    const [c,i]=u.dataset.use.split("|");
    state.cart.selection[c]=i;window.__justChanged=new Set([c]);
    const ov=document.getElementById("sheetOverlay");if(ov)ov.classList.remove("active");
-   renderCart();go(4);showToast("Remplacé — ton projet est à jour ✔");
+   renderCart();syncLabGoalToProject();go(4);showToast("Remplacé — ton projet est à jour ✔");
  }
 });
 document.getElementById("modeToggle").onclick=()=>{
@@ -3926,7 +3927,7 @@ function renderResumeChip(){
  const el=document.getElementById("resumeChip");if(!el)return;
  const sr=document.getElementById("shopResume");
  if(sr)sr.style.display=((state.cart&&state.cart.selection)||(window.__draft&&window.__draft.step>0))?"":"none";
- if(state.cart&&state.cart.selection){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 <strong>${escapeHtml(state.cart.label||"Ton setup")}</strong> est en cours — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="renderCart();go(4)">Reprendre là où tu en étais →</button></div>`;return}
+ if(state.cart&&state.cart.selection){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 <strong>${escapeHtml(state.cart.label||"Ton setup")}</strong> est en cours — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="renderCart();syncLabGoalToProject();go(4)">Reprendre là où tu en étais →</button></div>`;return}
  const d=window.__draft;
  if(d&&d.step>0){el.innerHTML=`<div class="small-note" style="margin:0 0 12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span>🕒 Ton parcours est en cours (étape ${d.step+1}) — rien n’a été perdu.</span><button class="btn secondary" style="font-size:11px" onclick="resumeDraft()">Reprendre mon parcours →</button></div>`;return}
  el.innerHTML="";
