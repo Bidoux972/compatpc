@@ -12,7 +12,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Compat'PC V8.7.2 — Construis, comprends, améliore</title>
+<title>Compat'PC V8.8.0 — Construis, comprends, améliore</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <style>
@@ -456,6 +456,10 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
 .line-verdict{font-size:10px;font-weight:900;margin-left:8px;letter-spacing:.3px;white-space:nowrap}
 .plan-thumb{height:46px;display:flex;align-items:center;justify-content:center;overflow:hidden}
 .plan-thumb img,.plan-thumb svg{max-height:46px;max-width:100%;object-fit:contain}
+.exp-info{display:flex;gap:10px;align-items:center;background:#0d0f15;border:1px solid #1f232e;padding:8px 10px;margin-top:7px;border-radius:8px}
+.exp-thumb{width:54px;height:44px;flex:none;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.exp-thumb img,.exp-thumb svg{max-width:100%;max-height:44px;object-fit:contain}
+.btn-mini{padding:5px 10px;font-size:11px;white-space:nowrap}
 </style>
 </head>
 <body>
@@ -848,7 +852,7 @@ body.copilote .fps-details>summary{cursor:pointer;color:#B78CFF;font-weight:800;
       </div>
     </div>
   </div>
-  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.7.2 « L'objectif suit, partout » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
+  <footer>© 2026 Famille Bourdon — usage privé. Compat'PC V8.8.0 « Le pont Atelier–Bibliothèque » — prix recalibrés sur le marché de juillet 2026 — Les prix sont indicatifs. Toujours vérifier la fiche constructeur et le vendeur avant achat.</footer>
 </div>
 
 <script type="module">
@@ -1855,13 +1859,21 @@ function renderExpertToolbox(){
      +grp("Mes imports / famille",groups.perso)
      +grp("Autres",groups.autres);
    const HINTS={gpu:"GeForce = DLSS & ray tracing • Radeon = plus de VRAM/€ — les deux vont très bien avec un Ryzen.",cpu:"Ryzen AM5 = plateforme évolutive 🛡️ • Intel = très bon aujourd'hui, socket sans avenir garanti.",motherboard:"Le socket doit être CELUI de ton processeur. X870/B850 = chipsets récents, souvent Wi-Fi 7."};
-   wrap.innerHTML=`<label>${labelCat(cat)} — ${parts[cat].length} choix</label><select id="expert-${cat}">${options}</select>${HINTS[cat]?`<div class="small-note" style="margin-top:4px;font-size:11px">${HINTS[cat]}</div>`:""}`;
+   wrap.innerHTML=`<label>${labelCat(cat)} — ${parts[cat].length} choix</label><select id="expert-${cat}">${options}</select>${HINTS[cat]?`<div class="small-note" style="margin-top:4px;font-size:11px">${HINTS[cat]}</div>`:""}<div class="exp-infobox" data-expinfo="${cat}"></div>`;
    box.appendChild(wrap);
    const sel=wrap.querySelector("select");
    sel.value=state.expertSelection[cat]||"";
-   sel.onchange=()=>{state.expertSelection[cat]=sel.value;analyzeExpert()}
+   sel.onchange=()=>{state.expertSelection[cat]=sel.value;analyzeExpert();renderExpertRowInfo(cat)}
+ renderExpertRowInfo(cat);
  });
  analyzeExpert();
+}
+function renderExpertRowInfo(cat){
+ const box=document.querySelector(`[data-expinfo="${cat}"]`);if(!box)return;
+ const p=expertSelected(cat);
+ if(!p){box.innerHTML=`<div class="exp-info empty"><span class="small-note" style="flex:1">Aucune pièce choisie — le menu, ou la bibliothèque en images :</span><span class="btn ghost btn-mini" data-explore="${cat}">🔎 Explorer</span></div>`;return}
+ const spec=(typeof specRows==="function"?(specRows(cat,p)||[]).slice(0,2).map(([l,v])=>`${escapeHtml(String(l))} ${escapeHtml(String(v))}`).join(" · "):"");
+ box.innerHTML=`<div class="exp-info"><div class="exp-thumb">${productVisual(cat,p,false)}</div><div style="flex:1;min-width:0"><div style="font-weight:800;font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(p.name)}</div><div class="small-note" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${money(p.price)}${spec?" · "+spec:""}</div></div><span class="btn ghost btn-mini" data-sheet="${cat}|${p.id}">📋 Fiche</span><span class="btn ghost btn-mini" data-explore="${cat}">🔎 Explorer</span></div>`;
 }
 function expertSelected(cat){return get(cat,state.expertSelection[cat])}
 function analyzeExpert(){
@@ -2555,10 +2567,23 @@ function openSheet(cat,id){
    openSheet(cat,id);renderShop();
  };
  document.getElementById("sheetCompare").onclick=()=>{addCompare(cat,id);showToast("Ajouté au comparateur (3 max).")};
- const __su=document.getElementById("sheetUse");if(__su&&state.cart&&state.cart.selection){__su.style.display="none";__su.textContent=""}
+ const __su=document.getElementById("sheetUse");
+ if(__su){
+   if(window.__atelierPick===cat){__su.style.display="";__su.textContent="🛠️ Choisir pour mon Atelier"}
+   else if(state.cart&&state.cart.selection){__su.style.display="none";__su.textContent=""}
+   else{__su.style.display="";__su.textContent="🚀 Commencer un projet avec cette pièce"}
+ }
  document.getElementById("sheetUse").onclick=()=>{
-   if(state.cart){state.cart.selection[cat]=id;renderCart();o.style.display="none";go(4);showToast(p.name+" est dans ton projet.")}
-   else{o.style.display="none";showToast("Crée d'abord un setup : parcours guidé ou atelier expert.")}
+   if(window.__atelierPick===cat){
+     state.expertSelection[cat]=id;window.__atelierPick=null;
+     o.style.display="none";openExpertWorkshop();if(typeof renderExpertToolbox==="function")renderExpertToolbox();
+     showToast(shortPieceName(p.name)+" est dans ton Atelier ✔");
+   }else if(state.cart){state.cart.selection[cat]=id;renderCart();o.style.display="none";go(4);showToast(p.name+" est dans ton projet.")}
+   else{
+     state.expertSelection[cat]=id;
+     o.style.display="none";openExpertWorkshop();if(typeof renderExpertToolbox==="function")renderExpertToolbox();
+     showToast(shortPieceName(p.name)+" sélectionnée — complète maintenant les autres catégories.");
+   }
  };
 }
 /* ===== Fin fiche produit ===== */
@@ -3846,6 +3871,10 @@ function compareDecodedToMyPc(){
  if(box)box.innerHTML=`<div class="duel-box" style="margin-top:10px"><strong>⚖️ Ton PC vs ce PC</strong><div class="small-note" style="margin-top:6px">Ton PC (${escapeHtml(shortPieceName(gpuA.name))}) : <strong>${fA} FPS</strong> • Ce PC (${escapeHtml(shortPieceName(gpuB.name))}) : <strong>${fB} FPS</strong> — moyenne des gros jeux en 1080p, estimation Compat’PC.</div><div style="margin-top:6px">${verdict}</div></div>`;
 }
 document.addEventListener("click",e=>{
+ const x=e.target.closest&&e.target.closest("[data-explore]");
+ if(x){window.__atelierPick=x.dataset.explore;openSimpleLibrary(x.dataset.explore);showToast("Mode atelier : ouvre une fiche et clique « Choisir pour mon Atelier ».");return}
+ const ap=e.target.closest&&e.target.closest("[data-atelierpick]");
+ if(ap){const [c,i]=ap.dataset.atelierpick.split("|");state.expertSelection[c]=i;window.__atelierPick=null;openExpertWorkshop();if(typeof renderExpertToolbox==="function")renderExpertToolbox();showToast("C’est dans ton Atelier ✔");return}
  const t=e.target.closest&&e.target.closest("[data-sheet]");
  if(t){const [c,i]=t.dataset.sheet.split("|");openSheet(c,i);e.preventDefault();return}
  const u=e.target.closest&&e.target.closest("#sheetCard [data-use]");
